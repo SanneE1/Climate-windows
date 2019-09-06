@@ -14,6 +14,7 @@ sdl <- df[which(df$seedling ==1),]
 adult <- df[which(df$seedling != 1),]
 adult$abort.stalks[which(adult$pflowerT==1)] <- ifelse(is.na(adult$abort.stalks[which(adult$pflowerT==1)]), 0, adult$abort.stalks[which(adult$pflowerT==1)])
 adult$pAbort <- adult$abort.stalks / adult$fertilityT
+adult$success <- as.integer(adult$fertilityT - adult$abort.stalks)
 
 
 #################
@@ -29,7 +30,7 @@ plot(adult$sizeT, adult$survival,
 
 
 
-s_a <- glmer(formula = survival ~ sizeT + (1|population) + (1|year),
+s_a <- glmer(formula = survival ~ sizeT + population + (1|year),
              data = adult, family = binomial)
 
 
@@ -45,7 +46,7 @@ plot(adult$sizeT, adult$sizeT1,
           frame = F)
 
 
-g_a <- lmer(formula = sizeT1 ~ sizeT + (1|year) + (1|population), data = adult)  ### relate growth sd to size as well? see plot ^ 
+g_a <- lmer(formula = sizeT1 ~ sizeT + (1|year) + population, data = adult)  ### relate growth sd to size as well? see plot ^ 
 gsd_a <- sd(resid(g_a))
 
 
@@ -91,18 +92,32 @@ hist(sdl$sizeT1,
      breaks = 24)
 
 
-Fp <- glmer(pflowerT ~ sizeT + (1|year) +(1|population), data = adult , family = binomial)
-Nstalk <- lmer(fertilityT ~ sizeT + (1|year) + (1|population), data = adult[which(adult$pflowerT==1),])
-FAp <- glmer(pAbort ~ sizeT + (1|year) + (1|population), data = adult[which(adult$pflowerT==1),], family = binomial)   ## seems not to be size dependent!
+### Flowering propability
+Fp <- glmer(pflowerT ~ sizeT + (1|year) +population, data = adult , family = binomial)
 
+### Total number of Stalks produced
+Nstalk <- lmer(fertilityT ~ sizeT + (1|year) + population, data = adult[which(adult$pflowerT==1),])
+
+### Chance for Viable Stalks
+FAp <- glmer(cbind(success, abort.stalks) ~ sizeT + (1|year) + population, data = adult[which(adult$pflowerT==1),], family = binomial)
+
+
+### Stalk components
 heads.per.stalk<-2.17                                   ## flowerheads per stalk  ##hard-coded by Amy Iler
 seeds.per.head<-64.1                                    ## seeds per flowerhead   ##hard-coded by Amy Iler
 
+### Germination propability
 Pe <- c(mean(Pe$Pe), sd(Pe$Pe))
 
 ### seedling survival
-#  s_s <- glmer(formula = survival ~ (1|year), data = sdl, family = binomial)  ## see about Survival:sizeT1 = 1:NA thing
+s_s <- glmer(formula = survival ~ (1|year), data = sdl, family = binomial)  
 
+### Stay seedling?
+## is that what the seedling == 1, survival ==1, sizeT1 = NA means?
+a <- sdl[which(sdl$survival == 1),]
+a <- sdl[which(is.na(a$sizeT1)),]
+
+### size distribution into continuous stage
 Fd <- c(mean(sdl$sizeT1, na.rm = T), sd(sdl$sizeT1, na.rm = T))
 
 
