@@ -66,6 +66,7 @@ closest_stations <- rbind(Stations[[1]][1,], Stations[[2]][1,], Stations[[3]][1,
 
 WeatherInfo <- read.csv("Data/Climate data/HEQU_NOAA.csv")
 WeatherInfo$date <-  as.Date(WeatherInfo$date, "%m/%d/%Y")
+<<<<<<< HEAD
 WeatherInfo$X <- NULL
 
 
@@ -73,6 +74,13 @@ WeatherInfo$X <- NULL
 DailyInfo <- WeatherInfo
 
 for (j in c(4,7,8,9)) {                      ## climate columns of intrest                               
+=======
+
+
+### replace with the mean of that day from other years ---------------------------------
+
+for (j in c(4,7,8,9)) {                                   
+>>>>>>> c5b66cc32bfd3a69a57313685a6e7cbacd061e45
   for(i in which(is.na(WeatherInfo[j]))){
       if (is.na(WeatherInfo[i,j])) {
         DailyInfo[i,j] <- mean(WeatherInfo[which(month(WeatherInfo$date) == month(WeatherInfo$date[i]) & 
@@ -100,6 +108,7 @@ write.csv(select(DailyInfo, "id", "date", "prcp", "tmax", "tmin", "tobs", "popul
 
 
 
+<<<<<<< HEAD
 ############################################################################
 ## Add missing Clim data and Scale weather information  ---- Monthly ---- ##
 ############################################################################
@@ -108,6 +117,16 @@ write.csv(select(DailyInfo, "id", "date", "prcp", "tmax", "tmin", "tobs", "popul
 
 MonthlyInfo <- DailyInfo %>%
   group_by(id, population, Month = month(date), Year = year(date)) %>%
+=======
+##########################################################################
+## Add missing Clim data and Scale weather information  ---- DAILY ---- ##
+##########################################################################
+
+
+
+MonthlyInfo <- WeatherInfo %>%
+  group_by(id, Month = month(date), Year = year(date)) %>%
+>>>>>>> c5b66cc32bfd3a69a57313685a6e7cbacd061e45
   summarise(sum_prcp = sum(prcp),
             mean_prcp = mean(prcp),
             sd_prcp = sd(prcp),
@@ -121,11 +140,19 @@ MonthlyInfo <- DailyInfo %>%
 
 ### replace with the mean of that month from other years ---------------------------------
 
+<<<<<<< HEAD
 for (j in c(5:12)) {                          ## climate columns of intrest                
   for(i in which(is.na(MonthlyInfo[j]))){
     if (is.na(MonthlyInfo[i,j])) {
       MonthlyInfo[i,j] <- mean(unlist(MonthlyInfo[which(MonthlyInfo$Month == MonthlyInfo$Month[i] & 
                                                  MonthlyInfo$id == MonthlyInfo$id[i]), j]), na.rm = T)
+=======
+for (j in c(4,7,8,9)) {                                   
+  for(i in which(is.na(MonthlyInfo[j]))){
+    if (is.na(MonthlyInfo[i,j])) {
+      MonthlyInfo[i,j] <- mean(MonthlyInfo[which(MonthlyInfo$Month == MonthlyInfo$Month[i] & 
+                                                 MonthlyInfo$population == MonthlyInfo$population[i]), j], na.rm = T)
+>>>>>>> c5b66cc32bfd3a69a57313685a6e7cbacd061e45
     }
   }
 }
@@ -136,6 +163,7 @@ for (j in c(5:12)) {                          ## climate columns of intrest
 
 MonthlyInfo <- MonthlyInfo %>%                      
   group_by(id, Month) %>%
+<<<<<<< HEAD
   mutate(sum_prcp_scaled = scale(sum_prcp),
          mean_prcp_scaled = scale(mean_prcp),
          sd_prcp_scaled = scale(sd_prcp),
@@ -152,3 +180,14 @@ write.csv(MonthlyInfo, "Data/Climate data/HEQU_NOAA_monthly.csv" )
 
 
 
+=======
+  mutate(prcp_scaled_M = scale(prcp),
+         tmax_scaled_M = scale(tmax),
+         tmin_scaled_M = scale(tmin),
+         tobs_scaled_M = scale(tobs)
+  )
+
+
+write.csv(select(MonthlyInfo, "id", "date", "prcp", "tmax", "tmin", "tobs", "population", "prcp_scaled_M","tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M" ), 
+          "Data/Climate data/HEQU_NOAA_monthly.csv" )
+>>>>>>> c5b66cc32bfd3a69a57313685a6e7cbacd061e45
