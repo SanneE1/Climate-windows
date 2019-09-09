@@ -1,13 +1,14 @@
-setwd("C:/owncloud/Documents/PhD/Biomes/Helianthella quinquenervis/")
+setwd("C:/owncloud/Documents/PhD/Biomes/Biome/")
 
 library(dplyr)
 library(lme4)
 library(ggplot2)
+library(ggiraphExtra)
 
-
-df <- read.csv("Data/HEQU_demography data_JEcol_Dryad.csv") %>%
+df <- read.csv("Data/Biol data/HEQU_demography data_JEcol_Dryad.csv") %>%
   mutate(sizeT = log(as.integer(sizeT)),          #### ln transform here. From Appendix S1 it sounds like they transform within each vital rate
-         sizeT1 = log(as.integer(sizeT1))         #### In the end it's the same, but is there a reason to do it one or the other way for forms sake??
+         sizeT1 = log(as.integer(sizeT1)),         #### In the end it's the same, but is there a reason to do it one or the other way for forms sake??
+         population_f = factor(population, levels = c("high", "mid","low"))
          )
 
 sdl <- df[which(df$seedling ==1),]
@@ -27,11 +28,14 @@ plot(adult$sizeT, adult$survival,
      ylab = "Survival",
      pch = 19,
      frame = F)
-
-
-
-s_a <- glmer(formula = survival ~ sizeT + population + (1|year),
+s_a <- glm(formula = survival ~ sizeT + population,
              data = adult, family = binomial)
+
+ggplot(adult, aes(sizeT, survival)) +
+  geom_point() +
+  stat_smooth(method = "glm", method.args = list(family="binomial"), se=F)+
+  facet_grid( vars(population_f), vars(year))
+
 
 
 #################
