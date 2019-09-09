@@ -29,15 +29,52 @@ xvar <- c("Clim$Temp", "Clim$Rain")
 type <- c("absolute")
 stat <- c("mean")
 func <- c("lin", "quad")
-upper <- NA            ## specify upper limit when stat = sum, else set to NA
-lower <- NA            ## specify lower limit when stat = sum, else set to NA
+upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
+lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
+# options <- rbind(options, c("Clim$Temp", "absolute", "sum", "lin", 10, NA))  ## example of adding a "sum" combination
 
 ### Get ClimWin functions that can run parallel -----------------------------------------
 
-source("Analysis/Vital rates/Parallel_Climwin_functions.R")
+ParSliding <- function(combi) {
+  
+  x <- list(Clim[,ifelse(options$xvar[combi] == xvar[1], 2, 3)]) 
+  names(x) <- ifelse(options$xvar[combi] == "Clim$Temp", "Temp", "Rain")
+  
+  
+  slidingwin(baseline = lmer(sizeT1 ~ sizeT + population + (1|year), data = Biol, REML = F),
+             xvar = x,
+             type = "absolute",
+             range = c(365,0),
+             stat = options$stat[combi], 
+             upper = ifelse(options$stat[combi] == "sum", options$upper[combi], NA),
+             lower = ifelse(options$stat[combi] == "sum", options$lower[combi], NA),
+             func = options$func[combi],
+             refday = c(30,6),                             
+             cinterval = "day",
+             cdate = as.character(Clim$Date), bdate = as.character(Biol$Date)
+  )
+  
+  
+}
+
+
+Cleanup <- function(obj) {
+  df <- obj[[1]]$combos[0,]
+  l <- list()
+  
+  for (i in 1:length(obj)) {
+    x <- obj[[i]]$combos
+    df <- rbind(df, x )
+    l <- append(l, obj[[1]][1])
+  }
+  
+  return(c(l, combos = list(df)))
+  
+}
+
 
 ### set up parallels ----------------------------------------------------------------------
 
@@ -54,7 +91,7 @@ clusterEvalQ(cluster, list(library(climwin),
 clusterExport(cluster, c('Clim', 'Biol', 'options', 'xvar') )
 
 start <- Sys.time()
-GrowthPar <- parLapply(cluster, 1:length(options[,1]), ParSliding)
+GrowthDPar <- parLapply(cluster, 1:length(options[,1]), ParSliding)
 Sys.time() - start
 
 stopCluster(cluster)
@@ -62,9 +99,9 @@ stopCluster(cluster)
 
 ### Merge into one output that can be used with climwin -----------------------
 
-GrowthDaily <- Cleanup(GrowthPar)
+GrowthDaily <- Cleanup(GrowthDPar)
 
-save(m, file = "Results/Climwin/HEQU_Growth_Daily")
+save(GrowthDaily, file = "Results/Climwin/HEQU_Growth_Daily")
 
 
 

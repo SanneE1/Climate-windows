@@ -1,4 +1,4 @@
-setwd("c:/owncloud/Documents/PhD/Biomes/Biome/")
+# setwd("c:/owncloud/Documents/PhD/Biomes/Biome/")
 
 library(climwin)
 library(dplyr)
@@ -6,11 +6,11 @@ library(lme4)
 library(parallel)
 
 ### Prepare data -------------------------------------------------------------
-Clim <- read.csv("Data/Climate data/HEQU_NOAA_monthly.csv") 
+Clim <- read.csv("Data/HEQU_NOAA_monthly.csv") 
 Clim$Date <- paste("15/",Clim$Month, "/", Clim$Year, sep = "")             ### get a date that's accepted by climwin
 Clim$X <- NULL
 
-Biol <- read.csv("Data/Biol data/HEQU_demography data_JEcol_Dryad.csv") %>%
+Biol <- read.csv("Data/HEQU_demography data_JEcol_Dryad.csv") %>%
   mutate(sizeT = log(as.numeric(sizeT)),          
          sizeT1 = log(as.numeric(sizeT1))         
   )
@@ -29,15 +29,52 @@ xvar <- c("Clim$Temp", "Clim$Rain")
 type <- c("absolute")
 stat <- c("mean")
 func <- c("lin", "quad")
-upper <- NA            ## specify upper limit when stat = sum, else set to NA
-lower <- NA            ## specify lower limit when stat = sum, else set to NA
+upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
+lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
+# options <- rbind(options, c("Clim$Temp", "absolute", "sum", "lin", 10, NA))  ## example of adding a "sum" combination
 
-### Creat ClimWin functions that can run parallel -----------------------------------------
+### Get ClimWin functions that can run parallel -----------------------------------------
 
-source("Analysis/Climwin/Parallel_Climwin_functions.R")
+ParSliding <- function(combi) {
+  
+  x <- list(Clim[,ifelse(options$xvar[combi] == xvar[1], 2, 3)]) 
+  names(x) <- ifelse(options$xvar[combi] == "Clim$Temp", "Temp", "Rain")
+  
+  
+  slidingwin(baseline = lmer(sizeT1 ~ sizeT + population + (1|year), data = Biol, REML = F),
+             xvar = x,
+             type = "absolute",
+             range = c(12,0),
+             stat = options$stat[combi], 
+             upper = ifelse(options$stat[combi] == "sum", options$upper[combi], NA),
+             lower = ifelse(options$stat[combi] == "sum", options$lower[combi], NA),
+             func = options$func[combi],
+             refday = c(30,6),                             
+             cinterval = "month",
+             cdate = as.character(Clim$Date), bdate = as.character(Biol$Date)
+  )
+  
+  
+} 
+
+
+Cleanup <- function(obj) {
+  df <- obj[[1]]$combos[0,]
+  l <- list()
+  
+  for (i in 1:length(obj)) {
+    x <- obj[[i]]$combos
+    df <- rbind(df, x )
+    l <- append(l, obj[[1]][1])
+  }
+  
+  return(c(l, combos = list(df)))
+  
+}
+
 
 ### set up parallels ----------------------------------------------------------------------
 
@@ -54,7 +91,7 @@ clusterEvalQ(cluster, list(library(climwin),
 clusterExport(cluster, c('Clim', 'Biol', 'options', 'xvar') )
 
 start <- Sys.time()
-GrowthPar <- parLapply(cluster, 1:length(options[,1]), ParSliding)
+GrowthMPar <- parLapply(cluster, 1:length(options[,1]), ParSliding)
 Sys.time() - start
 
 stopCluster(cluster)
@@ -62,9 +99,9 @@ stopCluster(cluster)
 
 ### Merge into one output that can be used with climwin -----------------------
 
-GrowthMonthly <- Cleanup(GrowthPar)
+GrowthMonthly <- Cleanup(GrowthMPar)
 
-save(m, file = "Results/Climwin/HEQU_Growth_Monthly")
+save(GrowthMonthly, file = "work/HEQU_Growth_Monthly")
 
 
 
