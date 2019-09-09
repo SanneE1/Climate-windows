@@ -27,7 +27,7 @@ Biol <- Biol[which(!is.na(Biol$sizeT1)),]
 
 xvar <- c("Clim$Temp", "Clim$Rain")
 type <- c("absolute")
-stat <- c("mean")
+stat <- c("mean", "slope", "sd")
 func <- c("lin", "quad")
 upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
 lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
