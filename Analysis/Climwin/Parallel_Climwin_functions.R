@@ -1,19 +1,4 @@
-## Create functions that split up the slidingwin from Climwin so it can be run parallel using ParLapply
-## and a function to clean up the resulting list into a form the basic climwin function can use again
-## These functions require a dataframe called "options" that includes column names 'xvar', 'type', 'stat' and 'func'
-## In the linked scripts the combos are created seperately and then each combo is run through slidingwin seperately
-## through code like:
-     # xvar <- c("Clim$Temp")
-     # type <- c("absolute")
-     # stat <- c("sum")
-     # func <- c("lin")
-     # upper <- c(10)  ## specify upper limit when stat = sum, else set to NA
-     # lower <- NA     ## specify lower limit when stat = sum, else set to NA
-     # options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
-     #
-     # parLapply(cluster, 1:length(options[,1]), ParSliding)
-
-
+## Example of functions to use slidingwin in parallel
 
 ## Slidingwin --------------------------------------------------------------
 
