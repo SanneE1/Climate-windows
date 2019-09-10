@@ -1,30 +1,17 @@
 # setwd("c:/owncloud/Documents/PhD/Biomes/Biome/")
 
-library(climwin)
-library(dplyr)
-library(lme4)
-library(parallel)
-library(optparse)
+suppressPackageStartupMessages(library(climwin))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(lme4))
+suppressPackageStartupMessages(library(optparse))
 
-# ------------------------------------------------------------------------------
-# defaults
-# ------------------------------------------------------------------------------
 
-default.ncores <- 1
 
 # ------------------------------------------------------------------------------
 # parsing arguments
 # ------------------------------------------------------------------------------
 
 Parsoptions <- list (
-  
-  make_option(
-    opt_str = c("-c", "--cores"),
-    dest    = "ncores",
-    type    = "integer",
-    default = default.ncores,
-    help    = paste0("number of cores to use, defaults to ", default.ncores),
-    metavar = "4")
   
   
 )
@@ -45,9 +32,11 @@ cli <- parse_args(parser, positional_arguments = 3)
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
+taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 ### Prepare data -------------------------------------------------------------
 Clim <- read.csv(Climate) 
+Clim$date <- paste("15/",Clim$Month, "/", Clim$Year, sep = "")
 Clim$date <- as.Date(Clim$date)                                    ### get a date that's accepted by climwin
 Clim$date <- format(Clim$date, format = "%d/%m/%Y")           
 
@@ -77,73 +66,27 @@ options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper
 
 # options <- rbind(options, c("Clim$Temp", "absolute", "sum", "lin", 10, NA))  ## example of adding a "sum" combination
 
-### Get ClimWin functions that can run parallel -----------------------------------------
+#### Run function ---------------------------------------------------
 
-ParSliding <- function(combi) {
-  
-  x <- list(Clim[,ifelse(options$xvar[combi] == xvar[1], 2, 3)]) 
-  names(x) <- ifelse(options$xvar[combi] == "Clim$Temp", "Temp", "Rain")
-  
-  
-  slidingwin(baseline = glmer(formula = survival ~ sizeT + population + (1|year),
-                              data = Biol, 
-                              family = binomial),
-             xvar = x,
-             type = "absolute",
-             range = c(12,0),
-             stat = options$stat[combi], 
-             upper = ifelse(options$stat[combi] == "sum", options$upper[combi], NA),
-             lower = ifelse(options$stat[combi] == "sum", options$lower[combi], NA),
-             func = options$func[combi],
-             refday = c(30,6),                             
-             cinterval = "month",
-             cdate = as.character(Clim$Date), bdate = as.character(Biol$Date)
-  )
-  
-  
-} 
+x <- list(Clim[,ifelse(options$xvar[taskID] == xvar[1], 2, 3)]) 
+names(x) <- ifelse(options$xvar[taskID] == "Clim$Temp", "Temp", "Rain")
 
-
-Cleanup <- function(obj) {
-  df <- obj[[1]]$combos[0,]
-  l <- list()
-  
-  for (i in 1:length(obj)) {
-    x <- obj[[i]]$combos
-    df <- rbind(df, x )
-    l <- append(l, obj[[1]][1])
-  }
-  
-  return(c(l, combos = list(df)))
-  
-}
-
-
-### set up parallels ----------------------------------------------------------------------
-
-
-# set up as many clusters as detected by 'detectCores()'
-cluster   <- parallel::makePSOCKcluster(cli$ncores)
-
-# attach packages that will be needed on each cluster
-clusterEvalQ(cluster, list(library(climwin),  
-                           library(dplyr), library(lme4)) )
-
-# attach objects that will be needed on each cluster
-clusterExport(cluster, c('Clim', 'Biol', 'options', 'xvar') )
-
-start <- Sys.time()
-SurvMPar <- parLapply(cluster, 1:length(options[,1]), ParSliding)
-Sys.time() - start
-
-stopCluster(cluster)
+result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + (1|year),
+                            data = Biol, 
+                            family = binomial),
+           xvar = x,
+           type = "absolute",
+           range = c(12,0),
+           stat = options$stat[taskID], 
+           upper = ifelse(options$stat[taskID] == "sum", options$upper[taskID], NA),
+           lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
+           func = options$func[taskID],
+           refday = c(30,6),                             
+           cinterval = "month",
+           cdate = as.character(Clim$Date), bdate = as.character(Biol$Date)
+)
 
 
 ### Merge into one output that can be used with climwin -----------------------
 
-SurvivalMonthly <- Cleanup(SurvMPar)
-
-save(SurvivalMonthly, file = output)
-
-
-
+saveRDS(result, file = output)
