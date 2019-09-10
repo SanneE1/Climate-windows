@@ -12,10 +12,13 @@ suppressPackageStartupMessages(library(optparse))
 # ------------------------------------------------------------------------------
 
 Parsoptions <- list (
-  
-  
+  make_option(
+    opt_str = c("-c", "--climate-data-format"),
+    dest    = "climate_data_format",
+    help    = "Specify the format of the climate data, either month or day",
+    metavar = "month|day")
 )
-
+  
 parser <- OptionParser(
   usage       = "Rscript %prog [options] Climate SpeciesInput output",
   option_list = Parsoptions,
@@ -28,22 +31,31 @@ cli <- parse_args(parser, positional_arguments = 3)
 # ------------------------------------------------------------------------------
 # assign a few shortcuts
 # ------------------------------------------------------------------------------
-
+cdate <- cli$climate_data_format
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
-### Prepare data -------------------------------------------------------------
-Clim <- read.csv(Climate) 
-Clim$date <- paste("15/",Clim$Month, "/", Clim$Year, sep = "")
-Clim$date <- as.Date(Clim$date)                                    ### get a date that's accepted by climwin
-Clim$date <- format(Clim$date, format = "%d/%m/%Y")           
+### Check 
+if (!(cdate == "month"||cdate == "day")) {
+  print("Climate data format needs to be either \"month\" or \"day\"")
+  q(status = 1)
+}
 
-Biol <- read.csv(SpeciesInput) %>%
-  mutate(sizeT = log(as.numeric(sizeT)),          
-         sizeT1 = log(as.numeric(sizeT1))         
-  )
+### Prepare data -------------------------------------------------------------
+Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
+
+if(cdate == "month") {
+      Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
+}
+  
+if(cdate == "day") {
+      Clim$date <- as.Date(Clim$date)                                         
+      Clim$date <- format(Clim$date, format = "%d/%m/%Y")           
+}
+
+Biol <- read.csv(SpeciesInput) 
 
 Biol$date <- as.Date(paste(Biol$year, "/07/01", sep = "") )        ### get a date that's accepted by climwin
 Biol$date <- format(Biol$date, format = "%d/%m/%Y")
@@ -82,8 +94,8 @@ result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + 
            lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
            func = options$func[taskID],
            refday = c(30,6),                             
-           cinterval = "month",
-           cdate = as.character(Clim$Date), bdate = as.character(Biol$Date)
+           cinterval = cdate,
+           cdate = as.character(Clim$date), bdate = as.character(Biol$date)
 )
 
 
