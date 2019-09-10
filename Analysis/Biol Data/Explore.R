@@ -28,14 +28,15 @@ plot(adult$sizeT, adult$survival,
      ylab = "Survival",
      pch = 19,
      frame = F)
-s_a <- glm(formula = survival ~ sizeT + population,
+s_a <- glmer(formula = survival ~ sizeT + population + (1|year),
              data = adult, family = binomial)
 
-ggplot(adult, aes(sizeT, survival)) +
+SurvPlot <- ggplot(adult, aes(sizeT, survival)) +
   geom_point() +
   stat_smooth(method = "glm", method.args = list(family="binomial"), se=F)+
   facet_grid( vars(population_f), vars(year))
 
+ggsave("Visual/HEQU_Plot_Survival.png", plot = SurvPlot, width = 12, height = 6)
 
 
 #################
@@ -53,8 +54,12 @@ plot(adult$sizeT, adult$sizeT1,
 g_a <- lmer(formula = sizeT1 ~ sizeT + (1|year) + population, data = adult)  ### relate growth sd to size as well? see plot ^ 
 gsd_a <- sd(resid(g_a))
 
+GrowthPlot <- ggplot(adult, aes(sizeT, sizeT1)) +
+  geom_point() +
+  stat_smooth(method = "glm", method.args = list(family="poisson"), se=F)+
+  facet_grid( vars(population_f), vars(year))
 
-
+ggsave("Visual/HEQU_Plot_Growth.png", plot = GrowthPlot, width = 12, height = 6)
 
 ###################
 ###  Fecundity  ###
