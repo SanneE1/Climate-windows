@@ -4,7 +4,7 @@
  
 #$ -wd /work/$USER
  
-#$ -o /work/$USER/$JOB_NAME-$JOB_ID.log
+#$ -o /work/$USER/$JOB_NAME-$JOB_ID-$TASK_ID.log
 #$ -j y
 
 #Specify job name

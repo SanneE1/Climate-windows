@@ -1,4 +1,7 @@
-# setwd("c:/owncloud/Documents/PhD/Biomes/Biome/")
+## R code that works with the matching submission script to run the sliding window analysis on 
+## individual based datasets as an array job. This code is very sensitive to correct 
+## dataformats/column names. Please read the README.md file of this project to see the correct 
+## file name and data formats. 
 
 suppressPackageStartupMessages(library(climwin))
 suppressPackageStartupMessages(library(dplyr))
@@ -7,9 +10,9 @@ suppressPackageStartupMessages(library(optparse))
 
 
 
-# ------------------------------------------------------------------------------
+#  ----------------------------------------------------------------------------------------------------------------------------
 # parsing arguments
-# ------------------------------------------------------------------------------
+#  ----------------------------------------------------------------------------------------------------------------------------
 
 Parsoptions <- list (
   make_option(
@@ -28,9 +31,9 @@ parser <- OptionParser(
 
 cli <- parse_args(parser, positional_arguments = 3)
 
-# ------------------------------------------------------------------------------
+#  ----------------------------------------------------------------------------------------------------------------------------
 # assign a few shortcuts
-# ------------------------------------------------------------------------------
+#  ----------------------------------------------------------------------------------------------------------------------------
 cdate <- cli$climate_data_format
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
@@ -43,29 +46,29 @@ if (!(cdate == "month"||cdate == "day")) {
   q(status = 1)
 }
 
-### Prepare data -------------------------------------------------------------
+### Prepare data ----------------------------------------------------------------------------------------------------------------------------
 Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
 
 if(cdate == "month") {
-      Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
+  Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
 }
-  
+
 if(cdate == "day") {
-      Clim$date <- as.Date(Clim$date)                                         
-      Clim$date <- format(Clim$date, format = "%d/%m/%Y")           
+  Clim$date <- as.Date(Clim$date)                                         
+  Clim$date <- format(Clim$date, format = "%d/%m/%Y")           
 }
 
-Biol <- read.csv(SpeciesInput) 
 
-Biol$date <- as.Date(paste(Biol$year, "/07/01", sep = "") )        ### get a date that's accepted by climwin
-Biol$date <- format(Biol$date, format = "%d/%m/%Y")
+Biol <- read.csv(SpeciesInput) %>%
+  mutate(sizeT = as.numeric(as.character(sizeT)),
+         sizeT1 = as.numeric(as.character(sizeT1)))
+
+Biol$date <- paste("01/07/", Biol$year, sep = "")                  ### get a date that's accepted by climwin
 Biol <- Biol[which(Biol$seedling != 1),]                           ### Select Adults
 Biol <- Biol[which(!is.na(Biol$survival)),]                       
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
-
-
-### Climate signal combies ----------------------------------------------------------------
+### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
 xvar <- c("Clim$Temp", "Clim$Rain")
 type <- c("absolute")
@@ -78,7 +81,7 @@ options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper
 
 # options <- rbind(options, c("Clim$Temp", "absolute", "sum", "lin", 10, NA))  ## example of adding a "sum" combination
 
-#### Run function ---------------------------------------------------
+#### Run function ----------------------------------------------------------------------------------------------------------------------------
 
 x <- list(Clim[,ifelse(options$xvar[taskID] == xvar[1], 2, 3)]) 
 names(x) <- ifelse(options$xvar[taskID] == "Clim$Temp", "Temp", "Rain")
@@ -88,15 +91,16 @@ result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + 
                             family = binomial),
            xvar = x,
            type = "absolute",
-           range = c(12,0),
+           range = c(ifelse(cdate == "month", 12, 365), 0),
            stat = options$stat[taskID], 
            upper = ifelse(options$stat[taskID] == "sum", options$upper[taskID], NA),
            lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
            func = options$func[taskID],
            refday = c(30,6),                             
            cinterval = cdate,
-           cdate = as.character(Clim$date), bdate = as.character(Biol$date)
-)
+           cdate = as.character(Clim$date), bdate = as.character(Biol$date),
+           spatial = list(as.factor(Biol$population), as.factor(Clim$population))
+           )
 
 
 ### Merge into one output that can be used with climwin -----------------------
