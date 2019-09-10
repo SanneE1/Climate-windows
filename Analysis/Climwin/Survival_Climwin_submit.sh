@@ -31,7 +31,7 @@ cdate=$(basename $climate .csv | cut -d _ -f3)
 output=/work/$USER/${JOB_NAME}_$(basename $climate .csv | cut -d _ -f1)_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
 
  
-Rscript $HOME/Biome/Analysis/Climwin/HEQU_Survival_Climwin_Parallel_month.R \
+Rscript $HOME/Biome/Analysis/Climwin/Survival_Climwin.R \
   --climate-data-format=$cdate \
   $climate \
   $SpeciesInput \
