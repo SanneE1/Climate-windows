@@ -81,6 +81,8 @@ options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper
 
 # options <- rbind(options, c("Clim$Temp", "absolute", "sum", "lin", 10, NA))  ## example of adding a "sum" combination
 
+print(options[taskID,])
+
 #### Run function ----------------------------------------------------------------------------------------------------------------------------
 
 x <- list(Clim[[options$xvar[taskID]]]) 
