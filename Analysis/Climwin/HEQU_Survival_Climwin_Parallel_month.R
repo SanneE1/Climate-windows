@@ -4,13 +4,54 @@ library(climwin)
 library(dplyr)
 library(lme4)
 library(parallel)
+library(optparse)
+
+# ------------------------------------------------------------------------------
+# defaults
+# ------------------------------------------------------------------------------
+
+default.ncores <- 1
+
+# ------------------------------------------------------------------------------
+# parsing arguments
+# ------------------------------------------------------------------------------
+
+Parsoptions <- list (
+  
+  make_option(
+    opt_str = c("-c", "--cores"),
+    dest    = "ncores",
+    type    = "integer",
+    default = default.ncores,
+    help    = paste0("number of cores to use, defaults to ", default.ncores),
+    metavar = "4")
+  
+  
+)
+
+parser <- OptionParser(
+  usage       = "Rscript %prog [options] Climate SpeciesInput output",
+  option_list = Parsoptions,
+  description = "\nan Run slidingwindow analysis",
+  epilogue    = ""
+)
+
+cli <- parse_args(parser, positional_arguments = 3)
+
+# ------------------------------------------------------------------------------
+# assign a few shortcuts
+# ------------------------------------------------------------------------------
+
+Climate   <- cli$args[1]
+SpeciesInput  <- cli$args[2]
+output <- cli$args[3]
 
 ### Prepare data -------------------------------------------------------------
-Clim <- read.csv("Data/HEQU_NOAA_supplemented.csv") 
+Clim <- read.csv(Climate) 
 Clim$date <- as.Date(Clim$date)                                    ### get a date that's accepted by climwin
 Clim$date <- format(Clim$date, format = "%d/%m/%Y")           
 
-Biol <- read.csv("Data/HEQU_demography data_JEcol_Dryad.csv") %>%
+Biol <- read.csv(SpeciesInput) %>%
   mutate(sizeT = log(as.numeric(sizeT)),          
          sizeT1 = log(as.numeric(sizeT1))         
   )
@@ -80,10 +121,9 @@ Cleanup <- function(obj) {
 
 ### set up parallels ----------------------------------------------------------------------
 
-# detect cores
-cores     <- (detectCores() - 2)
+
 # set up as many clusters as detected by 'detectCores()'
-cluster   <- parallel::makePSOCKcluster(cores)
+cluster   <- parallel::makePSOCKcluster(cli$ncores)
 
 # attach packages that will be needed on each cluster
 clusterEvalQ(cluster, list(library(climwin),  
@@ -103,7 +143,7 @@ stopCluster(cluster)
 
 SurvivalMonthly <- Cleanup(SurvMPar)
 
-save(SurvivalMonthly, file = "work/HEQU_Growth_Monthly")
+save(SurvivalMonthly, file = output)
 
 
 

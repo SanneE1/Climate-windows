@@ -21,5 +21,13 @@
 #$ -pe smp 20-40
 
 module load foss/2018b R/3.5.1
+
+climate=$1
+SpeciesInput=$2
+output=/work/$USER/${JOB_NAME}_$(basename $climate .csv | cut -d _ -f1)_$(basename $climate .csv | cut -d _ -f3)_$JOB_ID.Rdata
+
  
-Rscript $HOME/Biome/Analysis/Climwin/HEQU_Survival_Climwin_Parallel_month.r
+Rscript $HOME/Biome/Analysis/Climwin/HEQU_Survival_Climwin_Parallel_month.r \
+  $climate \
+  $SpeciesInput \
+  $output
