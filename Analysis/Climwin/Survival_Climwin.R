@@ -70,7 +70,7 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-xvar <- c("Clim$Temp", "Clim$Rain")
+xvar <- c("mean_tobs", "mean_prcp")
 type <- c("absolute")
 stat <- c("mean","slope", "sd")
 func <- c("lin", "quad")
@@ -83,8 +83,8 @@ options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper
 
 #### Run function ----------------------------------------------------------------------------------------------------------------------------
 
-x <- list(Clim[,ifelse(options$xvar[taskID] == xvar[1], 2, 3)]) 
-names(x) <- ifelse(options$xvar[taskID] == "Clim$Temp", "Temp", "Rain")
+x <- list(Clim[[options$xvar[taskID]]]) 
+names(x) <- options$xvar[taskID]
 
 result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + (1|year),
                             data = Biol, 
