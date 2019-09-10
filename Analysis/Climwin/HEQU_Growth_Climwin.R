@@ -16,7 +16,7 @@ Clim <- read.csv("Data/Climate data/HEQU_NOAA_month.csv")
 Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")  ### MONTHLY data         
 
 
-Biol <- read.csv("Data/Biol data/HEQU_demography data_JEcol_Dryad.csv") %>%
+Biol <- read.csv("Data/Biol data/HEQU_demography_data_JEcol_Dryad.csv") %>%
   mutate(sizeT = as.numeric(as.character(sizeT)),
          sizeT1 = as.numeric(as.character(sizeT1)))
 
