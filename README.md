@@ -25,9 +25,9 @@ Project: Testing the importance of growing season climate for predicting populat
 For now the scripts are very sensitive to having the correct column names and value format (especially date). The individually data needs to at least contain the following columns in the following formats:  
 * population = the population the individual belongs to
 * plantID = unique code for each individual
-* year = the year of measurements
-* month = the month for the measurement
-* day = the day in the month (1-31) of the measurements. If unknown fill in NA, the climwin scripts will use 15 (middle of the month)
+* year = the year of measurements (YYYY)
+* month = the month for the measurement (1-12; code can deal with both \"01\" and \"1\")
+* day = the day in the month (1-31; code can deal with both \"01\" and \"1\") of the measurements. If unknown fill in NA, the climwin scripts will use \"01\" as default
 * survival = survival of the individual from T to T+1
 * sizeT = The size of the individual at T with any transformations already done
 * sizeT1 = The size of the individual at T+1 with any transformations already done
