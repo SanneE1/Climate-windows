@@ -62,7 +62,7 @@ Biol <- read.csv(SpeciesInput) %>%
   mutate(sizeT = as.numeric(as.character(sizeT)),
          sizeT1 = as.numeric(as.character(sizeT1)))
 
-Biol$date <- paste("01/07/", Biol$year, sep = "")                  ### HARDCODED FOR HEQU RIGHT NOW --- get a date that's accepted by climwin
+Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
 Biol <- Biol[which(Biol$seedling != 1),]                           ### Select Adults
 Biol <- Biol[which(!is.na(Biol$survival)),]                       
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
