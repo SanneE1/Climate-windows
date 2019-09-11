@@ -27,7 +27,7 @@ For now the scripts are very sensitive to having the correct column names and va
 * plantID = unique code for each individual
 * year = the year of measurements
 * month = the month for the measurement
-* day = the day in the month (1-31) of the measurements. If unknown fill in NA, the climwin scripts will use 15 (middle of the month)
+* day = the day in the month (1-31) of the measurements. If unknown fill in NA, the climwin scripts will use 1 as default
 * survival = survival of the individual from T to T+1
 * sizeT = The size of the individual at T with any transformations already done
 * sizeT1 = The size of the individual at T+1 with any transformations already done
