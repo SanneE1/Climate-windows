@@ -62,7 +62,7 @@ Biol <- read.csv(SpeciesInput) %>%
   mutate(sizeT = as.numeric(as.character(sizeT)),
          sizeT1 = as.numeric(as.character(sizeT1)))
 
-Biol$date <- paste("01/07/", Biol$year, sep = "")                  ### get a date that's accepted by climwin
+Biol$date <- paste("01/07/", Biol$year, sep = "")                  ### HARDCODED FOR HEQU RIGHT NOW --- get a date that's accepted by climwin
 Biol <- Biol[which(Biol$seedling != 1),]                           ### Select Adults
 Biol <- Biol[which(!is.na(Biol$survival)),]                       
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
@@ -115,7 +115,7 @@ result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + 
            refday = c(30,6),                             
            cinterval = cdate,
            cdate = as.character(Clim$date), bdate = as.character(Biol$date),
-           spatial = list(as.factor(Biol$population), as.factor(Clim$population))
+           spatial = list(Biol$population, Clim$population)
            )
 
 
