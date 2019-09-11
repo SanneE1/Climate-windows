@@ -34,7 +34,7 @@ cli <- parse_args(parser, positional_arguments = 3)
 #  ----------------------------------------------------------------------------------------------------------------------------
 # assign a few shortcuts
 #  ----------------------------------------------------------------------------------------------------------------------------
-cdate <- cli$climate_data_format
+cdate <- cli$climate_data_format    ### change this to "month" to get it working for now
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
@@ -54,8 +54,7 @@ if(cdate == "month") {
 }
 
 if(cdate == "day") {
-  Clim$date <- as.Date(Clim$date)                                         
-  Clim$date <- format(Clim$date, format = "%d/%m/%Y")           
+  Clim$date <- as.character(Clim$date)                                         
 }
 
 
@@ -69,15 +68,30 @@ Biol <- Biol[which(!is.na(Biol$survival)),]
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
+if(cdate == "month") {
 
-xvar <- c("mean_tobs", "mean_prcp")
-type <- c("absolute")
-stat <- c("mean","slope", "sd")
-func <- c("lin", "quad")
-upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
-lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
+  xvar <- c("mean_tobs", "mean_prcp")
+  type <- c("absolute")
+  stat <- c("mean","slope", "sd")
+  func <- c("lin", "quad")
+  upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
+  lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
+
+}
+
+if(cdate == "day") {
+  
+  xvar <- c("tobs", "prcp")
+  type <- c("absolute")
+  stat <- c("mean","slope", "sd")
+  func <- c("lin", "quad")
+  upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
+  lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
+  
+}
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
+
 
 # options <- rbind(options, c("Clim$Temp", "absolute", "sum", "lin", 10, NA))  ## example of adding a "sum" combination
 
