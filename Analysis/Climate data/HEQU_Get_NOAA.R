@@ -88,7 +88,7 @@ for (j in c("prcp", "tavg", "tmax", "tmin", "tobs")) {                      ## c
 ### scale Clim drivers ----------------------------------------------------------------
 
 DailyInfo <- DailyInfo %>%                      
-  group_by(id, month(date)) %>%
+  group_by(id, population, month(date)) %>%
   mutate(prcp_scaled_M = scale(prcp),
          tmax_scaled_M = scale(tmax),
          tmin_scaled_M = scale(tmin),
@@ -97,7 +97,7 @@ DailyInfo <- DailyInfo %>%
 
 DailyInfo$date <- format(DailyInfo$date, format = "%d/%m/%Y")
 
-write.csv(select(DailyInfo, "id", "date", "prcp", "tmax", "tmin", "tobs", "population", "prcp_scaled_M","tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M" ), 
+write.csv(select(DailyInfo, "id", "population", "date", "prcp", "tmax", "tmin", "tobs", "population", "prcp_scaled_M","tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M" ), 
           "Data/Climate data/HEQU_NOAA_day.csv" )
 
 
@@ -109,7 +109,7 @@ write.csv(select(DailyInfo, "id", "date", "prcp", "tmax", "tmin", "tobs", "popul
 
 
 MonthlyInfo <- WeatherInfo %>%
-  group_by(id, Month = month(date), Year = year(date)) %>%
+  group_by(id, population, Month = month(date), Year = year(date)) %>%
   summarise(sum_prcp = sum(prcp),
             mean_prcp = mean(prcp),
             sd_prcp = sd(prcp),
