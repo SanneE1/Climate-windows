@@ -1,4 +1,4 @@
-## Example of functions to use slidingwin in parallel
+## Example of functions to use slidingwin as an intrinsic parallel
 
 ## Slidingwin --------------------------------------------------------------
 
