@@ -72,6 +72,7 @@ For this analysis I am using the [Climwin package](https://github.com/LiamDBaile
 
 #### Vital rate: Survival
 *For now the Climwin analysis works with the submit script on EVE (the UFZ HPC cluster). I will create a script that does the same only in R when I'm sure the script and analysis are in their final form*
+
 The slidingwindow analysis for Survival is now species and (almost) month/day generic. If the different species need different baselines I will probably have to make it species specific. 
-* For the Biological data, make sure the required columns and format are as discribed in the section \"Data Management\".  
+* For the Biological data: make sure the required columns and format are as discribed in the section **\"Data Management\"**.  
 * The Climate data will work as long as the data is retrieved using the species specific \_Get\_NOAA.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (row **....** reflect the column names of the climate drivers of interest.
