@@ -70,7 +70,7 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 if(cdate == "month") {
 
-  xvar <- c("mean_tobs", "mean_prcp")
+  xvar <- c("sum_prcp", "mean_prcp", "sd_prcp", "mean_tobs", "sd_tobs", "mean_tmax", "mean_tmin", "max_tmax", "min_tmin")
   type <- c("absolute")
   stat <- c("mean","slope", "sd")
   func <- c("lin", "quad")
