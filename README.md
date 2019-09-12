@@ -2,7 +2,7 @@
 
 Project: Testing the importance of growing season climate for predicting population dynamics
 
-## Datasets
+## Biological Datasets
 
 #### Helianthella quinquenervis (**HEQU**)
    Iler, A. M., Compagnoni, A., Inouye, D. W., Williams, J. L., CaraDonna, P. J., Anderson, A., & Miller, T. E. (2019). Reproductive losses due to climate change‐induced earlier flowering are not the primary threat to plant population viability in a perennial herb. Journal of Ecology.  
@@ -20,7 +20,13 @@ Project: Testing the importance of growing season climate for predicting populat
 #### Frasera speciosa (**FRSP**)
    _Hopefully David Inouye is willing to share_
    
-## Datamanagement
+## Climate data
+Data on the climate used for this project is retrieved from NOAA using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
+I will be testing both daily data and monthly data, scaled and unscaled.   
+*For now, the daily data is scaled per month the day 'belongs' to. In the future I would like to see if I can scale it to a month around the date (i.e. using the 15 days before, the day itself and the 15 days after).*
+
+
+## Data Management
 
 For now the scripts are very sensitive to having the correct column names and value format (especially date). The individually data needs to at least contain the following columns in the following formats:  
 * population = the population the individual belongs to
@@ -59,3 +65,15 @@ Metadata for the HEQU dataset
 
 \* Same as found in the original data  
 \** For details see the original [README](https://doi.org/10.5061/dryad.863c8sk)
+
+## Analysis
+
+### Sliding window
+For this analysis I am using the [Climwin package](https://github.com/LiamDBailey/climwin)
+
+#### Vital rate: Survival
+*For now the Climwin analysis works with the submit script on EVE (the UFZ HPC cluster). I will create a script that does the same only in R when I'm sure the script and analysis are in their final form*
+
+The slidingwindow analysis for Survival is now species and (almost) month/day generic. If the different species need different baselines I will probably have to make it species specific. 
+* For the Biological data: make sure the required columns and format are as discribed in the section **\"Data Management\"**.  
+* The Climate data will work as long as the data is retrieved using the species specific \_Get\_NOAA.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (row **....** reflect the column names of the climate drivers of interest.
