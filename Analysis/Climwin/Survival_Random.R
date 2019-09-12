@@ -61,19 +61,19 @@ names(x) <- results$combos$climate[w]
 
 random <- randwin(repeats = 1,
                   baseline = glmer(formula = survival ~ sizeT + population + (1|year),
-                                     data = Biol, 
-                                     family = binomial),
-                  xvar = x,
+                                   data = Biol, 
+                                   family = binomial),
+                  xvar = list(Clim[[as.character(results$combos$climate[w])]]),
                   type = as.character(results$combos$type[w]),
-                  range = c(ifelse(cdata == "month", 12, 365), 0),
-                  stat = c(results$combos$stat[w]),
-                  func = c(results$combos$func[w]),
+                  range = c(12, 0),
+                  stat = c(as.character(results$combos$stat[w])),
+                  func = c(as.character(results$combos$func[w])),
                   refday =  c(30,6),                                       ## c(day(min(as.Date(Biol$date, format = "%d/%m/%Y"))), month(min(as.Date(Biol$date, format = "%d/%m/%Y"))))
                   cinterval = cdata,
                   cdate = Clim$date, bdate = Biol$date,
                   spatial = list(Biol$population, Clim$population),
                   window = "sliding"
-                  )
+)
 
 
 
