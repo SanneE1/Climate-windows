@@ -34,14 +34,14 @@ cli <- parse_args(parser, positional_arguments = 3)
 #  ----------------------------------------------------------------------------------------------------------------------------
 # assign a few shortcuts
 #  ----------------------------------------------------------------------------------------------------------------------------
-cdate <- cli$climate_data_format    ### change this to "month" to get it working for now
+cdata <- cli$climate_data_format    ### change this to "month" to get it working for now
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 ### Check 
-if (!(cdate == "month"||cdate == "day")) {
+if (!(cdata == "month"||cdata == "day")) {
   print("Climate data format needs to be either \"month\" or \"day\"")
   q(status = 1)
 }
@@ -49,11 +49,11 @@ if (!(cdate == "month"||cdate == "day")) {
 ### Prepare data ----------------------------------------------------------------------------------------------------------------------------
 Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
 
-if(cdate == "month") {
+if(cdata == "month") {
   Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
 }
 
-if(cdate == "day") {
+if(cdata == "day") {
   Clim$date <- as.character(Clim$date)                                         
 }
 
@@ -63,7 +63,7 @@ Biol <- read.csv(SpeciesInput) %>%
          sizeT1 = as.numeric(as.character(sizeT1)))
 
 Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
-Biol <- Biol[which(Biol$seedling != 1),]                           ### Select Adults
+Biol <- Biol[which(Biol$seedling != 1),]                           ### HEQU species specific
 Biol <- Biol[which(!is.na(Biol$survival)),]                       
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
@@ -107,18 +107,18 @@ result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + 
                             family = binomial),
            xvar = x,
            type = "absolute",
-           range = c(ifelse(cdate == "month", 12, 365), 0),
+           range = c(ifelse(cdata == "month", 12, 365), 0),
            stat = options$stat[taskID], 
            upper = ifelse(options$stat[taskID] == "sum", options$upper[taskID], NA),
            lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
            func = options$func[taskID],
-           refday = c(30,6),                             
-           cinterval = cdate,
+           refday = c(day(min(as.Date(Biol$date, format = "%d/%m/%Y"))), month(min(as.Date(Biol$date, format = "%d/%m/%Y")))),                             
+           cinterval = cdata,
            cdate = as.character(Clim$date), bdate = as.character(Biol$date),
            spatial = list(Biol$population, Clim$population)
            )
 
 
-### Merge into one output that can be used with climwin -----------------------
+### Save object. Will be merged with all other combinations in another script -----------------------
 
 saveRDS(result, file = output)
