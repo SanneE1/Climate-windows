@@ -77,4 +77,5 @@ random <- randwin(repeats = 1,
 
 
 
+saveRDS(random, file = output)
 
