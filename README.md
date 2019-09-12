@@ -22,7 +22,8 @@ Project: Testing the importance of growing season climate for predicting populat
    
 ## Climate data
 Data on the climate used for this project is retrieved from NOAA using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
-I will be testing both daily data and monthly data, scaled and unscaled. For now, the daily data is scaled per month the day 'belongs' to.  
+I will be testing both daily data and monthly data, scaled and unscaled.   
+*For now, the daily data is scaled per month the day 'belongs' to. In the future I would like to see if I can scale it to a month around the date (i.e. using the 15 days before, the day itself and the 15 days after).*
 
 
 ## Data Management
