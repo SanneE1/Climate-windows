@@ -34,7 +34,7 @@ cli <- parse_args(parser, positional_arguments = 3)
 #  ----------------------------------------------------------------------------------------------------------------------------
 # assign a few shortcuts
 #  ----------------------------------------------------------------------------------------------------------------------------
-cdate <- cli$climate_data_format    ### change this to "month" to get it working for now
+cdate <- "day"    ### change this to "month" to get it working for now
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
@@ -81,7 +81,7 @@ if(cdate == "month") {
 
 if(cdate == "day") {
   
-  xvar <- c("tobs", "prcp")
+  xvar <- c("tobs", "prcp", "tmax", "tmin", "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
   type <- c("absolute")
   stat <- c("mean","slope", "sd")
   func <- c("lin", "quad")
@@ -92,8 +92,9 @@ if(cdate == "day") {
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
-
-# options <- rbind(options, c("Clim$Temp", "absolute", "sum", "lin", 10, NA))  ## example of adding a "sum" combination
+if(cdate == "day") {
+ options <- rbind(options, c("tobs", "absolute", "sum", "lin", 5, NA))  ## example of adding a "sum" combination
+}
 
 print(options[taskID,])
 
