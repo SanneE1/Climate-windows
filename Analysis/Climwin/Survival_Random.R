@@ -52,7 +52,7 @@ Biol <- Biol[which(Biol$seedling != 1),]                           ### Select Ad
 Biol <- Biol[which(!is.na(Biol$survival)),]                       
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
-results <- readRDS("Results/Climwin/Slidingwin/Surv_Climwin_HEQU_month1_5528243.rds")
+results <- readRDS(Results_sliding)
 
 
 ## Randomized run for selected combi
