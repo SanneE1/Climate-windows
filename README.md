@@ -76,4 +76,4 @@ For this analysis I am using the [Climwin package](https://github.com/LiamDBaile
 
 The slidingwindow analysis for Survival is now species and (almost) month/day generic. If the different species need different baselines I will probably have to make it species specific. 
 * For the Biological data: make sure the required columns and format are as discribed in the section **\"Data Management\"**.  
-* The Climate data will work as long as the data is retrieved using the species specific \_Get\_NOAA.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (row **....** reflect the column names of the climate drivers of interest.
+* The Climate data will work as long as the data is retrieved using the species specific \_Get\_NOAA.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (*row ....*) reflect the column names of the climate drivers of interest.
