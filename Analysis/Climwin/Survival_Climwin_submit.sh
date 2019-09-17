@@ -28,23 +28,13 @@ module load foss/2018b R/3.5.1
 climate=$1
 SpeciesInput=$2
 cdate=$(basename $climate .csv | cut -d _ -f3)
-output=/work/$USER/${JOB_NAME}_$(basename $climate .csv | cut -d _ -f1)_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
+species=$(basename $SpeciesInput .csv | cut -d _ -f1)
+output=/work/$USER/$JOB_NAME-$JOB_ID/${JOB_NAME}_${species}_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
 
-cat << EOF
--------------------------------
-This is from the submit script
-
-climate: $climate
-SpeciesInput: $SpeciesInput
-cdate: $cdate
-ouput: $output
-
-End of submit script
--------------------------------
-EOF
 
 Rscript $HOME/Biome/Analysis/Climwin/Survival_Climwin.R \
   --climate-data-format=$cdate \
+  --species-used=$species \
   $climate \
   $SpeciesInput \
   $output
