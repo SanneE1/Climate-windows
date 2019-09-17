@@ -6,7 +6,6 @@
 suppressPackageStartupMessages(library(climwin))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(lme4))
-suppressPackageStartupMessages(library(lubridate))
 suppressPackageStartupMessages(library(optparse))
 
 
@@ -20,7 +19,14 @@ Parsoptions <- list (
     opt_str = c("-c", "--climate-data-format"),
     dest    = "climate_data_format",
     help    = "Specify the format of the climate data, either month or day",
-    metavar = "month|day")
+    metavar = "month|day"),
+ 
+   make_option(
+    opt_str = c("-s", "--species-used"),
+    dest    = "species_used",
+    help    = "Specify the species that will be used",
+    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")
+
 )
   
 parser <- OptionParser(
@@ -33,24 +39,16 @@ parser <- OptionParser(
 cli <- parse_args(parser, positional_arguments = 3)
 
 #  ----------------------------------------------------------------------------------------------------------------------------
-# assign a few shortcuts
+# Assign shortcuts
 #  ----------------------------------------------------------------------------------------------------------------------------
 
-cdata <- cli$climate_data_format    ### change this to "month" to get it working for now
+cdata <- cli$options$climate_data_format    
+species <- cli$options$species_used
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
-print("This is in the R code")
-
-cdata
-Climate
-SpeciesInput
-output
-taskID
-
-print("This is the end of options in R script")
 
 ### Check 
 if (!(cdata == "month"||cdata == "day")) {
@@ -58,7 +56,10 @@ if (!(cdata == "month"||cdata == "day")) {
   q(status = 1)
 }
 
-### Prepare data ----------------------------------------------------------------------------------------------------------------------------
+##----------------------------------------------------------------------------------------------------------------------------------
+## Prepare Climate data 
+##----------------------------------------------------------------------------------------------------------------------------------
+
 Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
 
 if(cdata == "month") {
@@ -69,29 +70,21 @@ if(cdata == "day") {
   Clim$date <- as.character(Clim$date)                                         
 }
 
-
-Biol <- read.csv(SpeciesInput) %>%
-  mutate(sizeT = as.numeric(as.character(sizeT)),
-         sizeT1 = as.numeric(as.character(sizeT1)))
-
-Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
-Biol <- Biol[which(Biol$seedling != 1),]                           ### HEQU species specific
-Biol <- Biol[which(!is.na(Biol$survival)),]                       
-Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
-
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
-if(cdata == "month") {
 
-  xvar <- c("sum_prcp", "mean_prcp", "sd_prcp", "mean_tobs", "sd_tobs", "mean_tmax", "mean_tmin", "max_tmax", "min_tmin")
+if(cdata == "month") {                          ## 108 options
+  
+  xvar <- c("sum_prcp", "mean_prcp", "sd_prcp", "mean_tobs", "sd_tobs", "mean_tmax", "mean_tmin", "max_tmax", "min_tmin",
+            "sum_prcp_scaled", "mean_prcp_scaled", "sd_prcp_scaled", "mean_tobs_scaled", "sd_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "max_tmax_scaled", "min_tmin_scaled")
   type <- c("absolute")
   stat <- c("mean","slope", "sd")
   func <- c("lin", "quad")
-  upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
-  lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
-
+  upper <- NA            
+  lower <- NA            
+  
 }
 
-if(cdata == "day") {
+if(cdata == "day") {                           ## 49 options
   
   xvar <- c("tobs", "prcp", "tmax", "tmin", "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
   type <- c("absolute")
@@ -105,19 +98,51 @@ if(cdata == "day") {
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
 if(cdata == "day") {
- options <- rbind(options, c("tobs", "absolute", "sum", "lin", 5, NA))  ## example of adding a "sum" combination
+  options <- rbind(options, c("tobs", "absolute", "sum", "lin", 5, NA))  ## growing degree days (set at 5 C)
 }
 
 print(options[taskID,])
+
+##----------------------------------------------------------------------------------------------------------------------------------
+## Prepare Biological data 
+##----------------------------------------------------------------------------------------------------------------------------------
+
+### HEQU specific data manipulation
+
+if (species == "HEQU") {                                
+ Biol <- read.csv(SpeciesInput) %>%
+  mutate(sizeT = as.numeric(as.character(sizeT)),
+         sizeT1 = as.numeric(as.character(sizeT1)))
+Biol <- Biol[which(Biol$seedling != 1),]                           
+Biol <- Biol[which(!is.na(Biol$survival)),]                       
+Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
+ 
+}
+
+
+Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
+
+##----------------------------------------------------------------------------------------------------------------------------------
+## Use the right species specific baseline 
+##----------------------------------------------------------------------------------------------------------------------------------
+
+if (species == "HEQU") {
+  model <- glmer(formula = survival ~ sizeT + population + (1|year),
+                 data = Biol, 
+                 family = binomial)
+}
+
+# if (species == "CRFL") {
+#   model <- 
+# }
+
 
 #### Run function ----------------------------------------------------------------------------------------------------------------------------
 
 x <- list(Clim[[options$xvar[taskID]]]) 
 names(x) <- options$xvar[taskID]
 
-result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + (1|year),
-                            data = Biol, 
-                            family = binomial),
+result <- slidingwin(baseline = model,
            xvar = x,
            type = "absolute",
            range = c(ifelse(cdata == "month", 12, 365), 0),
@@ -125,7 +150,7 @@ result <- slidingwin(baseline = glmer(formula = survival ~ sizeT + population + 
            upper = ifelse(options$stat[taskID] == "sum", options$upper[taskID], NA),
            lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
            func = options$func[taskID],
-           refday = c(day(min(as.Date(Biol$date, format = "%d/%m/%Y"))), month(min(as.Date(Biol$date, format = "%d/%m/%Y")))),                             
+           refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
            cinterval = cdata,
            cdate = as.character(Clim$date), bdate = as.character(Biol$date),
            spatial = list(Biol$population, Clim$population)
