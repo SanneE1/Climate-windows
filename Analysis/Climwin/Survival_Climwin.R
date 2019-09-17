@@ -41,6 +41,17 @@ SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
+print("This is in the R code")
+
+cdata
+Climate
+SpeciesInput
+output
+taskID
+str(cli)
+
+print("This is the end of options in R script")
+
 ### Check 
 if (!(cdata == "month"||cdata == "day")) {
   print("Climate data format needs to be either \"month\" or \"day\"")

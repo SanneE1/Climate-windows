@@ -18,7 +18,7 @@
 #$ -l h_vmem=8G
 
 # Array numbers 
-#$ -t 1-12
+#$ -t 1-2
 
 #needed when submitting a non-parallel job
 #$ -binding linear:1
@@ -30,7 +30,19 @@ SpeciesInput=$2
 cdate=$(basename $climate .csv | cut -d _ -f3)
 output=/work/$USER/${JOB_NAME}_$(basename $climate .csv | cut -d _ -f1)_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
 
- 
+cat << EOF
+-------------------------------
+This is from the submit script
+
+climate: $climate
+SpeciesInput: $SpeciesInput
+cdate: $cdate
+ouput: $output
+
+End of submit script
+-------------------------------
+EOF
+
 Rscript $HOME/Biome/Analysis/Climwin/Survival_Climwin.R \
   --climate-data-format=$cdate \
   $climate \
