@@ -48,7 +48,6 @@ Climate
 SpeciesInput
 output
 taskID
-str(cli)
 
 print("This is the end of options in R script")
 
@@ -80,7 +79,7 @@ Biol <- Biol[which(!is.na(Biol$survival)),]
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
-if(cdate == "month") {
+if(cdata == "month") {
 
   xvar <- c("sum_prcp", "mean_prcp", "sd_prcp", "mean_tobs", "sd_tobs", "mean_tmax", "mean_tmin", "max_tmax", "min_tmin")
   type <- c("absolute")
@@ -91,7 +90,7 @@ if(cdate == "month") {
 
 }
 
-if(cdate == "day") {
+if(cdata == "day") {
   
   xvar <- c("tobs", "prcp", "tmax", "tmin", "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
   type <- c("absolute")
@@ -104,7 +103,7 @@ if(cdate == "day") {
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
-if(cdate == "day") {
+if(cdata == "day") {
  options <- rbind(options, c("tobs", "absolute", "sum", "lin", 5, NA))  ## example of adding a "sum" combination
 }
 
