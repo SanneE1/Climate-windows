@@ -22,10 +22,9 @@
 
 module load foss/2018b R/3.5.1
 
-
-## Need a different output. Want it to reflect the jobname and climate basename of the dependend job
+## The master submit will pass the output directory that belongs to the first job to output
 output=$1
-## The jobID for which I want to merge
+
 
 
 
