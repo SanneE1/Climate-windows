@@ -1,5 +1,5 @@
-
-library(dplyr)
+suppressPackageStartupMessages(library(optparse))
+suppressPackageStartupMessages(library(dplyr))
 
 
 #  ----------------------------------------------------------------------------------------------------------------------------
@@ -52,7 +52,10 @@ results$combos <- bind_rows(lapply(r, '[[', 2), .id="column_label")
 
 
 ##Save files in the directory created by the Climwin function -------------------------------------------------------------------------------------
+comboname <-  paste(species, cdata, "summary_combos.csv", sep = "_") 
+resultname <- paste(species, cdata, "result.rds", sep = "_")
 
-saveRDS(results, file.path(output_dir, paste(species, cdata, "result.rds", sep = "_")))
-write.csv(results$combos, file.path(output_dir, paste(species, cdata, "summary_combos.csv", sep = "_") ))
+saveRDS(results, paste(output_dir,resultname))
+write.csv(results$combos, paste(output_dir,comboname))
+
 
