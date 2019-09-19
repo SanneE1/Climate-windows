@@ -14,4 +14,6 @@ dependency=$(
 
 qsub -hold_jid $dependency \
   Analysis/Climwin/Merge_arrays_submit.sh \
-    /work/evers/Surv_Climwin-$dependency
+    /work/evers/Surv_Climwin-$dependency \
+    $climate \
+    $SpeciesInput \
