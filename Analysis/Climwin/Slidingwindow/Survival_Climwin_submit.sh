@@ -12,13 +12,13 @@
 
 #Resources
 # max running time
-#$ -l h_rt=720:00:00
+
 
 # memory per core (hard limit)
 #$ -l h_vmem=8G
 
 # Array numbers 
-#$ -t 1-2
+#$ -t 1-30
 
 #needed when submitting a non-parallel job
 #$ -binding linear:1
@@ -37,7 +37,7 @@ species=$(basename $SpeciesInput .csv | cut -d _ -f1)
 output="$output_dir"/${JOB_NAME}_${species}_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
 
 
-Rscript $HOME/Biome/Analysis/Climwin/Survival_Climwin.R \
+Rscript $HOME/Biome/Analysis/Climwin/Slidingwindow/Survival_Climwin.R \
   --climate-data-format=$cdata \
   --species-used=$species \
   $climate \

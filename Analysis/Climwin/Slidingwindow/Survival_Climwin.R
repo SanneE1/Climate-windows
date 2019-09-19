@@ -25,15 +25,8 @@ Parsoptions <- list (
     opt_str = c("-s", "--species-used"),
     dest    = "species_used",
     help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")      # ,
+    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")   
   
-  # make_option(
-  #   opt_str = c("-v", "--vital-rate"),
-  #   dest    = "vital_rate",
-  #   help    = "Specify the vital rate to be tested",
-  #   metavar = "s|g|fp|fn|ap")
-  # 
-
 )
   
 parser <- OptionParser(
@@ -51,7 +44,6 @@ cli <- parse_args(parser, positional_arguments = 3)
 
 cdata <- cli$options$climate_data_format    
 species <- cli$options$species_used
-vital_rate <- "s"    ## cli$options$vital_rate
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
@@ -80,10 +72,9 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 60 options
+if(cdata == "month") {                          ## 30 options
   
-  xvar <- c("sum_prcp", "mean_prcp", "mean_tobs", "mean_tmax", "mean_tmin",
-            "sum_prcp_scaled", "mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled")
+  xvar <- c("sum_prcp_scaled", "mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled")
   type <- c("absolute")
   stat <- c("mean","slope", "sd")
   func <- c("lin", "quad")
@@ -92,9 +83,9 @@ if(cdata == "month") {                          ## 60 options
   
 }
 
-if(cdata == "day") {                           ## 54 options
+if(cdata == "day") {                           ## 30 options
   
-  xvar <- c("tobs", "prcp", "tmax", "tmin", "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
+  xvar <- c( "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
   type <- c("absolute")
   stat <- c("mean","slope", "sd")
   func <- c("lin", "quad")
@@ -142,15 +133,9 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
-  if(vital_rate == "s"){
          model <- glmer(formula = survival ~ sizeT + population + (1|year),
                         data = Biol, 
                         family = binomial)     
-  }
-  if(vital_rate == "g"){
-    model <- glmer.nb(sizeT1 ~ sizeT + population + (1|year),
-                      data = Biol)
-  }
 }
 
 # if (species == "CRFL") {
@@ -166,7 +151,7 @@ names(x) <- options$xvar[taskID]
 result <- slidingwin(baseline = model,
            xvar = x,
            type = "absolute",
-           range = c(ifelse(cdata == "month", 12, 365), 0),
+           range = c(ifelse(cdata == "month", 12, 365),ifelse(cdata == "month",-12,-365)),
            stat = options$stat[taskID], 
            upper = ifelse(options$stat[taskID] == "sum", options$upper[taskID], NA),
            lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
