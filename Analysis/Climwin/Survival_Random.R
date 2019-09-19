@@ -53,7 +53,7 @@ Biol <- Biol[which(!is.na(Biol$survival)),]
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
 results <- readRDS(Results_sliding)
-
+print(results$combos)
 
 ## Randomized run for selected combi
 x <- list(Clim[[as.character(results$combos$climate[w])]]) 
