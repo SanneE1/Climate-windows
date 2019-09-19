@@ -6,7 +6,7 @@ suppressPackageStartupMessages(library(lubridate))
 
 #### Choose which is the 'best' combo
 
-w <- 28             ## this should go into qsub commandline
+w <- 1    ## Keep at one. If I ever find out a way to put in the merged file, this needs to be changed to combination number we want to test
 cdata <- "month"    ## if EVE: would be ideal if this can be retrieved from the results input file
 
 #  ----------------------------------------------------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ Parsoptions <- list (
 parser <- OptionParser(
   usage       = "Rscript %prog [options] Climate SpeciesInput Results_sliding output",
   option_list = Parsoptions,
-  description = "\nan Run slidingwindow analysis",
+  description = "\nan Run randomwindow analysis",
   epilogue    = ""
 )
 
@@ -56,7 +56,7 @@ results <- readRDS(Results_sliding)
 
 
 ## Randomized run for selected combi
-x <- list(Clim[[results$combos$climate[w]]]) 
+x <- list(Clim[[as.character(results$combos$climate[w])]]) 
 names(x) <- results$combos$climate[w]
 
 random <- randwin(repeats = 1,
@@ -68,7 +68,7 @@ random <- randwin(repeats = 1,
                   range = c(12, 0),
                   stat = c(as.character(results$combos$stat[w])),
                   func = c(as.character(results$combos$func[w])),
-                  refday =  c(30,6),                                       ## c(day(min(as.Date(Biol$date, format = "%d/%m/%Y"))), month(min(as.Date(Biol$date, format = "%d/%m/%Y"))))
+                  refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
                   cinterval = cdata,
                   cdate = Clim$date, bdate = Biol$date,
                   spatial = list(Biol$population, Clim$population),
