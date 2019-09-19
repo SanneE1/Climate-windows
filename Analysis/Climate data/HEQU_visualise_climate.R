@@ -45,10 +45,9 @@ nearby_Stations$X <- NULL
 # 
 # write.csv(nearby_Stations, "Data/Climate data/HEQU_nearb_stations.csv")
 
-nearby_Stations <- read.csv("Data/Climate data/HEQU_nearb_stations.csv")
 
-WeatherInfo <- read.csv("Data/Climate data/HEQU_NOAA_supplemented.csv")
-WeatherInfo$date <-  as.Date(WeatherInfo$date, "%Y-%m-%d")
+WeatherInfo <- read.csv("Data/Climate data/HEQU_NOAA_day.csv")
+WeatherInfo$date <-  as.Date(WeatherInfo$date, "%d/%m/%Y")
 
 
 ################################
@@ -107,27 +106,29 @@ b <- a %>%
   summarise(mean_prcp = mean(tot_prcp), 
             sd_prcp = sd(tot_prcp), 
             mean_temp = mean(mean_temp),
-            min_prcp = mean(min_temp), 
-            max_prcp = mean(max_temp))
+            min_temp = mean(min_temp), 
+            max_temp = mean(max_temp))
 b$Month <- as.integer(b$Month)
 
-ggplot(b, aes(x = Month, y = mean_prcp, colour = Population))+
+plotTemp <- ggplot(b, aes(x = Month, y = mean_temp, colour = Population))+
   geom_line(size = 2)+
-  geom_ribbon(aes(ymin=b$mean_prcp-b$sd_prcp, ymax = b$mean_prcp + b$sd_prcp), linetype = 2, alpha = 0.1) +
-  labs(title = "Average monthly temperature", x = "Month", y = "Mean temperature (°C)") +
+  geom_ribbon(aes(ymin=b$min_temp, ymax = b$max_temp), linetype = 2, alpha = 0.1) +
+  labs(title = "Average monthly temperature", x = "Month", y = "Mean temperature (C)") +
   theme(plot.title = element_text(size = 20, hjust = 0.5),
         axis.title.x = element_text(size = 15),
         axis.title.y = element_text(size = 15))
-  
 
-ggplot(b, aes(x = Month, y = mean_temp, colour = Population))+
+ggsave("Visual/HEQU_Plot_Temperature.png", plotTemp)
+
+plotPRCP <- ggplot(b, aes(x = Month, y = mean_prcp, colour = Population))+
   geom_line(size = 2)+
-  geom_ribbon(aes(ymin=min_prcp, ymax = max_prcp), linetype = 2, alpha = 0.1) +
+  geom_ribbon(aes(ymin=b$mean_prcp-b$sd_prcp, ymax = b$mean_prcp+b$sd_prcp), linetype = 2, alpha = 0.1) +
   labs(title = "Average monthly precipitation", x = "Month", y = "Mean Precipitation (mm)") +
   theme(plot.title = element_text(size = 20, hjust = 0.5),
         axis.title.x = element_text(size = 15),
         axis.title.y = element_text(size = 15))
 
+ggsave("Visual/HEQU_Plot_Precipitation.png", plotPRCP)
 
 
 
