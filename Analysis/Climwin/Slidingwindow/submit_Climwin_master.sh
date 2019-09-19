@@ -7,13 +7,13 @@ SpeciesInput=$2
 
 dependency=$(
   qsub -terse \
-    Analysis/Climwin/Survival_Climwin_submit.sh \
+    Analysis/Climwin/Slidingwindow/Survival_Climwin_submit.sh \
     $climate \
     $SpeciesInput
 )
 
 qsub -hold_jid $dependency \
-  Analysis/Climwin/Merge_arrays_submit.sh \
+  Analysis/Climwin/Slidingwindow/Merge_sliding_submit.sh \
     /work/evers/Surv_Climwin-$dependency \
     $climate \
     $SpeciesInput \
