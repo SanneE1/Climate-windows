@@ -72,10 +72,10 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 108 options
+if(cdata == "month") {                          ## 60 options
   
-  xvar <- c("sum_prcp", "mean_prcp", "sd_prcp", "mean_tobs", "sd_tobs", "mean_tmax", "mean_tmin", "max_tmax", "min_tmin",
-            "sum_prcp_scaled", "mean_prcp_scaled", "sd_prcp_scaled", "mean_tobs_scaled", "sd_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "max_tmax_scaled", "min_tmin_scaled")
+  xvar <- c("sum_prcp", "mean_prcp", "mean_tobs", "mean_tmax", "mean_tmin",
+            "sum_prcp_scaled", "mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled")
   type <- c("absolute")
   stat <- c("mean","slope", "sd")
   func <- c("lin", "quad")
@@ -84,7 +84,7 @@ if(cdata == "month") {                          ## 108 options
   
 }
 
-if(cdata == "day") {                           ## 49 options
+if(cdata == "day") {                           ## 54 options
   
   xvar <- c("tobs", "prcp", "tmax", "tmin", "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
   type <- c("absolute")
@@ -98,8 +98,15 @@ if(cdata == "day") {                           ## 49 options
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
 if(cdata == "day") {
-  options <- rbind(options, c("tobs", "absolute", "sum", "lin", 5, NA))  ## growing degree days (set at 5 C)
-}
+  options <- rbind(options, c("tobs", "absolute", "sum", "lin", 5, NA), ## growing degree days (set at 5 C)
+                   c("tobs", "absolute", "sum", "quad", 5, NA),
+                   c("tmin", "absolute", "sum", "lin", 5, NA),
+                   c("tmin", "absolute", "sum", "quad", 5, NA),
+                   c("tmax", "absolute", "sum", "lin", 5, NA),
+                   c("tmax", "absolute", "sum", "quad", 5, NA)
+)
+                   
+                   }
 
 print(options[taskID,])
 
