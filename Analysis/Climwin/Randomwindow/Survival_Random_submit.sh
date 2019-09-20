@@ -37,7 +37,7 @@ species=$(basename $SpeciesInput .csv | cut -d _ -f1)
 output="$output_dir"/${JOB_NAME}_${species}_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
 
  
-Rscript $HOME/Biome/Analysis/Climwin/Survival_Random.R \
+Rscript $HOME/Biome/Analysis/Climwin/Randomwindow/Survival_Random.R \
   --climate-data-format=$cdate \
   $climate \
   $SpeciesInput \
