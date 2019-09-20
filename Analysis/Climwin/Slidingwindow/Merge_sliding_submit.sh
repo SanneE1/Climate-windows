@@ -31,7 +31,7 @@ species=$(basename $SpeciesInput .csv | cut -d _ -f1)
 
 
 Rscript $HOME/Biome/Analysis/Climwin/Slidingwindow/Merge_sliding.R \
-  --climate-data-format=$cdate \
+  --climate-data-format=$cdata \
   --species-used=$species \
   $output_dir \
   
