@@ -30,13 +30,13 @@ Parsoptions <- list (
 )
   
 parser <- OptionParser(
-  usage       = "Rscript %prog [options] vital_rate Climate SpeciesInput output",
+  usage       = "Rscript %prog [options] vitalrate Climate SpeciesInput output",
   option_list = Parsoptions,
   description = "\nan Run slidingwindow analysis",
   epilogue    = ""
 )
 
-cli <- parse_args(parser, positional_arguments = 3)
+cli <- parse_args(parser, positional_arguments = 4)
 
 #  ----------------------------------------------------------------------------------------------------------------------------
 # Assign shortcuts
