@@ -134,12 +134,16 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
+  
   if (vitalrate == "s") {
-          model <- glmer(formula = survival ~ sizeT + population + (1|year),
-                        data = Biol, 
-                        family = binomial) 
+    print("Running survival vital rate")
+    model <- glmer(formula = survival ~ sizeT + population + (1|year),
+                   data = Biol, 
+                   family = binomial) 
   }
+  
   if (vitalrate =="g"){
+    print("Running growth vital rate")
     model <- readRDS("/data/gsclim/BaselineModels/HEQU_growth_baseline.rds")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]                           
     

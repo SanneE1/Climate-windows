@@ -8,7 +8,7 @@
 #$ -j y
 
 #Specify job name
-#$ -N Surv_Climwin
+#$ -N Climwin
 
 #Resources
 # max running time
@@ -35,10 +35,10 @@ climate=$2
 SpeciesInput=$3
 cdata=$(basename $climate .csv | cut -d _ -f3)
 species=$(basename $SpeciesInput .csv | cut -d _ -f1)
-output="$output_dir"/${JOB_NAME}_${species}_${cdata}_${JOB_ID}_$SGE_TASK_ID.rds
+output="$output_dir"/${JOB_NAME}_${species}_${vitalrate}_${cdata}_${JOB_ID}_$SGE_TASK_ID.rds
 
 
-Rscript $HOME/Biome/Analysis/Climwin/Slidingwindow/Survival_Climwin.R \
+Rscript $HOME/Biome/Analysis/Climwin/Slidingwindow/Climwin.R \
   --climate-data-format=$cdata \
   --species-used=$species \
   $vitalrate \
