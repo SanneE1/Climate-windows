@@ -25,7 +25,13 @@ Parsoptions <- list (
     opt_str = c("-s", "--species-used"),
     dest    = "species_used",
     help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")   
+    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR"),
+  
+  make_option(
+    opt_str = c("-v", "--vital-rate"),
+    dest    = "vital_rate",
+    help    = "Specify which vital rate needs to be run",
+    metavar = "s|g|fp|fn")
   
 )
   
@@ -44,6 +50,7 @@ cli <- parse_args(parser, positional_arguments = 3)
 
 cdata <- cli$options$climate_data_format    
 species <- cli$options$species_used
+vitalrate <- cli$options$vital_rate
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 output <- cli$args[3]
@@ -133,9 +140,17 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
-         model <- glmer(formula = survival ~ sizeT + population + (1|year),
+  if (vitalrate == "s") {
+          model <- glmer(formula = survival ~ sizeT + population + (1|year),
                         data = Biol, 
-                        family = binomial)     
+                        family = binomial) 
+  }
+  if (vitalrate =="g"){
+    model <- readRDS("/data/gsclim/BaselineModels/HEQU_growth_baseline.rds")
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]                           
+    
+  }
+  
 }
 
 # if (species == "CRFL") {
