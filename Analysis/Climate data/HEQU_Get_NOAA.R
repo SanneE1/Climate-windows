@@ -1,5 +1,3 @@
-setwd("C:/owncloud/Documents/PhD/Biomes/Biome")
-
 library(rnoaa)
 library(dplyr)
 library(tidyr)
@@ -39,7 +37,7 @@ Stations <- meteo_nearby_stations(lat_lon_df = sites,
 
 closest_stations <- rbind(Stations[[1]][1,], Stations[[2]][1,], Stations[[3]][1,])
 closest_stations <- cbind(closest_stations, population = c(names(Stations)))
-
+closest_stations <- filter(closest_stations, closest_stations$id == "USS0006L11S")
 
 #############################
 ## Get weather information ##
@@ -55,7 +53,6 @@ closest_stations <- cbind(closest_stations, population = c(names(Stations)))
 # WeatherInfo$tmin <- WeatherInfo$tmin / 10
 # WeatherInfo$tobs <- WeatherInfo$tobs / 10
 
-# 
 # 
 # write.csv(WeatherInfo, file = "Data/Climate data/HEQU_NOAA.csv")
 
