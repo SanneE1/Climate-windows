@@ -118,8 +118,8 @@ print(options[taskID,])
 
 if (species == "HEQU") {                                
  Biol <- read.csv(SpeciesInput) %>%
-  mutate(sizeT = as.numeric(as.character(sizeT)),
-         sizeT1 = as.numeric(as.character(sizeT1)))
+  mutate(sizeT = as.numeric(levels(sizeT))[sizeT],
+         sizeT1 = as.numeric(levels(sizeT1))[sizeT1])
 Biol <- Biol[which(Biol$seedling != 1),]                           
 Biol <- Biol[which(!is.na(Biol$survival)),]                       
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
