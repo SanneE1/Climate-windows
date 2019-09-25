@@ -79,7 +79,8 @@ if (species == "HEQU") {
   Biol <- Biol[which(Biol$seedling != 1),]                           
   Biol <- Biol[which(!is.na(Biol$survival)),]                       
   Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
-  
+
+  Clim <- Clim[which(Clim$population == "mid"),]  
 }
 
 
@@ -137,7 +138,6 @@ random <- randwin(repeats = 1,
                   refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
                   cinterval = cdata,
                   cdate = Clim$date, bdate = Biol$date,
-                  spatial = list(Biol$population, Clim$population),
                   window = "sliding"
 )
 
