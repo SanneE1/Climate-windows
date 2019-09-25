@@ -24,14 +24,15 @@ module load foss/2018b R/3.5.1
 
 ## The master submit will pass the output directory that belongs to the first job to output
 output_dir=$1
-climate=$2
+Climate=$2
 SpeciesInput=$3
-cdata=$(basename $climate .csv | cut -d _ -f3)
+cdata=$(basename $Climate .csv | cut -d _ -f3)
 species=$(basename $SpeciesInput .csv | cut -d _ -f1)
-
+randomid=$(basename $output_dir / | cut -d - -f2)
 
 Rscript $HOME/Biome/Analysis/Climwin/Randomwindow/Merge_random.R \
   --climate-data-format=$cdata \
   --species-used=$species \
   $output_dir \
+  $randomid \
   

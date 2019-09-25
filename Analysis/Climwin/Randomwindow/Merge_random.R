@@ -23,13 +23,13 @@ Parsoptions <- list (
 )
 
 parser <- OptionParser(
-  usage       = "Rscript %prog [options] output_dir",
+  usage       = "Rscript %prog [options] output_dir randomid",
   option_list = Parsoptions,
   description = "\nan Run slidingwindow analysis",
   epilogue    = ""
 )
 
-cli <- parse_args(parser, positional_arguments = 1)
+cli <- parse_args(parser, positional_arguments = 2)
 
 #  ----------------------------------------------------------------------------------------------------------------------------
 # Assign shortcuts
@@ -38,6 +38,7 @@ cli <- parse_args(parser, positional_arguments = 1)
 cdata <- cli$options$climate_data_format    
 species <- cli$options$species_used
 output_dir <- cli$args[1]
+randomid <- cli$args[2]
 
 ## get all RDS from one job in one list  ----------------------------------------------------------------------------------------------------------
 
@@ -53,6 +54,5 @@ combos <- bind_rows(lapply(r, '[[', 2), .id="column_label")
 results <- list(randoms, combos)
 ##Save files in the directory created by the Climwin function -------------------------------------------------------------------------------------
 
-saveRDS(results, file.path(output_dir, paste(species, cdata, "random_result.rds", sep = "_")))
-write.csv(results$combos, file.path(output_dir, paste(species, cdata, "random_summary_combos.csv", sep = "_") ))
+saveRDS(results, file.path(output_dir, paste("Random", species, cdata, randomid, "result.rds", sep = "_")))
 
