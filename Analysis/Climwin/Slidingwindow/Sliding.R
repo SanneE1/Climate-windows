@@ -73,22 +73,22 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 30 options
+if(cdata == "month") {                          ## 10 options
   
   xvar <- c("sum_prcp_scaled", "mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled")
   type <- c("absolute")
-  stat <- c("mean","slope", "sd")
+  stat <- c("mean")
   func <- c("lin", "quad")
   upper <- NA            
   lower <- NA            
   
 }
 
-if(cdata == "day") {                           ## 30 options
+if(cdata == "day") {                           ## 16 options
   
   xvar <- c( "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
   type <- c("absolute")
-  stat <- c("mean","slope", "sd")
+  stat <- c("mean", "sd")
   func <- c("lin", "quad")
   upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
   lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
@@ -97,16 +97,7 @@ if(cdata == "day") {                           ## 30 options
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
-if(cdata == "day") {
-  options <- rbind(options, c("tobs", "absolute", "sum", "lin", 5, NA), ## growing degree days (set at 5 C)
-                   c("tobs", "absolute", "sum", "quad", 5, NA),
-                   c("tmin", "absolute", "sum", "lin", 5, NA),
-                   c("tmin", "absolute", "sum", "quad", 5, NA),
-                   c("tmax", "absolute", "sum", "lin", 5, NA),
-                   c("tmax", "absolute", "sum", "quad", 5, NA)
-)
-                   
-                   }
+### Find a way to add growing degree days for day data - the "sum" function counts the nr of degrees above threshold, it doesn't count days above threshold (y/n)
 
 print(options[taskID,])
 
@@ -123,6 +114,8 @@ if (species == "HEQU") {
 Biol <- Biol[which(Biol$seedling != 1),]                           
 Biol <- Biol[which(!is.na(Biol$survival)),]                       
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
+
+Clim <- Clim[which(Clim$population == "mid"),]  ## only use climate data from one station
  
 }
 
@@ -134,7 +127,7 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
-  
+
   if (vitalrate == "s") {
     print("Running survival vital rate")
     model <- glmer(formula = survival ~ sizeT + population + (1|year),
@@ -171,8 +164,7 @@ result <- slidingwin(baseline = model,
            func = options$func[taskID],
            refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
            cinterval = cdata,
-           cdate = as.character(Clim$date), bdate = as.character(Biol$date),
-           spatial = list(Biol$population, Clim$population)
+           cdate = as.character(Clim$date), bdate = as.character(Biol$date)
            )
 
 

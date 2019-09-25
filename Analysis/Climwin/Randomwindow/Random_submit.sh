@@ -8,7 +8,7 @@
 #$ -j y
 
 #Specify job name
-#$ -N Surv_Random
+#$ -N Random
 
 #Resources
 # max running time
@@ -18,7 +18,7 @@
 #$ -l h_vmem=8G
 
 # Array numbers 
-#$ -t 1-100
+#$ -t 1-500
 
 #needed when submitting a non-parallel job
 #$ -binding linear:1
@@ -33,12 +33,12 @@ vitalrate=$1
 Climate=$2
 SpeciesInput=$3
 Results_sliding=$4
-cdata=$(basename $climate .csv | cut -d _ -f3)
+cdata=$(basename $Climate .csv | cut -d _ -f3)
 species=$(basename $SpeciesInput .csv | cut -d _ -f1)
 output="$output_dir"/${JOB_NAME}_${species}_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
 
  
-Rscript $HOME/Biome/Analysis/Climwin/Randomwindow/Survival_Random.R \
+Rscript $HOME/Biome/Analysis/Climwin/Randomwindow/Random.R \
   --climate-data-format=$cdata \
   --species-used=$species \
   $vitalrate \

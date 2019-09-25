@@ -17,7 +17,13 @@ Parsoptions <- list (
     opt_str = c("-c", "--climate-data-format"),
     dest    = "climate_data_format",
     help    = "Specify the format of the climate data, either month or day",
-    metavar = "month|day")
+    metavar = "month|day"),
+
+   make_option(
+    opt_str = c("-s", "--species-used"),
+    dest    = "species_used",
+    help    = "Specify the species that will be used",
+    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")
 )
 
 parser <- OptionParser(
@@ -40,6 +46,12 @@ Results_sliding <- cli$args[4]
 output <- cli$args[5]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
+### Check 
+if (!(cdata == "month"||cdata == "day")) {
+  print("Climate data format needs to be either \"month\" or \"day\"")
+  q(status = 1)
+}
+
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Prepare Climate data 
 ##----------------------------------------------------------------------------------------------------------------------------------
@@ -47,7 +59,7 @@ taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
 
 if(cdata == "month") {
-  Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
+ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
 }
 
 if(cdata == "day") {
@@ -72,6 +84,7 @@ if (species == "HEQU") {
 
 
 Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
+
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Use the right species specific baseline 
