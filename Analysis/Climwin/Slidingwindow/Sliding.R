@@ -97,7 +97,7 @@ if(cdata == "day") {                           ## 16 options
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
-### Find a way to add growing degree days for day data - the "sum" function counts the nr of degrees above threshold, it doesn't count days above threshold (y/n)
+## add growing degree days using "sum"
 
 print(options[taskID,])
 
@@ -109,11 +109,10 @@ print(options[taskID,])
 
 if (species == "HEQU") {                                
  Biol <- read.csv(SpeciesInput) %>%
-  mutate(sizeT = as.numeric(levels(sizeT))[sizeT],
-         sizeT1 = as.numeric(levels(sizeT1))[sizeT1])
+  mutate(sizeT = as.integer(levels(sizeT))[sizeT],
+         sizeT1 = as.integer(levels(sizeT1))[sizeT1])
 Biol <- Biol[which(Biol$seedling != 1),]                           
-Biol <- Biol[which(!is.na(Biol$survival)),]                       
-Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
+Biol <- Biol[which(Biol$year!= 2012),]
 
 Clim <- Clim[which(Clim$population == "mid"),]  ## only use climate data from one station
  
@@ -128,20 +127,44 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 
 if (species == "HEQU") {
 
+Biol <- Biol[which(!is.na(Biol$survival)),]                       
+Biol <- Biol[which(!is.na(Biol$sizeT)),]  
+
   if (vitalrate == "s") {
     print("Running survival vital rate")
-    model <- glmer(formula = survival ~ sizeT + population + (1|year),
+    Biol <- Biol[which(
+    model <- glmer(formula = survival ~ log(sizeT) + population + (1|year),
                    data = Biol, 
                    family = binomial) 
   }
   
   if (vitalrate =="g"){
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
     print("Running growth vital rate")
-    model <- readRDS("/data/gsclim/BaselineModels/HEQU_growth_baseline.rds")
-    Biol <- Biol[which(!is.na(Biol$sizeT1)),]                           
-    
+    model <- glmer(sizeT1 ~ sizeT + population + (1|year),
+                   data = Biol,
+	           family = poisson)                          
   }
   
+  if (vitalrate =="fp"){
+    print("Running Flower probability vital rate")
+    model <- glmer(formula = pflowerT ~ log(sizeT) + population + (1|year),
+                   data = Biol,
+                   family = binomial)
+  }
+ 
+  if (vitalrate =="nf") {
+    print("Running Number of Flowers")
+    model <- glmer(formula = nflower ~ sizeT + population + (1|year),
+                   data = Biol,
+                   family = poisson)
+  }
+  
+  if (vitalrate =="pa") {
+    print("Running chance to abort")
+    print("This still needs a baseline model")
+    q(status = 1)   
+  }
 }
 
 # if (species == "CRFL") {
