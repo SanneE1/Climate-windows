@@ -34,12 +34,10 @@ results$combos <- bind_rows(lapply(r, '[[', 2), .id="column_label")
 ##Save files in the directory created by the Climwin function -------------------------------------------------------------------------------------
 print("get info")
 getinfo <- stringr::str_split(files[1], "[[:punct:]]")
-species <- getinfo[[1]][6]
-cdata <- getinfo[[1]][7]
-vitalrate <- getinfo[[1]][8]
-species
-cdata
-vitalrate
+species <- getinfo[[1]][8]
+cdata <- getinfo[[1]][10]
+vitalrate <- getinfo[[1]][9]
+getinfo
 
 saveRDS(results, file.path(output_dir, paste(species, vitalrate, cdata, "result.rds", sep = "_")))
 
