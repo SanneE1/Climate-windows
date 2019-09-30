@@ -7,8 +7,8 @@ library(ggiraphExtra)
 ## Get and prepare data -----------------------------------------------------------------------------------------------------------------------------------------
 
 df <- read.csv("Data/Biol data/HEQU_demography_data.csv") %>%
-  mutate(sizeT = as.numeric(levels(sizeT))[sizeT],
-         sizeT1 = as.numeric(levels(sizeT1))[sizeT1],
+  mutate(sizeT = as.integer(levels(sizeT))[sizeT],
+         sizeT1 = as.integer(levels(sizeT1))[sizeT1],
          population_f = factor(population, levels = c("high", "mid","low"))
          )
 
