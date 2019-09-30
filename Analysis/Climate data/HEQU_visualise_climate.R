@@ -106,7 +106,7 @@ a$id <- factor(a$id, c("USS0007K11S","USS0006L11S", "USC00051959"))
 # a$Month <- match(a$Month, month.abb)
 
 gridTemp <- ggplot(a, aes(x = Month, y = mean_temp, colour = id))+
-  geom_line(size = 2)+
+  geom_line(size = 1)+
   geom_ribbon(aes(ymin=a$min_temp, ymax = a$max_temp), linetype = 2, alpha = 0.1) +
   labs(title = "Monthly temperature over the years", x = "Month", y = "Mean temperature (C)") +
   theme(plot.title = element_text(size = 20, hjust = 0.5),
@@ -117,7 +117,7 @@ gridTemp <- ggplot(a, aes(x = Month, y = mean_temp, colour = id))+
 ggsave("Visual/HEQU_grid_Temperature.png", gridTemp)
 
 gridPRCP <- ggplot(a, aes(x = Month, y = tot_prcp, colour = id))+
-  geom_line(size = 2)+
+  geom_line(size = 1)+
   labs(title = "Monthly precipitation over the years", x = "Month", y = "Mean Precipitation (mm)") +
   theme(plot.title = element_text(size = 20, hjust = 0.5),
         axis.title.x = element_text(size = 15),
