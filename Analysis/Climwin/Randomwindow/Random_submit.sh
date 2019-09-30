@@ -18,7 +18,7 @@
 #$ -l h_vmem=8G
 
 # Array numbers 
-#$ -t 1-500
+#$ -t 1-2
 
 #needed when submitting a non-parallel job
 #$ -binding linear:1
@@ -33,6 +33,7 @@ vitalrate=$1
 Climate=$2
 SpeciesInput=$3
 Results_sliding=$4
+winner=$5
 cdata=$(basename $Climate .csv | cut -d _ -f3)
 species=$(basename $SpeciesInput .csv | cut -d _ -f1)
 output="$output_dir"/${JOB_NAME}_${species}_${cdate}_${JOB_ID}_$SGE_TASK_ID.rds
@@ -45,4 +46,5 @@ Rscript $HOME/Biome/Analysis/Climwin/Randomwindow/Random.R \
   $Climate \
   $SpeciesInput \
   $Results_sliding \
+  $winner \
   $output

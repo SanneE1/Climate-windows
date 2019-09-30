@@ -4,9 +4,7 @@ suppressPackageStartupMessages(library(lme4))
 suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(lubridate))
 
-#### Choose which is the 'best' combo
-
-w <- 1    ## Keep at one. If I ever find out a way to put in the merged file, this needs to be changed to combination number we want to test
+sessionInfo()
 
 #  ----------------------------------------------------------------------------------------------------------------------------
 # parsing arguments
@@ -27,13 +25,13 @@ Parsoptions <- list (
 )
 
 parser <- OptionParser(
-  usage       = "Rscript %prog [options] vitalrate Climate SpeciesInput Results_sliding output",
+  usage       = "Rscript %prog [options] vitalrate Climate SpeciesInput Results_sliding winner output",
   option_list = Parsoptions,
   description = "\nan Run randomwindow analysis",
   epilogue    = ""
 )
 
-cli <- parse_args(parser, positional_arguments = 5)
+cli <- parse_args(parser, positional_arguments = 6)
 
 ### Assign shortcuts ------------------------------------------------------------------------------------------
 
@@ -43,8 +41,11 @@ vitalrate <- cli$args[1]
 Climate   <- cli$args[2]
 SpeciesInput  <- cli$args[3]
 Results_sliding <- cli$args[4]
-output <- cli$args[5]
+w <- cli$args[5]
+output <- cli$args[6]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
+
+w
 
 ### Check 
 if (!(cdata == "month"||cdata == "day")) {
@@ -73,12 +74,12 @@ if(cdata == "day") {
 ### HEQU specific data manipulation
 
 if (species == "HEQU") {                                
-  Biol <- read.csv(SpeciesInput) %>%
-    mutate(sizeT = as.numeric(levels(sizeT))[sizeT],
-           sizeT1 = as.numeric(levels(sizeT1))[sizeT1])
-  Biol <- Biol[which(Biol$seedling != 1),]                           
-  Biol <- Biol[which(!is.na(Biol$survival)),]                       
-  Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
+ Biol <- read.csv(SpeciesInput) %>%
+  mutate(sizeT = as.integer(levels(sizeT))[sizeT],
+         sizeT1 = as.integer(levels(sizeT1))[sizeT1])
+Biol <- Biol[which(Biol$seedling != 1),]                           
+Biol <- Biol[which(Biol$year!= 2012),]
+Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
   Clim <- Clim[which(Clim$population == "mid"),]  
 }
@@ -92,21 +93,47 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
-  
+
+Biol <- Biol[which(!is.na(Biol$survival)),]                       
+Biol <- Biol[which(!is.na(Biol$sizeT)),]  
+
   if (vitalrate == "s") {
     print("Running survival vital rate")
-    model <- glmer(formula = survival ~ sizeT + population + (1|year),
+    Biol$lnsizeT <- log(Biol$sizeT)
+    model <- glmer(formula = survival ~ lnsizeT + population + (1|year),
                    data = Biol, 
                    family = binomial) 
   }
   
   if (vitalrate =="g"){
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
     print("Running growth vital rate")
-    model <- readRDS("/data/gsclim/BaselineModels/HEQU_growth_baseline.rds")
-    Biol <- Biol[which(!is.na(Biol$sizeT1)),]                           
-    
+    model <- glmer(sizeT1 ~ sizeT + population + (1|year),
+                   data = Biol,
+	           family = poisson)                          
   }
   
+  if (vitalrate =="fp"){
+    print("Running Flower probability vital rate")
+    Biol$lnsizeT <- log(Biol$sizeT)
+    model <- glmer(formula = pflowerT ~ lnsizeT + population + (1|year),
+                   data = Biol,
+                   family = binomial)
+  }
+ 
+  if (vitalrate =="fn") {
+    print("Running Number of Flowers")
+    Biol <- Biol[which(!is.na(Biol$fertilityT)),]
+    model <- glmer(formula = fertilityT ~ sizeT + population + (1|year),
+                   data = Biol,
+                   family = poisson)
+  }
+  
+  if (vitalrate =="pa") {
+    print("Running chance to abort")
+    print("This still needs a baseline model")
+    q(status = 1)   
+  }
 }
 
 # if (species == "CRFL") {
@@ -119,7 +146,7 @@ if (species == "HEQU") {
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 results <- readRDS(Results_sliding)
-print(results$combos)
+print(results$combos[w,])
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Randomized run for selected combi
@@ -131,7 +158,7 @@ names(x) <- results$combos$climate[w]
 random <- randwin(repeats = 1,
                   baseline =  model   ,
                   xvar = list(Clim[[as.character(results$combos$climate[w])]]),
-                  type = as.character(results$combos$type[w]),
+                  type = "absolute",
                   range = c(ifelse(cdata == "month", 12, 365),ifelse(cdata == "month",-12,-365)),
                   stat = c(as.character(results$combos$stat[w])),
                   func = c(as.character(results$combos$func[w])),
