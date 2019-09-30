@@ -4,7 +4,6 @@ suppressPackageStartupMessages(library(lme4))
 suppressPackageStartupMessages(library(optparse))
 suppressPackageStartupMessages(library(lubridate))
 
-sessionInfo()
 
 #  ----------------------------------------------------------------------------------------------------------------------------
 # parsing arguments
@@ -41,10 +40,17 @@ vitalrate <- cli$args[1]
 Climate   <- cli$args[2]
 SpeciesInput  <- cli$args[3]
 Results_sliding <- cli$args[4]
-w <- cli$args[5]
+w <- as.integer(cli$args[5])
 output <- cli$args[6]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
+
+cdata
+species
+vitalrate
+Climate
+SpeciesInput
+Results_sliding
 w
 
 ### Check 
@@ -154,6 +160,8 @@ print(results$combos[w,])
 
 x <- list(Clim[[as.character(results$combos$climate[w])]]) 
 names(x) <- results$combos$climate[w]
+
+str(x)
 
 random <- randwin(repeats = 1,
                   baseline =  model   ,

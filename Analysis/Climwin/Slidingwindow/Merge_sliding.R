@@ -2,29 +2,13 @@
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(optparse))
 
+sessionInfo()
 #  ----------------------------------------------------------------------------------------------------------------------------
 # parsing arguments
 #  ----------------------------------------------------------------------------------------------------------------------------
 
-Parsoptions <- list (
-  make_option(
-    opt_str = c("-c", "--climate-data-format"),
-    dest    = "climate_data_format",
-    help    = "Specify the format of the climate data, either month or day",
-    metavar = "month|day"),
-  
-  make_option(
-    opt_str = c("-s", "--species-used"),
-    dest    = "species_used",
-    help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")      # ,
-  
- 
-)
-
 parser <- OptionParser(
   usage       = "Rscript %prog [options] output_dir",
-  option_list = Parsoptions,
   description = "\nan Run slidingwindow analysis",
   epilogue    = ""
 )
@@ -35,8 +19,6 @@ cli <- parse_args(parser, positional_arguments = 1)
 # Assign shortcuts
 #  ----------------------------------------------------------------------------------------------------------------------------
 
-cdata <- cli$options$climate_data_format    
-species <- cli$options$species_used
 output_dir <- cli$args[1]
 
 ## get all RDS from one job in one list  ----------------------------------------------------------------------------------------------------------
@@ -44,15 +26,20 @@ output_dir <- cli$args[1]
 files <- list.files(output_dir, pattern = ".rds$", full.names = T)
 r <- lapply(files, readRDS)
 
-
 ## Create the correct result format ---------------------------------------------------------------------------------------------------------------
 
 results <- lapply(r, '[[', 1)
 results$combos <- bind_rows(lapply(r, '[[', 2), .id="column_label")
 
-
 ##Save files in the directory created by the Climwin function -------------------------------------------------------------------------------------
+print("get info")
+getinfo <- stringr::str_split(files[1], "[[:punct:]]")
+species <- getinfo[[1]][6]
+cdata <- getinfo[[1]][7]
+vitalrate <- getinfo[[1]][8]
+species
+cdata
+vitalrate
 
-saveRDS(results, file.path(output_dir, paste(species, cdata, "result.rds", sep = "_")))
-write.csv(results$combos, file.path(output_dir, paste(species, cdata, "summary_combos.csv", sep = "_") ))
+saveRDS(results, file.path(output_dir, paste(species, vitalrate, cdata, "result.rds", sep = "_")))
 

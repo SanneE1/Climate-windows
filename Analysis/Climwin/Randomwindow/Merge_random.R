@@ -6,39 +6,20 @@ suppressPackageStartupMessages(library(dplyr))
 # parsing arguments
 #  ----------------------------------------------------------------------------------------------------------------------------
 
-Parsoptions <- list (
-  make_option(
-    opt_str = c("-c", "--climate-data-format"),
-    dest    = "climate_data_format",
-    help    = "Specify the format of the climate data, either month or day",
-    metavar = "month|day"),
-  
-  make_option(
-    opt_str = c("-s", "--species-used"),
-    dest    = "species_used",
-    help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")      # ,
-  
-  
-)
-
 parser <- OptionParser(
-  usage       = "Rscript %prog [options] output_dir randomid",
-  option_list = Parsoptions,
+  usage       = "Rscript %prog [options]",
   description = "\nan Run slidingwindow analysis",
   epilogue    = ""
 )
 
-cli <- parse_args(parser, positional_arguments = 2)
+cli <- parse_args(parser, positional_arguments = 1)
 
 #  ----------------------------------------------------------------------------------------------------------------------------
 # Assign shortcuts
 #  ----------------------------------------------------------------------------------------------------------------------------
 
-cdata <- cli$options$climate_data_format    
-species <- cli$options$species_used
 output_dir <- cli$args[1]
-randomid <- cli$args[2]
+
 
 ## get all RDS from one job in one list  ----------------------------------------------------------------------------------------------------------
 
@@ -54,5 +35,10 @@ combos <- bind_rows(lapply(r, '[[', 2), .id="column_label")
 results <- list(randoms, combos)
 ##Save files in the directory created by the Climwin function -------------------------------------------------------------------------------------
 
-saveRDS(results, file.path(output_dir, paste("Random", species, cdata, randomid, "result.rds", sep = "_")))
+getinfo <- stringr::str_split(files[1],"[[:punct:]]")
+species <- getinfo[[1]][5]
+cdata <- getinfo[[1]][6]
+vitalrate <- getinfo[[1]][7]
+
+saveRDS(results, paste(output_dir, paste(species, cdata, vitalrate, "random.rds", sep = "_")))
 
