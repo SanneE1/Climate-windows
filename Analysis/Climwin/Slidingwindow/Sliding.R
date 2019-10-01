@@ -155,6 +155,7 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
   if (vitalrate =="fn") {
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
+    Biol$fertilityT <- as.integer(Biol$fertilityT)
     model <- glmer(formula = fertilityT ~ sizeT + population + (1|year),
                    data = Biol,
                    family = poisson)
