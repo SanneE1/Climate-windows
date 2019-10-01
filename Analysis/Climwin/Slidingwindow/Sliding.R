@@ -73,9 +73,9 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 10 options
+if(cdata == "month") {                          ## 8 options
   
-  xvar <- c("sum_prcp_scaled", "mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled")
+  xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled")
   type <- c("absolute")
   stat <- c("mean")
   func <- c("lin", "quad")
@@ -114,8 +114,6 @@ if (species == "HEQU") {
 Biol <- Biol[which(Biol$seedling != 1),]                           
 Biol <- Biol[which(Biol$year!= 2012),]
 
-Clim <- Clim[which(Clim$population == "mid"),]  ## only use climate data from one station
- 
 }
 
 
@@ -189,7 +187,8 @@ result <- slidingwin(baseline = model,
            func = options$func[taskID],
            refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
            cinterval = cdata,
-           cdate = as.character(Clim$date), bdate = as.character(Biol$date)
+           cdate = as.character(Clim$date), bdate = as.character(Biol$date),
+           cmissing = "method1"
            )
 
 
