@@ -61,8 +61,8 @@ Metadata for the HEQU dataset
 |presentT1  | Presence at time T+1 (0/1)\*|
 |survival   | Survival from year T to year T+1 (0/1)\** . |
 |seedling   | Is individual seedling in year T (0/1)\** |
-|sizeT      | The lognormal of the number of clumps of leaves per plant at time T |
-|sizeT1     | The lognormal of the number of clumps of leaves per plant at time T+1 |
+|sizeT      | The number of clumps of leaves per plant at time T\* |
+|sizeT1     | The number of clumps of leaves per plant at time T+1\* |
 |pflowerT   | The probability of flowering (producing at least one stalk) at time T\* |
 |pflowerT   | The probability of flowering (producing at least one stalk) at time T+1\* |
 |abort.stalks | Number of aborted flower stalks per plant at time T\** |
@@ -86,8 +86,8 @@ Metadata for the CRFL dataset
 |month| Month of census (at time T)|
 |day| Day of census (at time T)|
 |survival| survival from time T to time T1| 
-|sizeT| The natural logarithm of the total number of rosettes of individual of _Cryptantha flava_ at time T|
-|sizeT1| The natural logarithm of the total number of rosettes of individual of _Cryptantha flava_ at time T1|
+|sizeT| The total number of rosettes of individual of _Cryptantha flava_ at time T\*|
+|sizeT1| The total number of rosettes of individual of _Cryptantha flava_ at time T1\*|
 |age|Age of individual of Cryptantha flava. Individuals with unknown age are set to 999\*|
 |pflowerT| Did the individual flower|
 |fertilityT| Number of flowering rosettes of individual of Cryptantha flava\*|
@@ -128,7 +128,8 @@ Metadata for the OPIM dataset
 |Antsp_t | The species identity of the ants|  
 
 \* Same as found in the original data  
-\*\* Personal note from Tom - Not super reliable, very difficult to distinguish recruits from small older plants
+\*\* Personal note from Tom - Not super reliable, very difficult to distinguish recruits from small older plants  
+
 ## Analysis
 
 ### Sliding window
