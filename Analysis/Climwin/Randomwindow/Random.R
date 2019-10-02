@@ -24,25 +24,29 @@ Parsoptions <- list (
 )
 
 parser <- OptionParser(
-  usage       = "Rscript %prog [options] vitalrate Climate SpeciesInput Results_sliding winner output",
+  usage       = "Rscript %prog [options] Climate SpeciesInput Results_sliding winner output",
   option_list = Parsoptions,
   description = "\nan Run randomwindow analysis",
   epilogue    = ""
 )
 
-cli <- parse_args(parser, positional_arguments = 6)
+cli <- parse_args(parser, positional_arguments = 5)
 
 ### Assign shortcuts ------------------------------------------------------------------------------------------
 
 cdata <- cli$options$climate_data_format
 species <- cli$options$species_used
-vitalrate <- cli$args[1]
-Climate   <- cli$args[2]
-SpeciesInput  <- cli$args[3]
-Results_sliding <- cli$args[4]
-w <- as.integer(cli$args[5])
-output <- cli$args[6]
+Climate   <- cli$args[1]
+SpeciesInput  <- cli$args[2]
+Results_sliding <- cli$args[3]
+w <- as.integer(cli$args[4])
+output <- cli$args[5]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
+
+
+## Get which vital rate was analysed ------------------------------------------------------------------------------
+getinfo <- stringr::str_split(Results_sliding, "[[:punct:]]")
+vitalrate <- getinfo[[1]][6]
 
 
 cdata
@@ -87,7 +91,6 @@ Biol <- Biol[which(Biol$seedling != 1),]
 Biol <- Biol[which(Biol$year!= 2012),]
 Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
 
-  Clim <- Clim[which(Clim$population == "mid"),]  
 }
 
 
@@ -130,6 +133,7 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
   if (vitalrate =="fn") {
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
+    Biol$fertilityT <- as.integer(Biol$fertilityT)
     model <- glmer(formula = fertilityT ~ sizeT + population + (1|year),
                    data = Biol,
                    family = poisson)

@@ -73,9 +73,9 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 8 options
+if(cdata == "month") {                          ## 10 options
   
-  xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled")
+  xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled")
   type <- c("absolute")
   stat <- c("mean")
   func <- c("lin", "quad")
@@ -84,9 +84,9 @@ if(cdata == "month") {                          ## 8 options
   
 }
 
-if(cdata == "day") {                           ## 16 options
+if(cdata == "day") {                           ## 24 options
   
-  xvar <- c( "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M")
+  xvar <- c( "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M", "tavg_scaled_M")
   type <- c("absolute")
   stat <- c("mean", "sd")
   func <- c("lin", "quad")
@@ -98,6 +98,12 @@ if(cdata == "day") {                           ## 16 options
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
 ## add growing degree days using "sum"
+
+if(cdata == "day"){
+options <- rbind(options, c("prcp", "absolute", "sum", "lin", 0, NA), c("prcp", "absolute", "sum", "quad", 0, NA),
+                          c("prcp_scaled_M", "absolute", "sum", "lin", 0, NA), c("prcp_scaled_M", "absolute", "sum", "quad", 0, NA)
+                  )
+}
 
 print(options[taskID,])
 
@@ -146,17 +152,18 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
   
   if (vitalrate =="fp"){
     print("Running Flower probability vital rate")
-    Biol$lnsizeT <- log(Biol$sizeT)
-    model <- glmer(formula = pflowerT ~ lnsizeT + population + (1|year),
+    Biol$lnsizeT1 <- log(Biol$sizeT1)
+    Biol <- Biol[which(!is.na(Biol$lnsizeT1)),]
+    model <- glmer(formula = pflowerT1 ~ lnsizeT1 + population + (1|year),
                    data = Biol,
                    family = binomial)
   }
  
   if (vitalrate =="fn") {
     print("Running Number of Flowers")
-    Biol <- Biol[which(!is.na(Biol$fertilityT)),]
-    Biol$fertilityT <- as.integer(Biol$fertilityT)
-    model <- glmer(formula = fertilityT ~ sizeT + population + (1|year),
+    Biol <- Biol[which(!is.na(Biol$fertilityT1)),]
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
+    model <- glmer(formula = fertilityT1 ~ sizeT1 + population + (1|year),
                    data = Biol,
                    family = poisson)
   }
