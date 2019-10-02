@@ -11,7 +11,7 @@ df <- read.csv("Data/Biol data/CRFL_demography_data.csv") %>%
          sizeT1 = as.integer(sizeT1))
 
 df <- df[which(df$Treatment == "C"),]
-df <- df[which(df$year %in% c(1997:2001,2003:2011)),]
+df <- df[which(df$year %in% c(1997:2000,2003:2011)),]
 
 ###################
 ###  Survival  ####
