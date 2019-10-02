@@ -1,0 +1,661 @@
+---
+title: "Summary HEQU"
+author: "Sanne Evers"
+date: "September 18, 2019"
+output: html_document
+bibliography: library.bib
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+
+```
+$~$  
+
+I will be using this document to summarise the progress on the HEQU Climwin analysis.  
+
+The general README file with origin of the datasets and layout can be found [here](https://github.com/SanneE1/Biome), although the repository is currently still set on private. Most/All of the analyses and visuals can also be found there.
+
+$~$  
+
+# Climate data
+
+### Locations
+Below you'll find a table with site information for the populations as well as a map with the location of the populations and the closest NOAA weather stations.
+
+For the weather station we selected the NOAA station \"USS0006L11S\" (green in the following map and figures). If we were to select the closest station per population, the closest stations for the high and mid populations (red and green resp.) would have been almost 20 km apart, while the actual populations are relatively close together. Moreover, station \"USS0006L11S\" is the second closest station for the high population (10km compared to 7.8 km). This station is also only 2.5 km further away from the low population compared to the closest station \"USC00051959\" (blue - which is missing one month of data). However, this station is in a "wildlife-urbanisation interface" (i.e. there are several buildings there - bit of a village)
+
+```{r, Population information, cache=FALSE}
+
+sites <- data.frame(Population = c("high", "mid", "low"),
+                    Name = c("Virginia Basin" ,"Maxfield Meadow","Horse Ranch Park"),
+                    Latitude = as.numeric(measurements::conv_unit(c("38 58.612","38 57.5","38 51.774"), from = 'deg_dec_min', to = 'dec_deg')),
+                    Longitude = as.numeric(measurements::conv_unit(c("-106 58.690","-106 59.3","-107 09.556"), from = 'deg_dec_min', to = 'dec_deg')),
+                    "Altitude (m a.s.l.)" = c(3407,2886,2703))
+knitr::kable(sites, align = 'l')
+
+```
+
+
+```{r, Location map, echo=FALSE, cache=FALSE}
+
+library(leaflet)
+
+Map <- readRDS("../../Visual/HEQU_Locations.rds")
+Map
+```
+
+$~$  
+
+### Climate plots {.tabset .tabset-fade .tabset-pills}
+A quick overview of the climate in the different populations
+
+#### Temperature
+The figure below shows the mean temperature at observation (black line), the average minimum and maximum temperature (blue ribbon) and the absolute minimum and maximum temperature (red dashed line) per month for each year. The values between 15-07-2002 and 15-07-2003 were imputed using the closest station, due to extreme values observed in the original data (see [here](#original_temp))  
+
+![](../../Visual/HEQU_grid_Temperature.png)  
+
+#### Precipitation
+The solid line shows the daily mean precipitation per month. The ribbon is +/- standard deviation
+
+![](../../Visual/HEQU_grid_Precipitation.png)  
+
+
+
+
+
+# Climwin Input Variables[^1]  {.tabset .tabset-fade .tabset-pills}
+
+$~$  
+
+## Monthly climate variables used
+The tables below list all the different climate variables that are tested when using monthly data.
+
+[^1]: see the [NOAA website](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/readme.txt) for more detailed information 
+
+
+```{r, Monthly climate drivers, echo=FALSE, cache=FALSE}
+suppressPackageStartupMessages(library(dplyr))
+a <- readRDS("../../Results/Climwin/20191001/HEQU_s_month_result.rds")
+b <- data.frame(
+  Abbreviation = c(unique(as.character(a$combos$climate[order(a$combos$climate)]))), 
+  Description = c(
+    "Scaled mean percipitation (mm) in that month",
+    "Monthly scaled mean of the average daily temperature",
+    "Monthly scaled mean of the maximum temperature observed per day",
+    "Monthly scaled mean of the minimum temperature observed per day",
+    "Monthly scaled mean of the temperature at time of observation"
+    ))
+c <- data.frame(
+  Abbreviation = c(unique(as.character(a$combos$stat[order(a$combos$stat)]))), 
+  Description = c("The mean of the values of the climate driver within the time window"
+                  ))
+d <- data.frame(
+  Abbreviation = c(unique(as.character(a$combos$func[order(a$combos$func)]))), 
+  Description = c("Linear",
+                  "Quadratic"
+                  ))
+
+knitr::kable(b, caption = "Climate drivers")
+knitr::kable(c, caption = "Aggregate statistics")
+knitr::kable(d, caption = "Response type")
+
+
+```
+  
+  $~$  
+
+## Daily climate variables used
+The tables below list all the different climate variables that are tested when using daily climate data
+
+*Still needs to be done*
+
+$~$  
+
+#Climwin Analysis {.tabset .tabset-fade .tabset-pills} 
+
+## Survival {.tabset .tabset-fade .tabset-pills}
+
+### Plot
+
+```{r SurvivalFacet, cache=FALSE}
+library(ggplot2)
+readRDS("Survival_facetplot.rds")
+
+```
+
+
+
+### Climwin: Baseline
+
+The baseline model which doesn't contain climate will be used to compare the relative improvement the different climate models offer to explain the data (more on that [here][dAICc]).  
+
+For survival probability I used a logit generalised linear mixed effect model with (log transformed) size and populations as fixed effect, and year as random effect.  
+
+
+```{r Survival baseline, cache=FALSE}
+library(dplyr)
+library(lme4)
+
+df <- read.csv("../../Data/Biol data/HEQU_demography_data.csv") %>%
+   mutate(sizeT = as.integer(sizeT)          #### ln transform here.
+          )
+ 
+df <- df[which(df$seedling != 1),]
+
+
+s_a <- glmer(survival ~ log(sizeT) + population + (1|year), data = df, family = "binomial")
+
+summary(s_a)
+
+```
+
+
+$~$  
+
+### Climwin: Slidingwindow Summary {#s_sliding} 
+
+The table below shows the best time window for the 10 tried combinations. It is sorted on the best fit first (i.e. the lowest DeltaAICc first, see [here][dAICc]).
+
+
+```{r referencedate Survival, include=FALSE, cache=FALSE}
+result <- readRDS("../../Results/Climwin/20191001/HEQU_s_month_result.rds")
+refmonth <- month.name[result[[1]]$Dataset$Reference.month[1]]
+```
+**The reference month for the time windows is `r refmonth`** (i.e. month 0 )  
+[Note on the time windows][Note on the time windows]  
+```{r Survival sliding combos, cache=FALSE}
+df <- readRDS("../../Results/Climwin/20191001/HEQU_s_month_result.rds")
+combos <- df$combos[order(df$combos$DeltaAICc),]
+
+
+knitr::kable(combos[, 1:9], col.names = c("Combination", "Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), row.names = F)
+
+
+```
+
+$~$  
+
+### Climwin: Best Window
+
+Zooming in on combination 8, the combination with the second lowest `DeltaAICc` we can see the result of all the time windows tried (in this case only the best 10). Below that there is a summary of the best model (first row from the table).  
+
+
+```{r Survival zoom best, cache=FALSE}
+
+result <- readRDS("../../Results/Climwin/20191001/HEQU_s_month_result.rds")
+
+knitr::kable(result$combos[8,2:9], 
+             col.names = c("Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), 
+             row.names = F, 
+             caption = "Selected combination")
+
+knitr::kable(result[[8]]$Dataset[1:10,c(1:4,9,10,13)], row.names = F,
+             caption = "Top 10 windows of selected combination (above)")
+
+summary(result[[8]]$BestModel)
+```
+
+$~$
+
+
+### Climwin: Plotall
+```{r survival random numbers, include=FALSE, cache=FALSE}
+random <- readRDS("../../Results/Climwin/20191001/HEQU_s_month_random.rds")
+s_rand_n <- length(random[[1]]$deltaAICc)
+```
+The following graph shows the output from the `plot_all` function from `Climwin`.  
+
+Upper left shows the different opening (y-axis) and closing (x-axis) times and the corresponding `dAICc`. The red area's show the timewindows with the lowest `dAICc` (Remember, [lower is better][dAICc])
+
+Upper middle shows the relationship between the climate signal from the single best supported time window (see [above](#s_sliding)) and the biological response (here Survival) [@VandePol2016a].
+
+Upper right shows the slope estimates for each of the windows. This allows us to see the relation between the mean maximum temperature and survival in the neighbouring windows.
+
+Lower left shows the comparison between the chosen best window, and the `dAICc` of the `r s_rand_n` [random models][Random models]
+
+```{r plot all survival, echo=FALSE, fig.width=15, fig.height=10, fig.align="center", cache=FALSE}
+suppressPackageStartupMessages(library(climwin))
+result <- readRDS("../../Results/Climwin/20191001/HEQU_s_month_result.rds")
+random <- readRDS("../../Results/Climwin/20191001/HEQU_s_month_random.rds")
+
+
+plotall(datasetrand = random[[1]],
+        dataset = result[[8]]$Dataset,
+        bestmodel = result[[8]]$BestModel,
+        bestmodeldata = result[[8]]$BestModelData,
+        title = result$combos$climate[8],
+        arrow = T)
+
+```
+
+$~$  
+
+
+## Growth {.tabset .tabset-fade .tabset-pills}
+
+
+### Plot
+
+```{r GrowthFacet, cache=FALSE }
+library(ggplot2)
+readRDS("Growth_facetplot.rds")
+
+```
+
+
+### Climwin: Baseline
+
+The plan is to use a negative binomial model: `glmer.nb(sizeT1 ~ sizeT + population + (1|year), data = Biol)`
+However, as it'll probably take a long time and with EVE shutting down on Friday, the results below are from a Poisson distribution
+
+**Current baseline**
+```{r Growth baseline, echo=FALSE, cache=FALSE}
+library(dplyr)
+library(lme4)
+
+df <- read.csv("../../Data/Biol data/HEQU_demography_data.csv") %>%
+  mutate(sizeT = as.integer(sizeT),
+         sizeT1 = as.integer(sizeT1))
+   
+df <- df[which(df$seedling != 1),]
+
+model <- glmer(formula = sizeT1 ~ sizeT + population + (1|year),
+                   data = df,
+                   family = poisson)
+summary(model)
+```
+### Climwin: Slidingwindow Summary 
+$~$  
+```{r referencedate Growth, include=FALSE, cache=FALSE}
+result <- readRDS("../../Results/Climwin/20191001/HEQU_g_month_result.rds")
+refmonth <- month.name[result[[1]]$Dataset$Reference.month[1]]
+```
+**The reference month for the time windows is `r refmonth`** (i.e. month 0 )
+[Note on the time windows][Note on the time windows]  
+```{r Growth sliding combos, cache=FALSE}
+df <- readRDS("../../Results/Climwin/20191001/HEQU_g_month_result.rds")
+combos <- df$combos[order(df$combos$DeltaAICc),]
+
+
+knitr::kable(combos[, 1:9], col.names = c("Combination", "Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), row.names = F)
+
+
+```
+
+$~$  
+
+### Climwin: Best Window
+
+Zooming in on combination 8, the combination with the second lowest `DeltaAICc` we can see the result of all the time windows tried (in this case only the best 10). Below that there is a summary of the best model (first row from the table).  
+
+
+
+```{r Growth zoom best, cache=FALSE}
+
+result <- readRDS("../../Results/Climwin/20191001/HEQU_g_month_result.rds")
+
+knitr::kable(result$combos[8,2:9], 
+             col.names = c("Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), 
+             row.names = F, 
+             caption = "Selected combination")
+
+knitr::kable(result[[8]]$Dataset[1:10,c(1:4,9,10,13)], row.names = F,
+             caption = "Top 10 windows of selected combination (above)")
+
+summary(result[[8]]$BestModel)
+```
+
+### Climwin: Plotall
+```{r growth random numbers, include=FALSE, cache=FALSE}
+random <- readRDS("../../Results/Climwin/20191001/HEQU_g_month_random.rds")
+s_rand_n <- length(random[[1]]$deltaAICc)
+```
+The following graph shows the output from the `plot_all` function from `Climwin`.  
+
+Upper left shows the different opening (y-axis) and closing (x-axis) times and the corresponding `dAICc`. The red area's show the timewindows with the lowest `dAICc` (Remember, [lower is better][dAICc])
+
+Upper middle shows the relationship between the climate signal from the single best supported time window (see [above](#s_sliding)) and the biological response (here Survival) [@VandePol2016a].
+
+Upper right shows the slope estimates for each of the windows. This allows us to see the relation between the mean maximum temperature and survival in the neighbouring windows.
+
+Lower left shows the comparison between the chosen best window, and the `dAICc` of the `r s_rand_n` [random models][Random models]  
+
+```{r plot all Growth, echo=FALSE, fig.width=15, fig.height=10, fig.align="center", cache=FALSE}
+suppressPackageStartupMessages(library(climwin))
+result <- readRDS("../../Results/Climwin/20191001/HEQU_g_month_result.rds")
+random <- readRDS("../../Results/Climwin/20191001/HEQU_g_month_random.rds")
+
+
+plotall(datasetrand = random[[1]],
+        dataset = result[[8]]$Dataset,
+        bestmodel = result[[8]]$BestModel,
+        bestmodeldata = result[[8]]$BestModelData,
+        title = result$combos$climate[8],
+        arrow = T)
+
+```
+
+## Flower probability {.tabset .tabset-fade .tabset-pills}
+
+### Plot
+
+```{r pFlower Facet, cache=FALSE }
+library(ggplot2)
+readRDS("pFlower_facetplot.rds")
+
+```
+  
+### Climwin: Baseline
+
+The plan is to use a negative binomial model: `glmer.nb(pFlower ~ sizeT + population + (1|year), data = Biol)`
+However, as it'll probably take a long time and with EVE shutting down on Friday, the results below are from a Poisson distribution
+
+**Current baseline**
+```{r pFlower baseline, echo=FALSE, cache=FALSE}
+library(dplyr)
+library(lme4)
+
+df <- read.csv("../../Data/Biol data/HEQU_demography_data.csv") %>%
+   mutate(sizeT1 = as.integer(sizeT1)          #### ln transform here.
+                  )
+
+df <- df[which(df$seedling != 1),]
+
+model <- glmer(formula = pflowerT1 ~ log(sizeT1) + population + (1|year),
+                   data = df,
+                   family = binomial)
+summary(model)
+```
+  
+### Climwin: Slidingwindow Summary  
+_To keep the script generic I need to use the same time range `c(12,-12)` as for the other vital rates. This means that both flower probability and size used are from time T+1._  
+
+```{r referencedate pFlower, include=FALSE, cache=FALSE}
+result <- readRDS("../../Results/Climwin/20191001/HEQU_fp_month_result.rds")
+refmonth <- month.name[result[[1]]$Dataset$Reference.month[1]]
+```
+**The reference month for the time windows is `r refmonth`** (i.e. month 0 )
+[Note on the time windows][Note on the time windows]  
+```{r pFlower sliding combos}
+df <- readRDS("../../Results/Climwin/20191001/HEQU_fp_month_result.rds")
+combos <- df$combos[order(df$combos$DeltaAICc),]
+
+
+knitr::kable(combos[, 1:9], col.names = c("Combination", "Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), row.names = F)
+
+
+```
+
+
+
+### Climwin: Best Window
+_To keep the script generic I need to use the same time range `c(12,-12)` as for the other vital rates. This means that both flower probability and size used are from time T+1._  
+
+Zooming in on combination 7, the combination with the second lowest `DeltaAICc` we can see the result of all the time windows tried (in this case only the best 10). Below that there is a summary of the best model (first row from the table).  
+
+
+```{r pFlower zoom best, cache=FALSE}
+
+result <- readRDS("../../Results/Climwin/20191001/HEQU_fp_month_result.rds")
+
+knitr::kable(result$combos[7,2:9], 
+             col.names = c("Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), 
+             row.names = F, 
+             caption = "Selected combination")
+
+knitr::kable(result[[7]]$Dataset[1:10,c(1:4,9,10,13)], row.names = F,
+             caption = "Top 10 windows of selected combination (above)")
+
+summary(result[[7]]$BestModel)
+```
+
+ 
+
+### Climwin: Plotall 
+_To keep the script generic I need to use the same time range `c(12,-12)` as for the other vital rates. This means that both flower probability and size used are from time T+1._   
+
+```{r pFlower random numbers, include=FALSE, cache=FALSE}
+random <- readRDS("../../Results/Climwin/20191001/HEQU_fp_month_random.rds")
+s_rand_n <- length(random[[1]]$deltaAICc)
+```
+The following graph shows the output from the `plot_all` function from `Climwin`.  
+
+Upper left shows the different opening (y-axis) and closing (x-axis) times and the corresponding `dAICc`. The red area's show the timewindows with the lowest `dAICc` (Remember, [lower is better][dAICc])
+
+Upper middle shows the relationship between the climate signal from the single best supported time window (see [above](#s_sliding)) and the biological response (here Survival) [@VandePol2016a].
+
+Upper right shows the slope estimates for each of the windows. This allows us to see the relation between the mean maximum temperature and survival in the neighbouring windows.
+
+Lower left shows the comparison between the chosen best window, and the `dAICc` of the `r s_rand_n` [random models][Random models]
+  
+```{r plot all pFlower, echo=FALSE, fig.width=15, fig.height=10, fig.align="center", cache=FALSE}
+suppressPackageStartupMessages(library(climwin))
+result <- readRDS("../../Results/Climwin/20191001/HEQU_fp_month_result.rds")
+random <- readRDS("../../Results/Climwin/20191001/HEQU_fp_month_random.rds")
+
+
+plotall(datasetrand = random[[1]],
+        dataset = result[[7]]$Dataset,
+        bestmodel = result[[7]]$BestModel,
+        bestmodeldata = result[[7]]$BestModelData,
+        title = result$combos$climate[7],
+        arrow = T)
+
+```
+  
+  
+## Flower Numbers {.tabset .tabset-fade .tabset-pills}
+
+### Plot
+
+```{r nFlower Facet, cache=FALSE }
+library(ggplot2)
+readRDS("Nflower_facetplot.rds")
+
+```
+
+$~$  
+
+### Climwin: Baseline
+
+The plan is to use a negative binomial model: `glmer.nb(pFlower ~ sizeT + population + (1|year), data = Biol)`
+However, as it'll probably take a long time and with EVE shutting down on Friday, the results below are from a Poisson distribution
+
+**Current baseline**
+```{r nFlower baseline, echo=FALSE, cache=FALSE}
+library(dplyr)
+library(lme4)
+
+df <- read.csv("../../Data/Biol data/HEQU_demography_data.csv") %>%
+   mutate(sizeT1 = as.integer(sizeT1)          #### ln transform here.
+                  )
+
+df <- df[which(df$seedling != 1),]
+
+model <- glmer(formula = fertilityT1 ~ log(sizeT1) + population + (1|year),
+                   data = df,
+                   family = "poisson")
+summary(model)
+```
+  
+  
+### Climwin: Slidingwindow Summary  
+_To keep the script generic I need to use the same time range `c(12,-12)` as for the other vital rates. This means that both the number of flowers and size used are from time T+1._ 
+```{r referencedate nFlower, include=FALSE}
+result <- readRDS("../../Results/Climwin/20191001/HEQU_fn_month_result.rds")
+refmonth <- month.name[result[[1]]$Dataset$Reference.month[1]]
+```
+**The reference month for the time windows is `r refmonth`** (i.e. month 0 )
+[Note on the time windows][Note on the time windows]  
+```{r nFlower sliding combos}
+df <- readRDS("../../Results/Climwin/20191001/HEQU_fn_month_result.rds")
+combos <- df$combos[order(df$combos$DeltaAICc),]
+
+
+knitr::kable(combos[1:10, 1:9], col.names = c("Combination", "Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), row.names = F)
+
+
+```
+
+
+### Climwin: Best Window
+_To keep the script generic I need to use the same time range `c(12,-12)` as for the other vital rates. This means that both flower probability and size used are from time T+1._  
+
+Zooming in on combination 6, the combination with the second lowest `DeltaAICc` we can see the result of all the time windows tried (in this case only the best 10). Below that there is a summary of the best model (first row from the table).  
+
+
+```{r nFlower zoom best, cache=FALSE}
+
+result <- readRDS("../../Results/Climwin/20191001/HEQU_fn_month_result.rds")
+
+knitr::kable(result$combos[7,2:9], 
+             col.names = c("Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), 
+             row.names = F, 
+             caption = "Selected combination")
+
+knitr::kable(result[[7]]$Dataset[1:10,c(1:4,9,10,13)], row.names = F,
+             caption = "Top 10 windows of selected combination (above)")
+
+summary(result[[7]]$BestModel)
+```
+
+ 
+
+### Climwin: Plotall
+_To keep the script generic I need to use the same time range `c(12,-12)` as for the other vital rates. This means that both flower probability and size used are from time T+1._  
+
+```{r nFlower random numbers, include=FALSE, cache=FALSE}
+random <- readRDS("../../Results/Climwin/20191001/HEQU_fn_month_random.rds")
+s_rand_n <- length(random[[1]]$deltaAICc)
+```
+The following graph shows the output from the `plot_all` function from `Climwin`.  
+
+Upper left shows the different opening (y-axis) and closing (x-axis) times and the corresponding `dAICc`. The red area's show the timewindows with the lowest `dAICc` (Remember, [lower is better][dAICc])
+
+Upper middle shows the relationship between the climate signal from the single best supported time window (see [above](#s_sliding)) and the biological response (here Survival) [@VandePol2016a].
+
+Upper right shows the slope estimates for each of the windows. This allows us to see the relation between the mean maximum temperature and survival in the neighbouring windows.
+
+Lower left shows the comparison between the chosen best window, and the `dAICc` of the `r s_rand_n` [random models][Random models]
+  
+```{r plot all nFlower, echo=FALSE, fig.width=15, fig.height=10, fig.align="center", cache=FALSE}
+suppressPackageStartupMessages(library(climwin))
+result <- readRDS("../../Results/Climwin/20191001/HEQU_fn_month_result.rds")
+random <- readRDS("../../Results/Climwin/20191001/HEQU_fn_month_random.rds")
+
+
+plotall(datasetrand = random[[1]],
+        dataset = result[[7]]$Dataset,
+        bestmodel = result[[7]]$BestModel,
+        bestmodeldata = result[[7]]$BestModelData,
+        title = result$combos$climate[7],
+        arrow = T)
+
+```
+  
+  
+
+## Flower aborting probability {.tabset .tabset-fade .tabset-pills}
+
+### Plot
+
+```{r pAbort Facet, cache=FALSE }
+library(ggplot2)
+readRDS("pAbort_facetplot.rds")
+
+```
+$~$  
+  
+
+## Number of seedlings {.tabset .tabset-fade .tabset-pills}
+
+### Plot
+
+```{r nSDL Facet, cache=FALSE }
+library(ggplot2)
+readRDS("Nseedling_facetplot.rds")
+
+```
+$~$  
+$~$  
+
+## Seedling survival {.tabset .tabset-fade .tabset-pills}
+
+### Plot
+
+```{r SDLsurv Facet, cache=FALSE }
+library(ggplot2)
+readRDS("SDLsurv_facetplot.rds")
+
+```
+
+
+$~$  
+
+# Colinearity between Climate drivers  
+
+**Left =** Cross colinearity between `mean_tmin` and `sum_prcp`  
+**Right =** Autocolinearity analysis between the `mean_tmin` critical window and all other windows  
+
+Critical window of mean_tmin was c(-1,-2)  
+Critical window of sum_prcp was c(1,-6)
+
+```{r autocollinearity Survival, echo=FALSE, fig.width=20, fig.height=8, fig.align="center", cache=FALSE}
+crosscol <- readRDS("../../Results/Climwin/20190925/crosscolinearity_tmin_prcp.rds")
+autocol <- readRDS("../../Results/Climwin/20190925/autocollinearity_tmin.rds")
+
+C <- plotcor(crosscol, type = "C", arrow = T) + ggtitle("Cross colinearity between mean_tmin and sum_prcp")
+A <- plotcor(autocol, type = "A", arrow = T) + ggtitle("Autocolinearity for mean_tmin")
+
+gridExtra::grid.arrange(C, A, ncol = 2)
+
+```
+
+
+## Terms used / Extra explanation
+
+### dAICc
+The DeltaAICc is calculated as `AICc_climatemodel - AICc_baseline`. As a lower AICc score means a better fit, a negative `dAICc` means that the climate model fits better than the baseline, and the lower the `dAICc` is the better the fit is.  
+
+### Note on the time windows  
+
+The reference time for the analysis is at the time sizeT was measured. The response (e.g. survival) happens a year later. This means that when a window opens at time 0, it opens in the same month as the size was measured in. Month 12 is one year before measuring sizeT (i.e. T-1) and month -12 is the time survival is measured (i.e. T+1) 
+
+![](Timewindowexplained.png)  
+**Quick climwin test to see if using -12 works**
+```{r time comparison, echo=FALSE}
+df <- read.csv("HEQU_month_summary_combos_range_comparisons12_-12.csv")
+df <- df[order(df$DeltaAICc),]
+df$X <- NULL 
+df1 <- read.csv("HEQU_month_summary_combos_range_comparisons24_0.csv")
+df1 <- df1[order(df1$DeltaAICc),]
+df1$X <- NULL 
+
+
+knitr::kable(df[1:10, 1:9], col.names = c("Combination", "Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), row.names = F, caption = "Range is c(12,-12)")
+knitr::kable(df1[1:10, 1:9], col.names = c("Combination", "Response", "Climate Variable", "Type", "Aggregate statistic", "Function", "DeltaAICc", "WindowOpen", "WindowClose"), row.names = F, caption = "Range is c(24,0)")
+
+```
+
+$~$  
+
+### Random models
+>The exploratory nature of climwin makes it possible that some candidate signals may occur simply by chance due to the fact that so many possible climate windows are tried. For example, when looking back 365 days, the number time windows tested is 66,795 (i.e. m(m+1)/2, with m being the maximum number of intervals, 365 here). Randomization via the function randwin is a necessary step to determine the likelihood of a climate signal occurring by chance. This function randomizes the bdate column in the original biological dataframe Biol, thereby retaining the original data structure (including other variables in the baseline model) and temperature structure, but removing any climate signal. .... Ideally one does thousands of randomizations, but a practical constraint is that this can take very long.  
+[@VandePol2016a]  
+
+
+### Original Climate data from the 3 closest stations  
+
+#### Temperatures {#original_temp}
+The solid lines are the monthly mean temperature at observation ([tobs][Climwin Input Variables]) and the dashed lines are the mean minimum and maximum observed temperatures ([tmin][Climwin Input Variables] and [tmax][Climwin Input Variables] resp.)  
+
+![](../../Visual/HEQU_grid_Temperature_3.png)  
+
+
+
+#### Precipitation  
+The solid lines are the total monthly precipitation in mm ([mean_prcp][Climwin Input Variables]). 
+
+![](../../Visual/HEQU_grid_Precipitation_3.png) 
+#References
