@@ -5,7 +5,3 @@
 Data/
 Visual/
 Results/*
-!Results/HEQU_summary/
-Results/HEQU_summary/*
-!Results/HEQU_summary/Summary-HEQU.html
-!Results/HEQU_summary/Summary HEQU.Rmd
