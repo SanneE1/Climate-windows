@@ -36,8 +36,8 @@ results <- list(randoms, combos)
 ##Save files in the directory created by the Climwin function -------------------------------------------------------------------------------------
 
 getinfo <- stringr::str_split(files[1],"[[:punct:]]")
-species <- getinfo[[1]][5]
-cdata <- getinfo[[1]][6]
+species <- getinfo[[1]][6]
+cdata <- getinfo[[1]][8]
 vitalrate <- getinfo[[1]][7]
 
 getinfo
