@@ -1,5 +1,3 @@
-setwd("C:/owncloud/Documents/PhD/Biomes/Biome")
-
 library(rnoaa)
 library(dplyr)
 library(tidyr)
@@ -10,8 +8,8 @@ library(lubridate)
 
 sites <- data.frame(id = "Redfleet" , 
                     station = NA, 
-                    latitude = 40.5, 
-                    longitude = -109.375833, 
+                    latitude = 40.59548, 
+                    longitude = -109.43204, 
                     distance = NA)
 
 
@@ -36,8 +34,10 @@ Stations <- meteo_nearby_stations(lat_lon_df = sites,
                                   limit = 10
 )
 
-closest_stations <- Stations$Redfleet[1,]
+closest_stations <- Stations[[1]][2,]
 
+nearby_stations <- Stations[[1]][c(1:10),]
+write.csv(nearby_stations, "Data/Climate data/CRFL_nearb_stations.csv")
 
 #############################
 ## Get weather information ##
@@ -45,12 +45,13 @@ closest_stations <- Stations$Redfleet[1,]
 
 
 
-# WeatherInfo <- meteo_pull_monitors(closest_stations$id, date_max = "2011-12-31", date_min = "1996-01-01")
-# WeatherInfo$population <- "Redfleet"
-# WeatherInfo$prcp <- WeatherInfo$prcp / 10
-# WeatherInfo$tmax <- WeatherInfo$tmax / 10
-# WeatherInfo$tmin <- WeatherInfo$tmin / 10
-# WeatherInfo$tobs <- WeatherInfo$tobs / 10
+WeatherInfo <- meteo_pull_monitors(closest_stations$id, date_max = "2011-12-31", date_min = "1990-01-01")
+WeatherInfo$population <- "Redfleet"
+WeatherInfo$prcp <- WeatherInfo$prcp / 10
+WeatherInfo$tmax <- WeatherInfo$tmax / 10
+WeatherInfo$tmin <- WeatherInfo$tmin / 10
+WeatherInfo$tobs <- WeatherInfo$tobs / 10
+WeatherInfo$tavg <- WeatherInfo$tavg / 10
 # 
 # 
 # 
@@ -63,72 +64,56 @@ closest_stations <- Stations$Redfleet[1,]
 ##########################################################################
 
 WeatherInfo <- read.csv("Data/Climate data/CRFL_NOAA.csv")
-WeatherInfo$date <-  as.Date(WeatherInfo$date, "%m/%d/%Y")
+WeatherInfo$date <-  as.Date(WeatherInfo$date, "%Y-%m-%d")
 WeatherInfo$X <- NULL
 
-### replace with the mean of that day from other years ---------------------------------
-DailyInfo <- WeatherInfo
-
-for (j in c(4,7,8,9)) {                      ## climate columns of intrest                               
-  for(i in which(is.na(WeatherInfo[j]))){
-    if (is.na(WeatherInfo[i,j])) {
-      DailyInfo[i,j] <- mean(WeatherInfo[which(month(WeatherInfo$date) == month(WeatherInfo$date[i]) & 
-                                                 day(WeatherInfo$date) == day(WeatherInfo$date[i]) & 
-                                                 WeatherInfo$population == WeatherInfo$population[i]), j], na.rm = T)
-    }
+## Using Climwin's Method 1 to subsitude the last few values
+for (j in c(3,5:8)) {
+  for (i in which(is.na(WeatherInfo[[j]]))){
+    WeatherInfo[i,j] <- mean(WeatherInfo[[j]][which(WeatherInfo$date %in% 
+                                                      c(WeatherInfo$date[i] - (1:2), WeatherInfo$date[i] + (1:2)))],
+                             na.rm = T)
   }
+  
 }
 
 
 ### scale Clim drivers ----------------------------------------------------------------
-
-DailyInfo <- DailyInfo %>%                      
-  group_by(id, month(date)) %>%
-  mutate(prcp_scaled_M = scale(prcp),
-         tmax_scaled_M = scale(tmax),
-         tmin_scaled_M = scale(tmin),
-         tobs_scaled_M = scale(tobs)
-  )
-
-
-
-write.csv(select(WeatherInfo, "id", "date", "prcp", "tmax", "tmin", "tobs", "population", "prcp_scaled_M","tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M" ), 
-          "Data/Climate data/CRFL_NOAA_supplemented.csv" )
-
-
-
-
+# DailyInfo <- WeatherInfo
+# 
+# DailyInfo <- DailyInfo %>%                      
+#   group_by(id, month(date)) %>%
+#   mutate(prcp_scaled_M = scale(prcp),
+#          tmax_scaled_M = scale(tmax),
+#          tmin_scaled_M = scale(tmin),
+#          tobs_scaled_M = scale(tobs),
+#          tavg_scaled_M = scale(tavg)
+#   )
+# 
+# DailyInfo$wesd <- NULL
+# 
+# write.csv(WeatherInfo, "Data/Climate data/CRFL_NOAA_day.csv" )
+# 
 
 
 ############################################################################
 ## Add missing Clim data and Scale weather information  ---- Monthly ---- ##
 ############################################################################
 
+WeatherInfo$tmin[which(WeatherInfo$date == "1993-10-06")] <- NA  ## Remove extreme value (-51.3)
 
-
-MonthlyInfo <- DailyInfo %>%
-  group_by(id, population, Month = month(date), Year = year(date)) %>%
+MonthlyInfo <- WeatherInfo %>%
+  group_by(id, Month = month(date), Year = year(date)) %>%
   summarise(sum_prcp = sum(prcp),
             mean_prcp = mean(prcp),
             sd_prcp = sd(prcp),
             mean_tobs = mean(tobs),
             sd_tobs = sd(tobs),
             mean_tmax = mean(tmax),
-            mean_tmin = mean(tmin),
+            mean_tmin = mean(tmin, na.rm = T),
             max_tmax = max(tmax),
-            min_tmin = min(tmin))
-
-
-### replace with the mean of that month from other years ---------------------------------
-
-for (j in c(5:12)) {                          ## climate columns of intrest                
-  for(i in which(is.na(MonthlyInfo[j]))){
-    if (is.na(MonthlyInfo[i,j])) {
-      MonthlyInfo[i,j] <- mean(unlist(MonthlyInfo[which(MonthlyInfo$Month == MonthlyInfo$Month[i] & 
-                                                          MonthlyInfo$id == MonthlyInfo$id[i]), j]), na.rm = T)
-    }
-  }
-}
+            min_tmin = min(tmin, na.rm = T),
+            mean_tavg = mean(tavg))
 
 
 
@@ -144,11 +129,12 @@ MonthlyInfo <- MonthlyInfo %>%
          mean_tmax_scaled = scale(mean_tmax),
          mean_tmin_scaled = scale(mean_tmin),
          max_tmax_scaled = scale(max_tmax),
-         min_tmin_scaled = scale(min_tmin))
+         min_tmin_scaled = scale(min_tmin),
+         mean_tavg_scaled = scale(mean_tavg))
 
 
 
-write.csv(MonthlyInfo, "Data/Climate data/CRFL_NOAA_monthly.csv" )
+write.csv(MonthlyInfo, "Data/Climate data/CRFL_NOAA_month.csv" )
 
 
 
