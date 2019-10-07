@@ -127,8 +127,7 @@ if (species == "CRFL"){
     mutate(sizeT = as.integer(sizeT),
            sizeT1 = as.integer(sizeT1))
   
-  Biol <- df[which(df$Treatment == "C"),]
-  Biol <- df[which(df$year %in% c(1997:2000,2003:2011)),]
+  Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),]
   
 }
 
