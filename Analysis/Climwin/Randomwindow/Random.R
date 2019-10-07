@@ -93,6 +93,14 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
 
 }
 
+if (species == "CRFL"){
+  Biol <- read.csv(SpeciesInput) %>%
+    mutate(sizeT = as.integer(sizeT),
+           sizeT1 = as.integer(sizeT1))
+  
+  Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),]
+  
+}
 
 Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
 
@@ -146,10 +154,50 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
   }
 }
 
-# if (species == "CRFL") {
-#   model <- 
-# }
-
+if (species == "CRFL") {
+  
+  Biol <- Biol[which(!is.na(Biol$survival)),]                       
+  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
+  
+  
+  if(vitalrate =="s"){
+    print("Running survival vital rate")
+    Biol$lnsizeT <- log(Biol$sizeT)
+    model <- glmer(formula = survival ~ lnsizeT + Block + (1|year),
+                   data = Biol, 
+                   family = binomial) 
+  }
+  
+  if(vitalrate == "g"){
+    print("Running growth vital rate")
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
+    model <- glmer(sizeT1 ~ sizeT + Block + (1|year),
+                   data = Biol,
+                   family = poisson) 
+  }
+  
+  if(vitalrate == "fp"){
+    print("Running flower probability vital rate")
+    print("Remember the year magic needed to get this in the same range as the others")
+    Biol$lnsizeT <- log(Biol$sizeT)
+    Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
+    model <- glmer(formula = pflowerT ~ lnsizeT + Block + (1|year),
+                   data = Biol,
+                   family = binomial)
+    Biol$year <- Biol$year - 1
+  }
+  
+  if(vitalrate == "fn"){
+    print("Running Number of Flowers")
+    print("Remember the year magic needed to get this in the same range as the others")
+    Biol <- Biol[which(!is.na(Biol$fertilityT)),]
+    Biol <- Biol[which(!is.na(Biol$sizeT)),]
+    model <- glmer(formula = fertilityT ~ sizeT + Block + (1|year),
+                   data = Biol,
+                   family = poisson)
+    Biol$year <- Biol$year - 1
+  }
+}
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Get Sliding result 
