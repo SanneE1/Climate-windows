@@ -30,7 +30,7 @@ SurvPlot <- ggplot(adult, aes(sizeT, survival)) +
   facet_grid( vars(population_f), vars(year)) +
   xlab("log(# of leaf clumps) at time T")
 
-# ggsave("Visual/HEQU_Plot_Survival.png", plot = SurvPlot, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_Survival.png", plot = SurvPlot, width = 12, height = 6)
 saveRDS(SurvPlot, "Results/HEQU_summary/Survival_facetplot.rds")
 
 
@@ -44,7 +44,7 @@ GrowthPlot <- ggplot(adult, aes(sizeT, sizeT1)) +
   facet_grid( vars(population_f), vars(year))+
   xlab("log(# of leaf clumps) at time T")
 
-# ggsave("Visual/HEQU_Plot_Growth.png", plot = GrowthPlot, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_Growth.png", plot = GrowthPlot, width = 12, height = 6)
 saveRDS(GrowthPlot, "Results/HEQU_summary/Growth_facetplot.rds")
 
 ###################
@@ -58,7 +58,7 @@ PFlower <- ggplot(adult, aes(sizeT, pflowerT)) +
   facet_grid(vars(population_f), vars(year)) +
   xlab("log(# of leaf clumps) at time T")
 
-# ggsave("Visual/HEQU_Plot_pFlower.png", plot = PFlower, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_pFlower.png", plot = PFlower, width = 12, height = 6)
 saveRDS(PFlower, "Results/HEQU_summary/pFlower_facetplot.rds")
 
 
@@ -68,7 +68,7 @@ NFlower <- ggplot(adult[which(adult$pflowerT==1),], aes(sizeT, fertilityT)) +
   facet_grid(vars(population_f), vars(year)) +
   xlab("log(# of leaf clumps) at time T")
 
-# ggsave("Visual/HEQU_Plot_nFlower.png", plot = NFlower, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_nFlower.png", plot = NFlower, width = 12, height = 6)
 saveRDS(NFlower, "Results/HEQU_summary/Nflower_facetplot.rds")
 
 
@@ -78,7 +78,7 @@ pAbort <- ggplot(adult[which(adult$pflowerT==1),], aes(sizeT, pAbort)) +
   facet_grid(vars(population_f), vars(year))+
   xlab("log(# of leaf clumps) at time T")
 
-# ggsave("Visual/HEQU_Plot_pAbort.png", plot = pAbort, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_pAbort.png", plot = pAbort, width = 12, height = 6)
 saveRDS(pAbort, "Results/HEQU_summary/pAbort_facetplot.rds")
 
 
@@ -105,7 +105,7 @@ Nseedlings <- ggplot(sdl, aes(year))+
         panel.grid.minor.y = element_blank())+
   facet_grid(vars(population_f))
 
-# ggsave("Visual/HEQU_Plot_Nseedlings.png", plot = Nseeldings, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_Nseedlings.png", plot = Nseeldings, width = 12, height = 6)
 saveRDS(Nseedlings, "Results/HEQU_summary/Nseedling_facetplot.rds")
 
 
@@ -122,7 +122,7 @@ SDLsurv <- ggplot(aes(x= year, y=survival, group=year), data = sdl) +
   facet_grid(vars(population_f))+
   xlab("Year at time T") + ylab("Seedling survival probability to time T+1")
 
-# ggsave("Visual/HEQU_Plot_sdlsurvival.png", plot = SurvPlot, width = 12, height = 6)  
+ggsave("Visual/HEQU_Plot_sdlsurvival.png", plot = SurvPlot, width = 12, height = 6)
 saveRDS(SDLsurv, "Results/HEQU_summary/SDLsurv_facetplot.rds")
 
 
@@ -134,7 +134,7 @@ Fd <- ggplot(sdl, aes(x=sizeT1)) +
   xlab("Recruitment size [log(# of leaf clumps)] of sdl -> continuous stage") +
   facet_grid(vars(population_f))
 
-# ggsave("Visual/HEQU_Plot_Fd.png", plot = Fd, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_Fd.png", plot = Fd, width = 12, height = 6)
 saveRDS(Fd, "Results/HEQU_summary/Fd_facetplot.rds")
 
 
