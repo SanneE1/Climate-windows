@@ -9,7 +9,7 @@ suppressPackageStartupMessages(library(lme4))
 suppressPackageStartupMessages(library(optparse))
 
 
-
+start <- Sys.time()
 #  ----------------------------------------------------------------------------------------------------------------------------
 # parsing arguments
 #  ----------------------------------------------------------------------------------------------------------------------------
@@ -252,3 +252,5 @@ result <- slidingwin(baseline = model,
 ### Save object. Will be merged with all other combinations in another script -----------------------
 
 saveRDS(result, file = output)
+
+Sys.time() - start
