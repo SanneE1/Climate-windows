@@ -30,7 +30,6 @@ for (i in c(which(is.na(Biol$fertilityT1)))) {
 }
 
 Biol$year[which(is.na(Biol$year))] <- Biol$Year_t1[which(is.na(Biol$year))] - 1
-Biol <- Biol[,c("plantID", "Plot", "year", "month", "day", "sizeT", "pflowerT", "fertilityT", "survival", "sizeT1", "pflowerT1", "fertilityT1", "Goodbuds_t", "Goodbuds_t1", "Recruit", "Newplant", "Antcount_t", "Antcount_t1")]
 
 write.csv(Biol, "Data/Biol data/OPIM_demography_data.csv")
 

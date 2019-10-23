@@ -1,7 +1,6 @@
 library(dplyr)
 library(lme4)
 library(ggplot2)
-library(ggiraphExtra)
 
 ## Get and prepare data -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -59,3 +58,4 @@ Fertility <- ggplot(df[which(df$pflowerT == 1),], aes(log(sizeT), fertilityT))+
 
 ggsave("Visual/HEQU_Plot_nFlower.png", plot = Fertility, width = 12, height = 6)
 saveRDS(Fertility, "Results/HEQU_summary/nFlower_facetplot.rds")
+
