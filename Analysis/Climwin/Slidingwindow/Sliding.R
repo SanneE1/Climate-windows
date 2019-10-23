@@ -133,7 +133,6 @@ if (species == "CRFL"){
 
 if (species == "OPIM"){
   Biol <- read.csv(SpeciesInput)
-  
 }
 
 
@@ -268,12 +267,22 @@ if (species == "OPIM") {
 }
 
 #### Set Range ----------------------------------------------------------------------------------------------------------------------------
-if(vitalrate == "s" | "g") {
+if(vitalrate == "s") {
   range <- c(48,-12)
 }
-if(vitalrate == "fp" | "fn"){
+
+if(vitalrate == "g") {
+  range <- c(48,-12)
+}
+
+if(vitalrate == "fp"){
   range <- c(60, 0)
 }
+
+if(vitalrate == "fn"){
+  range <- c(60, 0)
+}
+
 #### Run function ----------------------------------------------------------------------------------------------------------------------------
 
 x <- list(Clim[[options$xvar[taskID]]]) 
