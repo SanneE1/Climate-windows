@@ -81,16 +81,15 @@ if(cdata == "day") {
 ## Prepare Biological data 
 ##----------------------------------------------------------------------------------------------------------------------------------
 
-### HEQU specific data manipulation
+### Species specific data modification
 
 if (species == "HEQU") {                                
- Biol <- read.csv(SpeciesInput) %>%
-  mutate(sizeT = as.integer(levels(sizeT))[sizeT],
-         sizeT1 = as.integer(levels(sizeT1))[sizeT1])
-Biol <- Biol[which(Biol$seedling != 1),]                           
-Biol <- Biol[which(Biol$year!= 2012),]
-Biol <- Biol[which(!is.na(Biol$sizeT)),]                           
-
+  Biol <- read.csv(SpeciesInput) %>%
+    mutate(sizeT = as.integer(levels(sizeT))[sizeT],
+           sizeT1 = as.integer(levels(sizeT1))[sizeT1])
+  Biol <- Biol[which(Biol$seedling != 1),]                           
+  Biol <- Biol[which(Biol$year!= 2012),]
+  
 }
 
 if (species == "CRFL"){
@@ -102,18 +101,24 @@ if (species == "CRFL"){
   
 }
 
-Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
+if (species == "OPIM"){
+  Biol <- read.csv(SpeciesInput)
+}
 
+
+### General data modification
+Biol <- Biol[which(!is.na(Biol$survival)),]                       
+Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
+
+Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Use the right species specific baseline 
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
-
-Biol <- Biol[which(!is.na(Biol$survival)),]                       
-Biol <- Biol[which(!is.na(Biol$sizeT)),]  
-
+  
+  
   if (vitalrate == "s") {
     print("Running survival vital rate")
     Biol$lnsizeT <- log(Biol$sizeT)
@@ -123,25 +128,26 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
   }
   
   if (vitalrate =="g"){
-    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
     print("Running growth vital rate")
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
     model <- glmer(sizeT1 ~ sizeT + population + (1|year),
                    data = Biol,
-	           family = poisson)                          
+                   family = poisson)                          
   }
   
   if (vitalrate =="fp"){
     print("Running Flower probability vital rate")
     Biol$lnsizeT <- log(Biol$sizeT)
+    Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
     model <- glmer(formula = pflowerT ~ lnsizeT + population + (1|year),
                    data = Biol,
                    family = binomial)
   }
- 
+  
   if (vitalrate =="fn") {
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
-    Biol$fertilityT <- as.integer(Biol$fertilityT)
+    Biol <- Biol[which(!is.na(Biol$sizeT)),]
     model <- glmer(formula = fertilityT ~ sizeT + population + (1|year),
                    data = Biol,
                    family = poisson)
@@ -155,9 +161,6 @@ Biol <- Biol[which(!is.na(Biol$sizeT)),]
 }
 
 if (species == "CRFL") {
-  
-  Biol <- Biol[which(!is.na(Biol$survival)),]                       
-  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
   
   
   if(vitalrate =="s"){
@@ -178,25 +181,78 @@ if (species == "CRFL") {
   
   if(vitalrate == "fp"){
     print("Running flower probability vital rate")
-    print("Remember the year magic needed to get this in the same range as the others")
     Biol$lnsizeT <- log(Biol$sizeT)
     Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
     model <- glmer(formula = pflowerT ~ lnsizeT + Block + (1|year),
                    data = Biol,
                    family = binomial)
-    Biol$year <- Biol$year - 1
   }
   
   if(vitalrate == "fn"){
     print("Running Number of Flowers")
-    print("Remember the year magic needed to get this in the same range as the others")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
     Biol <- Biol[which(!is.na(Biol$sizeT)),]
     model <- glmer(formula = fertilityT ~ sizeT + Block + (1|year),
                    data = Biol,
                    family = poisson)
-    Biol$year <- Biol$year - 1
   }
+}
+
+if (species == "OPIM") {
+  
+  
+  if(vitalrate =="s"){
+    print("Running survival vital rate")
+    Biol$lnsizeT <- log(Biol$sizeT)
+    model <- glmer(formula = survival ~ lnsizeT + (1|year),
+                   data = Biol, 
+                   family = binomial) 
+  }
+  
+  if(vitalrate == "g"){
+    print("Running growth vital rate")
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
+    Biol$lnsizeT <- log(Biol$sizeT)
+    Biol$lnsizeT1 <- log(Biol$sizeT1)
+    model <- lmer(lnsizeT1 ~ lnsizeT + (1|year),
+                  data = Biol) 
+  }
+  
+  if(vitalrate == "fp"){
+    print("Running flower probability vital rate")
+    Biol$lnsizeT <- log(Biol$sizeT)
+    Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
+    model <- glmer(pflowerT ~ lnsizeT + (1|year),
+                   data = Biol,
+                   family = binomial)
+  }
+  
+  if(vitalrate == "fn"){
+    print("Running Number of Flowers")
+    Biol <- Biol[which(!is.na(Biol$fertilityT)),]
+    Biol <- Biol[which(!is.na(Biol$sizeT)),]
+    Biol$lnsizeT <- log(Biol$sizeT)
+    model <- glmer(fertilityT ~ lnsizeT + (1|year),
+                   data = Biol,
+                   family = poisson)
+  }
+}
+
+#### Set Range ----------------------------------------------------------------------------------------------------------------------------
+if(vitalrate == "s") {
+  range <- c(48,-12)
+}
+
+if(vitalrate == "g") {
+  range <- c(48,-12)
+}
+
+if(vitalrate == "fp"){
+  range <- c(60, 0)
+}
+
+if(vitalrate == "fn"){
+  range <- c(60, 0)
 }
 
 ##----------------------------------------------------------------------------------------------------------------------------------
@@ -219,7 +275,7 @@ random <- randwin(repeats = 1,
                   baseline =  model   ,
                   xvar = list(Clim[[as.character(results$combos$climate[w])]]),
                   type = "absolute",
-                  range = c(ifelse(cdata == "month", 12, 365),ifelse(cdata == "month",-12,-365)),
+                  range = range,
                   stat = c(as.character(results$combos$stat[w])),
                   func = c(as.character(results$combos$func[w])),
                   refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
