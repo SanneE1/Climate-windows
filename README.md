@@ -24,12 +24,17 @@ Details on data gathering etc can be found in the following articles
 _Will be provided by David Inouye_  
 
 ## Climate data
-Data on the climate used for this project is retrieved from NOAA using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
-I will be testing both daily and monthly (scaled) data.   
-*For now, the daily data is scaled per month the day 'belongs' to. In the future I would like to see if I can scale it to a month around the date (i.e. using the 15 days before, the day itself and the 15 days after).*
+Data on the climate used for this project is retrieved from two sources:
 
-If the climate data is not retrieved using the provided scripts, the easiest way to use them would be to make sure the following columns are in the file and change the xvar lists in *sliding.R* to reflect the name of the different climate drivers you want to test. Moreover, the file name MUST be in the following format (the submit script uses the file names to retrieve data needed to run the script):  
-\"SPECIESCODE_(where it comes from)_(month or day).csv\"  
+**For HEQU and CRFL:** Data from NOAA is retrieved using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
+**For OPIM:** Data from the [SEV-LTER](http://tierra.unm.edu/search/climate/search.php) was used
+
+In case data on specific dates were not available, the values were imputed using 1 or 2 other nearest stations. Any remaining missing data (in case the data was also missing from the other stations) is imputed using the same method as the `Climwin`'s \"method1\" 
+   
+I will be using monthly (scaled) data.  
+
+If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_Get\_Climate\"), the easiest way to use them would be to make sure the following columns are in the file and change the xvar lists in *sliding.R* to reflect the name of the different climate drivers you want to test. Moreover, the file name MUST be in the following format (the submit script uses the file names to retrieve data needed to run the script):  
+\"SPECIESCODE\_(anything but without \"\_\" e.g. where it comes from)\_(month or day).csv\"  
 
 |Columns|Explanation|
 |-------|-----------|
@@ -140,4 +145,4 @@ For this analysis I am using the [Climwin package](https://github.com/LiamDBaile
 
 The slidingwindow analysis is now species and month/day generic. For each species and vital rate, a different baseline is specified in the script. For now, there is no spatial component in the slidingwindow analysis.  
 * For the Biological data: make sure the required date columns and format are as discribed in the section **\"Data Management\"**.  
-* The Climate data will work as long as the data is retrieved using the species specific \_Get\_NOAA.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (*row ....*) reflect the column names of the climate drivers of interest.
+* The Climate data will work as long as the data is retrieved using the species specific \_Get\_Climate.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (*row ....*) reflect the column names of the climate drivers of interest.
