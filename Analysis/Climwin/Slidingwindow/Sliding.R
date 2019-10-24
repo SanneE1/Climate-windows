@@ -242,16 +242,17 @@ if (species == "OPIM") {
   if(vitalrate == "g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    model <- glmer(sizeT1 ~ sizeT + (1|year),
-                   data = Biol,
-                   family = poisson) 
+    Biol$lnsizeT <- log(Biol$sizeT)
+    Biol$lnsizeT1 <- log(Biol$sizeT1)
+    model <- lmer(lnsizeT1 ~ lnsizeT + (1|year),
+                   data = Biol) 
   }
   
   if(vitalrate == "fp"){
     print("Running flower probability vital rate")
     Biol$lnsizeT <- log(Biol$sizeT)
     Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
-    model <- glmer(formula = pflowerT ~ lnsizeT + (1|year),
+    model <- glmer(pflowerT ~ lnsizeT + (1|year),
                    data = Biol,
                    family = binomial)
   }
@@ -260,7 +261,8 @@ if (species == "OPIM") {
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
     Biol <- Biol[which(!is.na(Biol$sizeT)),]
-    model <- glmer(formula = fertilityT ~ sizeT + (1|year),
+    Biol$lnsizeT <- log(Biol$sizeT)
+    model <- glmer(fertilityT ~ lnsizeT + (1|year),
                    data = Biol,
                    family = poisson)
   }
