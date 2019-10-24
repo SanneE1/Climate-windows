@@ -85,16 +85,16 @@ TempGrid2 <- ggplot(Monthly, aes(x= Month, y= mean_tavg, color = id))+
   ylab("Temperature (degrees)")
 
 
-PrcpGrid <- ggplot(SEV, aes(x= Month, y= mean_prcp, color = id))+
+PrcpGrid <- ggplot(SEV, aes(x= Month, y= mean_prcp))+
   geom_line(colour = "blue")+
-  geom_ribbon(aes(ymin= ifelse(mean_prcp - sd_prcp < 0, 0,mean_prcp - sd_prcp), ymax= (mean_prcp + sd_prcp)), linetype = 2, alpha = 0)+
+  geom_ribbon(aes(ymin= ifelse(mean_prcp - sd_prcp < 0, 0,mean_prcp - sd_prcp), ymax= (mean_prcp + sd_prcp)), linetype = 2, alpha = 0.1, fill="blue")+
   facet_wrap(vars(Year)) +
   scale_x_continuous(breaks = c(1:12))+
   ylab("Mean daily Precipitation (mm)")
 
-TempGrid <- ggplot(SEV, aes(x= Month, y= mean_tavg, color = id))+
+TempGrid <- ggplot(SEV, aes(x= Month, y= mean_tavg))+
   geom_line()+
-  geom_ribbon(aes(ymin= mean_tmin, ymax= mean_tmax), linetype = 2, alpha = 0)+
+  geom_ribbon(aes(ymin= mean_tmin, ymax= mean_tmax), linetype = 2, alpha = 0.2, fill = "blue")+
   geom_ribbon(aes(ymin= min_tmin, ymax= max_tmax), linetype = 2, alpha = 0, colour = "red")+
   facet_wrap(vars(Year))+
   scale_x_continuous(breaks = c(1:12))+

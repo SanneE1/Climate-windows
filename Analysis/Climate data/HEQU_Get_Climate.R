@@ -4,47 +4,44 @@ library(tidyr)
 library(ggplot2)
 library(lubridate)
 
-
 ### HEQU population coordinates ------------------------------------------------------------------
 
+
+sites <- data.frame(id = c("low", "mid", "high"), 
+                    station = NA, 
+                    latitude = as.numeric(measurements::conv_unit(c("38 51.774", "38 57.5", "38 58.612"), from = 'deg_dec_min', to = 'dec_deg')), 
+                    longitude = as.numeric(measurements::conv_unit(c("-107 09.556", "-106 59.3", "-106 58.690"), from = 'deg_dec_min', to = 'dec_deg')), 
+                    distance = NA)
+
+
+############################
+## Find Weather Stations  ##
+############################
+
+
+# all_stations <- ghcnd_stations() %>%
+#   filter(first_year <= 1997, last_year >= 2012)
 # 
-# sites <- data.frame(id = c("low", "mid", "high"),
-#                     station = NA,
-#                     latitude = as.numeric(measurements::conv_unit(c("38 51.774", "38 57.5", "38 58.612"), from = 'deg_dec_min', to = 'dec_deg')),
-#                     longitude = as.numeric(measurements::conv_unit(c("-107 09.556", "-106 59.3", "-106 58.690"), from = 'deg_dec_min', to = 'dec_deg')),
-#                     distance = NA)
+# write.csv(all_stations, "Data/Climate data/all_stations.csv")
 # 
-# 
-# ############################
-# ## Find Weather Stations  ##
-# ############################
-# 
-# 
-# # all_stations <- ghcnd_stations() %>%
-# #   filter(first_year <= 1997, last_year >= 2012)
-# #
-# # write.csv(all_stations, "Data/Climate data/all_stations.csv")
-# #
-# all_stations <- read.csv("Data/Climate data/all_stations.csv")
-# 
-# 
-# Stations <- meteo_nearby_stations(lat_lon_df = sites,
-#                                   lat_colname =  "latitude",
-#                                   lon_colname = "longitude",
-#                                   station_data = all_stations,
-#                                   var = "all",
-#                                   limit = 10
-# )
-# 
-# mid_station <- Stations[["mid"]][1,]
-# low_station <- Stations[["low"]][1,]
-# 
-# #############################
-# ## Get weather information ##
-# #############################
-# 
-# 
-# #
+all_stations <- read.csv("Data/Climate data/all_stations.csv")
+
+
+Stations <- meteo_nearby_stations(lat_lon_df = sites,
+                                  lat_colname =  "latitude",
+                                  lon_colname = "longitude",
+                                  station_data = all_stations,
+                                  var = "all",
+                                  limit = 10
+                                  )
+
+mid_station <- Stations[["mid"]][1,]
+low_station <- Stations[["low"]][1,]
+
+#############################
+## Get weather information ##
+#############################
+
 # low <- meteo_pull_monitors(low_station$id, date_max = "2012-12-31", date_min = "1990-01-01")
 # low$prcp <- low$prcp / 10
 # low$tmax <- low$tmax / 10
@@ -60,6 +57,7 @@ library(lubridate)
 # 
 # write.csv(low, "Data/Climate data/HEQU_lowstation_original.csv")
 # write.csv(mid, "Data/Climate data/HEQU_midstation_original.csv")
+
 
 low <- read.csv("Data/Climate data/HEQU_lowstation_original.csv") %>%
   mutate(date = as.Date(date))
@@ -116,35 +114,19 @@ clean <- both[,c("date", "id.y", "prcp.y", "tmax.y", "tmin.y", "tobs.y", "tavg")
 ## Using Climwin's Method 1 to subsitude the last few values
 for (j in c("prcp", "tmax", "tmin", "tobs", "tavg")) {
   for (i in which(is.na(clean[[j]]))){
-    clean[i,j] <- mean(clean[[j]][which(clean$date %in% 
+    clean[i,j] <- mean(clean[[j]][which(clean$date %in%
                                           c(clean$date[i] - (1:2), clean$date[i] + (1:2)))],
-                           na.rm = T)
+                       na.rm = T)
   }
   
 }
 
-# 
-# DailyInfo <- clean
-# DailyInfo$date <- format(DailyInfo$date, format = "%d/%m/%Y")
-# 
-# DailyInfo <- DailyInfo %>%                      
-#   group_by(month(date)) %>%
-#   mutate(prcp_scaled_M = scale(prcp),
-#          tmax_scaled_M = scale(tmax),
-#          tmin_scaled_M = scale(tmin),
-#          tobs_scaled_M = scale(tobs),
-#          tavg_scaled_M = scale(tavg)
-#   )
-# 
-# 
-# write.csv(DailyInfo, "Data/Climate data/HEQU_NOAA_day_imputed.csv" )
-# 
 
 
 ##Monthly data ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 clean$tmin[which(clean$date == as.Date("1992-06-23"))] <- NA   ## Remove extreme values from this date (-51.3)
 clean$tmax[which(clean$date == as.Date("1992-06-23"))] <- NA
-clean$tavg[which(clean$date == as.Date("1992-06-23"))] <- NA 
+clean$tavg[which(clean$date == as.Date("1992-06-23"))] <- NA
 
 MonthlyInfo <- clean %>%
   group_by(Month = month(date), Year = year(date)) %>%
@@ -163,7 +145,7 @@ MonthlyInfo <- clean %>%
 
 ### scale Clim drivers ----------------------------------------------------------------
 
-MonthlyInfo <- MonthlyInfo %>%                      
+MonthlyInfo <- MonthlyInfo %>%
   group_by(Month) %>%
   mutate(sum_prcp_scaled = scale(sum_prcp),
          mean_prcp_scaled = scale(mean_prcp),
@@ -181,7 +163,6 @@ MonthlyInfo <- MonthlyInfo %>%
 
 
 write.csv(MonthlyInfo, "Data/Climate data/HEQU_NOAA_month_imputed.csv" )
-
 
 
 
