@@ -2,7 +2,6 @@
 library(dplyr)
 library(lme4)
 library(ggplot2)
-library(ggiraphExtra)
 
 ## Get and prepare data -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -53,7 +52,7 @@ PFlower <- ggplot(df, aes(log(sizeT), pflowerT)) +
   xlab("log(# of rosettes) at time T") +
   ylab("Probability of Flowering")
 
-ggsave("Visual/HEQU_Plot_pFlower.png", plot = PFlower, width = 12, height = 6)
+ggsave("Visual/CRFL_Plot_pFlower.png", plot = PFlower, width = 12, height = 6)
 saveRDS(PFlower, "Results/CRFL_summary/pFlower_facetplot.rds")
 
 Fertility <- ggplot(df[which(df$pflowerT == 1),], aes(log(sizeT), fertilityT))+
@@ -63,6 +62,6 @@ Fertility <- ggplot(df[which(df$pflowerT == 1),], aes(log(sizeT), fertilityT))+
   xlab("log(# of rosettes) at time T") +
   ylab("Numbers of flowers produced if flowering")
 
-ggsave("Visual/HEQU_Plot_nFlower.png", plot = Fertility, width = 12, height = 6)
+ggsave("Visual/CRFL_Plot_nFlower.png", plot = Fertility, width = 12, height = 6)
 saveRDS(Fertility, "Results/CRFL_summary/nFlower_facetplot.rds")
 

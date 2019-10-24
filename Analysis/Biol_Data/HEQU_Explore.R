@@ -2,7 +2,6 @@
 library(dplyr)
 library(lme4)
 library(ggplot2)
-library(ggiraphExtra)
 
 ## Get and prepare data -----------------------------------------------------------------------------------------------------------------------------------------
 
@@ -105,7 +104,7 @@ Nseedlings <- ggplot(sdl, aes(year))+
         panel.grid.minor.y = element_blank())+
   facet_grid(vars(population_f))
 
-ggsave("Visual/HEQU_Plot_Nseedlings.png", plot = Nseeldings, width = 12, height = 6)
+ggsave("Visual/HEQU_Plot_Nseedlings.png", plot = Nseedlings, width = 12, height = 6)
 saveRDS(Nseedlings, "Results/HEQU_summary/Nseedling_facetplot.rds")
 
 
