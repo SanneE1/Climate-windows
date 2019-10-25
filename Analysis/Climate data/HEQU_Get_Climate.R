@@ -3,6 +3,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(lubridate)
+library(SPEI)
 
 ### HEQU population coordinates ------------------------------------------------------------------
 
@@ -69,6 +70,9 @@ mid$tobs[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15
 mid$tmin[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
 mid$tmax[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
 mid$tavg[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
+mid$tmin[which(mid$date == as.Date("1992-06-23"))] <- NA   ## Remove extreme values from this date (-51.3)
+mid$tmax[which(mid$date == as.Date("1992-06-23"))] <- NA
+mid$tavg[which(mid$date == as.Date("1992-06-23"))] <- NA
 
 
 both <- merge(low, mid, by = "date", all = T)
@@ -124,9 +128,6 @@ for (j in c("prcp", "tmax", "tmin", "tobs", "tavg")) {
 
 
 ##Monthly data ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-clean$tmin[which(clean$date == as.Date("1992-06-23"))] <- NA   ## Remove extreme values from this date (-51.3)
-clean$tmax[which(clean$date == as.Date("1992-06-23"))] <- NA
-clean$tavg[which(clean$date == as.Date("1992-06-23"))] <- NA
 
 MonthlyInfo <- clean %>%
   group_by(Month = month(date), Year = year(date)) %>%
@@ -159,10 +160,35 @@ MonthlyInfo <- MonthlyInfo %>%
          mean_tavg_scaled = scale(mean_tavg))
 
 
+MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year),]
 
 
+### get SPEI values ----------------------------------------------------------------
 
-write.csv(MonthlyInfo, "Data/Climate data/HEQU_NOAA_month_imputed.csv" )
+# Compute potential evapotranspiration (PET) and climatic water balance (BAL)
+MonthlyInfo$PET <- thornthwaite(MonthlyInfo$mean_tavg, sites$latitude[2]) 
+MonthlyInfo$BAL <- MonthlyInfo$sum_prcp - MonthlyInfo$PET
+
+# transform in 
+Timescale <- ts(MonthlyInfo[,-c(1,2)],
+                end = c(2018,12),
+                frequency = 12)
+
+# calculate SPEI
+SP <- spei(Timescale[,"BAL"], 12)
+
+spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
+                  nrow = length(unique(MonthlyInfo$Year)), ncol = 12,
+                  byrow = T) %>%
+  as.data.frame %>%
+  mutate(Year = c(min(MonthlyInfo$Year):max(MonthlyInfo$Year)))  %>%
+  setNames(c(1:12, "Year")) %>%
+  pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
+  mutate(Month = as.numeric(Month))
+
+All_Climate <- left_join(MonthlyInfo, spei_df)
+
+write.csv(All_Climate, "Data/Climate data/HEQU_NOAA_month_imputed.csv" )
 
 
 

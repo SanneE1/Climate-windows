@@ -3,6 +3,7 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(lubridate)
+library(SPEI)
 
 ### CRFL population coordinates ------------------------------------------------------------------
 
@@ -74,25 +75,6 @@ for (j in c(3,5:8)) {
   
 }
 
-
-### scale Clim drivers ----------------------------------------------------------------
-# DailyInfo <- WeatherInfo
-# 
-# DailyInfo <- DailyInfo %>%                      
-#   group_by(id, month(date)) %>%
-#   mutate(prcp_scaled_M = scale(prcp),
-#          tmax_scaled_M = scale(tmax),
-#          tmin_scaled_M = scale(tmin),
-#          tobs_scaled_M = scale(tobs),
-#          tavg_scaled_M = scale(tavg)
-#   )
-# 
-# DailyInfo$wesd <- NULL
-# 
-# write.csv(WeatherInfo, "Data/Climate data/CRFL_NOAA_day.csv" )
-# 
-
-
 ############################################################################
 ## Add missing Clim data and Scale weather information  ---- Monthly ---- ##
 ############################################################################
@@ -130,8 +112,35 @@ MonthlyInfo <- MonthlyInfo %>%
          mean_tavg_scaled = scale(mean_tavg))
 
 
+MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year),]
 
-write.csv(MonthlyInfo, "Data/Climate data/CRFL_NOAA_month.csv" )
+
+### get SPEI values ----------------------------------------------------------------
+
+# Compute potential evapotranspiration (PET) and climatic water balance (BAL)
+MonthlyInfo$PET <- thornthwaite(MonthlyInfo$mean_tavg, sites$latitude[1]) 
+MonthlyInfo$BAL <- MonthlyInfo$sum_prcp - MonthlyInfo$PET
+
+# transform in 
+Timescale <- ts(MonthlyInfo[,-c(1,2)],
+                end = c(2018,12),
+                frequency = 12)
+
+# calculate SPEI
+SP <- spei(Timescale[,"BAL"], 12)
+
+spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
+                  nrow = length(unique(MonthlyInfo$Year)), ncol = 12,
+                  byrow = T) %>%
+  as.data.frame %>%
+  mutate(Year = c(min(MonthlyInfo$Year):max(MonthlyInfo$Year)))  %>%
+  setNames(c(1:12, "Year")) %>%
+  pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
+  mutate(Month = as.numeric(Month))
+
+All_Climate <- left_join(MonthlyInfo, spei_df)
+
+write.csv(All_Climate, "Data/Climate data/CRFL_NOAA_month.csv" )
 
 
 

@@ -1,3 +1,8 @@
+library(SPEI)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+
 #############################################################
 ### Using the data downloaded from SEV-LTER on 24/10/2019 ###
 #############################################################
@@ -136,9 +141,37 @@ MonthlyInfo <- MonthlyInfo %>%
          min_tmin_scaled = scale(min_tmin),
          mean_tavg_scaled = scale(mean_tavg),
          sd_tavg_scaled = scale(sd_tavg))
+  
+MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year),]
 
 
-write.csv(MonthlyInfo, "Data/Climate data/OPIM_SEVLTER_month_imputed.csv" )
+### get SPEI values ----------------------------------------------------------------
+
+# Compute potential evapotranspiration (PET) and climatic water balance (BAL)
+MonthlyInfo$PET <- thornthwaite(MonthlyInfo$mean_tavg, 34.334806) 
+MonthlyInfo$BAL <- MonthlyInfo$sum_prcp - MonthlyInfo$PET
+
+# transform in 
+Timescale <- ts(MonthlyInfo[,-c(1,2)],
+                end = c(2018,12),
+                frequency = 12)
+
+# calculate SPEI
+SP <- spei(Timescale[,"BAL"], 12)
+
+spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
+                  nrow = length(unique(MonthlyInfo$Year)), ncol = 12,
+                  byrow = T) %>%
+            as.data.frame %>%
+            mutate(Year = c(min(MonthlyInfo$Year):max(MonthlyInfo$Year)))  %>%
+            setNames(c(1:12, "Year")) %>%
+  pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
+  mutate(Month = as.numeric(Month))
+
+All_Climate <- left_join(MonthlyInfo, spei_df)
+
+
+write.csv(All_Climate, "Data/Climate data/OPIM_SEVLTER_month_imputed.csv" )
 
 
 
