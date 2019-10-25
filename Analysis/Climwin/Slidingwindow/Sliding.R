@@ -73,9 +73,9 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 10 options
+if(cdata == "month") {                          ## 12 options
   
-  xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled")
+  xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled", "SPEI")
   type <- c("absolute")
   stat <- c("mean")
   func <- c("lin", "quad")
