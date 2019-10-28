@@ -18,7 +18,7 @@
 #$ -l h_vmem=8G
 
 # Array numbers 
-#$ -t 1-500
+#$ -t 1-2000
 
 #needed when submitting a non-parallel job
 #$ -binding linear:1
@@ -35,7 +35,7 @@ Results_sliding=$3
 winner=$4
 cdata=$(basename $Climate .csv | cut -d _ -f3)
 species=$(basename $SpeciesInput .csv | cut -d _ -f1)
-vitalrate=$(basename $Results_sliding .rds | cut -d _ -f2
+vitalrate=$(basename $Results_sliding .rds | cut -d _ -f2)
 output="$output_dir"/${JOB_NAME}_${species}_${cdata}_${vitalrate}_${JOB_ID}_$SGE_TASK_ID.rds
 
  
