@@ -148,10 +148,10 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 
 if (species == "HEQU") {
 
-
+  Biol$lnsizeT <- log(Biol$sizeT)
+  
   if (vitalrate == "s") {
     print("Running survival vital rate")
-    Biol$lnsizeT <- log(Biol$sizeT)
     model <- glmer(formula = survival ~ lnsizeT + population + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -160,15 +160,13 @@ if (species == "HEQU") {
   if (vitalrate =="g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    model <- glmer(sizeT1 ~ sizeT + population + (1|year),
-                   data = Biol,
-	           family = poisson)                          
+    Biol$lnsizeT1 <- log(Biol$sizeT1)
+    model <- lmer(lnsizeT1 ~ lnsizeT + population + (1|year),
+                   data = Biol)                          
   }
   
   if (vitalrate =="fp"){
     print("Running Flower probability vital rate")
-    Biol$lnsizeT <- log(Biol$sizeT)
-    Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
     model <- glmer(formula = pflowerT ~ lnsizeT + population + (1|year),
                    data = Biol,
                    family = binomial)
@@ -177,8 +175,8 @@ if (species == "HEQU") {
   if (vitalrate =="fn") {
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
-    Biol <- Biol[which(!is.na(Biol$sizeT)),]
-    model <- glmer(formula = fertilityT ~ sizeT + population + (1|year),
+    Biol$fertilityT <- as.integer(Biol$fertilityT)
+    model <- glmer(formula = fertilityT ~ lnsizeT + population + (1|year),
                    data = Biol,
                    family = poisson)
   }
@@ -191,11 +189,12 @@ if (species == "HEQU") {
 }
 
 if (species == "CRFL") {
-  
+  Biol <- Biol[which(!(is.na(Biol$sizeT))),]
+  Biol$lnsizeT <- log(Biol$sizeT)
+
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
-    Biol$lnsizeT <- log(Biol$sizeT)
     model <- glmer(formula = survival ~ lnsizeT + Block + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -204,15 +203,14 @@ if (species == "CRFL") {
   if(vitalrate == "g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    model <- glmer(sizeT1 ~ sizeT + Block + (1|year),
-                   data = Biol,
-                   family = poisson) 
+    Biol <- Biol[which(Biol$sizeT1 != 0),]
+    Biol$lnsizeT1 <- log(Biol$sizeT1)
+    model <- lmer(lnsizeT1 ~ lnsizeT + Block + (1|year),
+                   data = Biol) 
   }
   
   if(vitalrate == "fp"){
     print("Running flower probability vital rate")
-    Biol$lnsizeT <- log(Biol$sizeT)
-    Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
     model <- glmer(formula = pflowerT ~ lnsizeT + Block + (1|year),
                    data = Biol,
                    family = binomial)
@@ -222,7 +220,7 @@ if (species == "CRFL") {
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
     Biol <- Biol[which(!is.na(Biol$sizeT)),]
-    model <- glmer(formula = fertilityT ~ sizeT + Block + (1|year),
+    model <- glmer(formula = fertilityT ~ lnsizeT + (1|year),
                    data = Biol,
                    family = poisson)
   }
@@ -230,10 +228,10 @@ if (species == "CRFL") {
 
 if (species == "OPIM") {
   
- 
+  Biol$lnsizeT <- log(Biol$sizeT)
+  
   if(vitalrate =="s"){
     print("Running survival vital rate")
-    Biol$lnsizeT <- log(Biol$sizeT)
     model <- glmer(formula = survival ~ lnsizeT + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -242,7 +240,6 @@ if (species == "OPIM") {
   if(vitalrate == "g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    Biol$lnsizeT <- log(Biol$sizeT)
     Biol$lnsizeT1 <- log(Biol$sizeT1)
     model <- lmer(lnsizeT1 ~ lnsizeT + (1|year),
                    data = Biol) 
@@ -250,7 +247,6 @@ if (species == "OPIM") {
   
   if(vitalrate == "fp"){
     print("Running flower probability vital rate")
-    Biol$lnsizeT <- log(Biol$sizeT)
     Biol <- Biol[which(!is.na(Biol$lnsizeT)),]
     model <- glmer(pflowerT ~ lnsizeT + (1|year),
                    data = Biol,
@@ -260,8 +256,6 @@ if (species == "OPIM") {
   if(vitalrate == "fn"){
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
-    Biol <- Biol[which(!is.na(Biol$sizeT)),]
-    Biol$lnsizeT <- log(Biol$sizeT)
     model <- glmer(fertilityT ~ lnsizeT + (1|year),
                    data = Biol,
                    family = poisson)
