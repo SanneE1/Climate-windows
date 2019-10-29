@@ -27,6 +27,7 @@ _Will be provided by David Inouye_
    Adler, P. B., Kleinhesselink, A., Hooker, G., Taylor, J. B., Teller, B., & Ellner, S. P. (2018). Weak interspecific interactions in a sagebrush steppe? Conflicting evidence from observations and experiments. Ecology, 99(7), 1621-1632.  
    [Article](https://doi.org/10.1002/ecy.2363)  
    [Dryad](https://doi.org/10.5061/dryad.96dn293)  
+   [Metadata on historical dataset](https://doi.org/10.6084/m9.figshare.c.3303612.v1)
    
 ## Climate data
 Data on the climate used for this project is retrieved from two sources:
