@@ -50,6 +50,7 @@ SpeciesInput  <- cli$args[3]
 output <- cli$args[4]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
+species
 
 ### Check 
 if (!(cdata == "month"||cdata == "day")) {
@@ -138,7 +139,7 @@ if (species == "CRFL"){
 if (species == "OPIM"){
   Biol <- read.csv(SpeciesInput)
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
-  
+  Biol <- Biol[which(Biol$year != 2018),]
 }
 
 if (species == "ARTR"){
@@ -163,6 +164,7 @@ if (species == "HEQU") {
   
   if (vitalrate == "s") {
     print("Running survival vital rate")
+    Biol <- Biol[which(!(is.na(Biol$survival))),]
     model <- glmer(formula = survival ~ lnsizeT + population + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -243,6 +245,7 @@ if (species == "OPIM") {
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
+    Biol <- Biol[which(!(is.na(Biol$survival))),]
     model <- glmer(formula = survival ~ lnsizeT + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -284,6 +287,8 @@ if (species == "ARTR") {
   }
   
   if (vitalrate =="g"){
+    Biol <- Biol[which(!(is.na(Biol$lnsizeT))),]
+    Biol <- Biol[which(!(is.na(Biol$lnsizeT1))),]
     print("Running growth vital rate")
     model <- lmer(lnsizeT1 ~ lnsizeT + (1|year) + (1|quad), 
                   data = Biol)                          
