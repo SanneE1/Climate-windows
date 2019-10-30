@@ -171,9 +171,9 @@ if (species == "HEQU") {
   if (vitalrate =="g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    Biol$lnsizeT1 <- log(Biol$sizeT1)
-    model <- lmer(lnsizeT1 ~ lnsizeT + population + (1|year),
-                   data = Biol)                          
+    model <- glmer(sizeT1 ~ lnsizeT + population + (1|year),
+                   data = Biol,
+                   family = poisson)                          
   }
   
   if (vitalrate =="fp"){
@@ -215,9 +215,9 @@ if (species == "CRFL") {
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
     Biol <- Biol[which(Biol$sizeT1 != 0),]
-    Biol$lnsizeT1 <- log(Biol$sizeT1)
-    model <- lmer(lnsizeT1 ~ lnsizeT + Block + (1|year),
-                   data = Biol) 
+    model <- glmer(sizeT1 ~ lnsizeT + Block + (1|year),
+                   data = Biol,
+                   family = poisson) 
   }
   
   if(vitalrate == "fp"){
@@ -251,9 +251,9 @@ if (species == "OPIM") {
   if(vitalrate == "g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    Biol$lnsizeT1 <- log(Biol$sizeT1)
-    model <- lmer(lnsizeT1 ~ lnsizeT + (1|year),
-                   data = Biol) 
+    model <- glmer(sizeT1 ~ lnsizeT + (1|year),
+                   data = Biol,
+                   family = poisson) 
   }
   
   if(vitalrate == "fp"){

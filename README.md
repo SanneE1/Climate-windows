@@ -23,6 +23,12 @@ Details on data gathering etc can be found in the following articles
 #### Frasera speciosa (**FRSP**)
 _Will be provided by David Inouye_  
 
+#### Artemisia tripartita (**ARTR**)
+   Adler, P. B., Kleinhesselink, A., Hooker, G., Taylor, J. B., Teller, B., & Ellner, S. P. (2018). Weak interspecific interactions in a sagebrush steppe? Conflicting evidence from observations and experiments. Ecology, 99(7), 1621-1632.  
+   [Article](https://doi.org/10.1002/ecy.2363)  
+   [Dryad](https://doi.org/10.5061/dryad.96dn293)  
+   [Metadata on historical dataset](https://doi.org/10.6084/m9.figshare.c.3303612.v1)
+   
 ## Climate data
 Data on the climate used for this project is retrieved from two sources:
 
@@ -134,6 +140,30 @@ Metadata for the OPIM dataset
 
 \* Same as found in the original data  
 \*\* Personal note from Tom - Not super reliable, very difficult to distinguish recruits from small older plants  
+
+### FRSP
+
+
+### ARTR
+I use only ungrazed records from both the historical and recent data. For the recent data, I only use those from the Control treatment.  
+
+|Columns    |Explanation  |
+|---------  |-------------|
+|Group|code for pasture or exclosure in which quadrats are grouped\* | 
+|quad|quadrat code\* |
+|year| calendar year of time T\* |
+|month| month when size is measured |
+|day| NA's |
+|plantID| Unique identifier of individual. Combination of quad and trackID\*\* making it unique for whole dataset|
+|areaT| the canopy area of the genet (in cm^2) at time T\*| 
+|lnsizeT| log() transformed areaT |
+|areaT1| the canopy area of the genet (in cm^2) at time T + 1\*| 
+|lnsizeT1|log() transformed areaT1 |
+|survival| if the genet survived from time T to T + 1 (1) or not (0)\* |
+|seedling| if the original mapper identified the plant as a seeldig (1) or not (0)|  
+
+\* Same as found in the original data  
+\*\* Found in original dataset  
 
 ## Analysis
 
