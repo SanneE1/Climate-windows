@@ -122,6 +122,7 @@ if (species == "HEQU") {
   
   if (vitalrate == "s") {
     print("Running survival vital rate")
+    Biol <- Biol[which(!(is.na(Biol$survival))),]
     model <- glmer(formula = survival ~ lnsizeT + population + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -202,6 +203,7 @@ if (species == "OPIM") {
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
+    Biol <- Biol[which(!(is.na(Biol$survival))),]
     model <- glmer(formula = survival ~ lnsizeT + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -210,9 +212,9 @@ if (species == "OPIM") {
   if(vitalrate == "g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    model <- glmer(sizeT1 ~ lnsizeT + (1|year),
-                   data = Biol,
-                   family = poisson) 
+    Biol$lnsizeT1 <- log(Biol$sizeT1)
+    model <- lmer(lnsizeT1 ~ lnsizeT + (1|year),
+                  data = Biol)
   }
   
   if(vitalrate == "fp"){
@@ -243,6 +245,8 @@ if (species == "ARTR") {
   }
   
   if (vitalrate =="g"){
+    Biol <- Biol[which(!(is.na(Biol$lnsizeT))),]
+    Biol <- Biol[which(!(is.na(Biol$lnsizeT1))),]
     print("Running growth vital rate")
     model <- lmer(lnsizeT1 ~ lnsizeT + (1|year) + (1|quad), 
                   data = Biol)                          
