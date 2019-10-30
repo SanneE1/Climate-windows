@@ -12,7 +12,6 @@
 
 #Resources
 # max running time
-#$ -l h_rt=4:00:00
 
 # memory per core (hard limit)
 #$ -l h_vmem=8G

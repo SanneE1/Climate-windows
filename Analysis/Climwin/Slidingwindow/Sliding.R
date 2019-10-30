@@ -254,9 +254,9 @@ if (species == "OPIM") {
   if(vitalrate == "g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    model <- glmer(sizeT1 ~ lnsizeT + (1|year),
-                   data = Biol,
-                   family = poisson) 
+    Biol$lnsizeT1 <- log(Biol$sizeT1)
+    model <- lmer(lnsizeT1 ~ lnsizeT + (1|year),
+                   data = Biol)
   }
   
   if(vitalrate == "fp"){
