@@ -20,7 +20,7 @@ Parsoptions <- list (
     opt_str = c("-s", "--species-used"),
     dest    = "species_used",
     help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP|HYGR")
+    metavar = "HEQU|CRFL|OPIM|FRSP|ARTR")
 )
 
 parser <- OptionParser(
@@ -89,6 +89,8 @@ if (species == "HEQU") {
            sizeT1 = as.integer(levels(sizeT1))[sizeT1])
   Biol <- Biol[which(Biol$seedling != 1),]                           
   Biol <- Biol[which(Biol$year!= 2012),]
+  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
+  
   
 }
 
@@ -98,17 +100,26 @@ if (species == "CRFL"){
            sizeT1 = as.integer(sizeT1))
   
   Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),]
+  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
+  
   
 }
 
 if (species == "OPIM"){
   Biol <- read.csv(SpeciesInput)
+  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
+  Biol <- Biol[which(Biol$year != 2018),]
+}
+
+if (species == "ARTR"){
+  Biol <- read.csv(SpeciesInput)
+  
+  Biol <- Biol[which(Biol$seedling != 1),]  ### Remove seedlings
 }
 
 
+
 ### General data modification
-Biol <- Biol[which(!is.na(Biol$survival)),]                       
-Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
 
 Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
 
