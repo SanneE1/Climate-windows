@@ -188,33 +188,33 @@ write.csv(All_Climate, "Data/Climate data/OPIM_SEVLTER_month_imputed.csv" )
 ############################################################################
 ### Retrieve the data from NOAA (But the station is a lot further away!) ###
 ############################################################################
-# 
-# library(rnoaa)
-# library(dplyr)
-# library(tidyr)
-# library(ggplot2)
-# library(lubridate)
-# 
-# ### OPIM population coordinates ------------------------------------------------------------------
-# 
-# sites <- data.frame(id = "Sevilleta" , 
-#                     station = NA, 
-#                     latitude = 34.334806, 
-#                     longitude =	-106.631444, 
-#                     distance = NA)
-# 
-# 
+
+library(rnoaa)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(lubridate)
+
+### OPIM population coordinates ------------------------------------------------------------------
+
+sites <- data.frame(id = "Sevilleta" ,
+                    station = NA,
+                    latitude = 34.334806,
+                    longitude =	-106.631444,
+                    distance = NA)
+
+
 # ############################
 # ## Find Weather Stations  ##
 # ############################
 # 
 # 
-# # all_stations <- ghcnd_stations() %>%
-# #   filter(first_year <= 1997, last_year >= 2012)
-# # 
-# # write.csv(all_stations, "Data/Climate data/all_stations.csv")
-# # 
-# all_stations <- read.csv("Data/Climate data/all_stations.csv")
+# all_stations <- ghcnd_stations() 
+# 
+# write.csv(all_stations, "Data/Climate data/all_stations.csv")
+# 
+# all_stations <- read.csv("Data/Climate data/all_stations.csv") %>%
+#   filter(first_year <= 2000, last_year >= 2019)
 # 
 # 
 # Stations <- meteo_nearby_stations(lat_lon_df = sites,
@@ -236,7 +236,7 @@ write.csv(All_Climate, "Data/Climate data/OPIM_SEVLTER_month_imputed.csv" )
 # 
 # 
 # 
-# WeatherInfo <- meteo_pull_monitors(nearby_stations$id[1:3], date_max = "2019-12-31", date_min = "2000-01-01")
+# WeatherInfo <- meteo_pull_monitors(nearby_stations$id[1], date_max = "2019-12-31", date_min = "2000-01-01")
 # WeatherInfo$population <- "Sevilleta"
 # WeatherInfo$prcp <- WeatherInfo$prcp / 10
 # WeatherInfo$tmax <- WeatherInfo$tmax / 10
