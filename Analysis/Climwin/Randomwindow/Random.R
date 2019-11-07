@@ -344,7 +344,8 @@ random <- randwin(repeats = 1,
                   refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
                   cinterval = cdata,
                   cdate = Clim$date, bdate = Biol$date,
-                  window = "sliding"
+                  window = "sliding",
+                  cmissing = "method1"
 )
 
 
