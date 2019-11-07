@@ -90,6 +90,8 @@ if (species == "HEQU") {
   Biol <- Biol[which(Biol$seedling != 1),]                           
   Biol <- Biol[which(Biol$year!= 2012),]
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
+  Biol$lnsizeT <- log(Biol$sizeT)
+  
   
   
 }
@@ -101,6 +103,7 @@ if (species == "CRFL"){
   
   Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),]
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
+  Biol$lnsizeT <- log(Biol$sizeT)
   
   
 }
@@ -109,6 +112,8 @@ if (species == "OPIM"){
   Biol <- read.csv(SpeciesInput)
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
   Biol <- Biol[which(Biol$year != 2018),]
+  Biol$lnsizeT <- log(Biol$sizeT)
+  
 }
 
 if (species == "ARTR"){
@@ -117,7 +122,11 @@ if (species == "ARTR"){
   Biol <- Biol[which(Biol$seedling != 1),]  ### Remove seedlings
 }
 
-
+if (species == "FRSP"){
+  Biol <- read.csv(SpeciesInput)
+  Biol$lnsizeT <- log(Biol$sizeT)
+  Biol <- Biol[which(!is.na(Biol$sizeT)),]
+}
 
 ### General data modification
 
@@ -129,7 +138,6 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 
 if (species == "HEQU") {
   
-  Biol$lnsizeT <- log(Biol$sizeT)
   
   if (vitalrate == "s") {
     print("Running survival vital rate")
@@ -171,8 +179,7 @@ if (species == "HEQU") {
 }
 
 if (species == "CRFL") {
-  Biol <- Biol[which(!(is.na(Biol$sizeT))),]
-  Biol$lnsizeT <- log(Biol$sizeT)
+  
   
   
   if(vitalrate =="s"){
@@ -210,7 +217,6 @@ if (species == "CRFL") {
 
 if (species == "OPIM") {
   
-  Biol$lnsizeT <- log(Biol$sizeT)
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
@@ -264,6 +270,31 @@ if (species == "ARTR") {
   }
 }
 
+if (species == "FRSP") {
+  
+  
+  if(vitalrate =="s"){
+    print("Running survival vital rate")
+    model <- glmer(formula = survival ~ lnsizeT + (1|year),
+                   data = Biol, 
+                   family = binomial) 
+  }
+  
+  if(vitalrate == "g"){
+    print("Running growth vital rate")
+    Biol <- Biol[which(!is.na(Biol$sizeT1)),]
+    model <- lmer(sizeT1 ~ lnsizeT + (1|year),
+                  data = Biol)
+  }
+  
+  if(vitalrate == "fp"){
+    print("Running flower probability T+1 vital rate")
+    model <- glmer(pFlowerT1 ~ lnsizeT + (1|year),
+                   data = Biol,
+                   family = binomial)
+  }
+}
+
 #### Set Range ----------------------------------------------------------------------------------------------------------------------------
 if(vitalrate == "s") {
   range <- c(24,-12)
@@ -273,13 +304,18 @@ if(vitalrate == "g") {
   range <- c(24,-12)
 }
 
-if(vitalrate == "fp"){
+if(vitalrate == "fp") {
+  if(species == "FRSP") {
+    range <- c(36, -12)
+  } else {
+    range <- c(36, 0)
+  }
+}
+
+if(vitalrate == "fn") {
   range <- c(36, 0)
 }
 
-if(vitalrate == "fn"){
-  range <- c(36, 0)
-}
 
 
 ##----------------------------------------------------------------------------------------------------------------------------------
