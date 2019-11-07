@@ -125,5 +125,8 @@ Biol$survival <- ifelse(!is.na(Biol$sizeT) & !is.na(Biol$sizeT1), 1, ifelse(!is.
 Biol$pFlowerT1 <- ifelse(is.na(Biol$survival) & Biol$pFlowerT1 == 0, NA, ifelse(Biol$survival == 1, 0, Biol$pFlowerT1))
 
 Biol <- Biol[which(!(is.na(Biol$sizeT) & is.na(Biol$sizeT1))),]
+Biol$month <- 7
+Biol$day <- 15
+
 
 write.csv(Biol, "Data/Biol data/FRSP_demography_data.csv")
