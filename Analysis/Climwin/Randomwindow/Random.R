@@ -283,12 +283,14 @@ if (species == "FRSP") {
   if(vitalrate == "g"){
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
-    model <- lmer(sizeT1 ~ lnsizeT + (1|year),
-                  data = Biol)
+ model <- glmer(sizeT1 ~ lnsizeT + (1|year),
+                  data = Biol,
+                  family = poisson)
   }
   
   if(vitalrate == "fp"){
     print("Running flower probability T+1 vital rate")
+    Biol <- Biol[which(!is.na(Biol$pFlowerT1)),]
     model <- glmer(pFlowerT1 ~ lnsizeT + (1|year),
                    data = Biol,
                    family = binomial)
@@ -344,7 +346,8 @@ random <- randwin(repeats = 1,
                   refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
                   cinterval = cdata,
                   cdate = Clim$date, bdate = Biol$date,
-                  window = "sliding"
+                  window = "sliding",
+                  cmissing = "method1"
 )
 
 

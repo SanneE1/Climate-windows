@@ -42,5 +42,5 @@ vitalrate <- getinfo[[1]][10]
 
 getinfo
 
-saveRDS(results, paste(output_dir, paste(species, vitalrate, cdata, "random.rds", sep = "_")))
+saveRDS(results, paste(output_dir, paste(species, vitalrate, cdata, "random.rds", sep = "_"), sep = ""))
 
