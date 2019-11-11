@@ -21,7 +21,9 @@ Details on data gathering etc can be found in the following articles
 [Ohm & Miller, 2014](https://doi.org/10.1890/13-2309.1)    
    
 #### Frasera speciosa (**FRSP**)
-_Will be provided by David Inouye_  
+Provided by David Inouye. See the following websites for more information.  
+[The RMBL Phenology project](https://www.bio.fsu.edu/~nunderwood/homepage/RMBLphenologyproject.htmlhttps://www.bio.fsu.edu/~nunderwood/homepage/RMBLphenologyproject.html)  
+[Open Science Framework](https://osf.io/jt4n5/)
 
 #### Artemisia tripartita (**ARTR**)
    Adler, P. B., Kleinhesselink, A., Hooker, G., Taylor, J. B., Teller, B., & Ellner, S. P. (2018). Weak interspecific interactions in a sagebrush steppe? Conflicting evidence from observations and experiments. Ecology, 99(7), 1621-1632.  
@@ -32,14 +34,14 @@ _Will be provided by David Inouye_
 ## Climate data
 Data on the climate used for this project is retrieved from two sources:
 
-**For HEQU and CRFL:** Data from NOAA is retrieved using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
+**For HEQU, CRFL, FRSP and ARTR:** Data from NOAA is retrieved using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
 **For OPIM:** Data from the [SEV-LTER](http://tierra.unm.edu/search/climate/search.php) was used
 
 In case data on specific dates were not available, the values were imputed using 1 or 2 other nearest stations. Any remaining missing data (in case the data was also missing from the other stations) is imputed using the same method as the `Climwin`'s \"method1\" 
    
 I will be using monthly (scaled) data.  
 
-If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_Get\_Climate\"), the easiest way to use them would be to make sure the following columns are in the file and change the xvar lists in *sliding.R* to reflect the name of the different climate drivers you want to test. Moreover, the file name MUST be in the following format (the submit script uses the file names to retrieve data needed to run the script):  
+If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_Get\_Climate\"), the easiest way to use them would be to make sure the following columns are in the file and change the xvar lists in *sliding.R* to reflect the name of the different climate drivers you want to test. `Climwin` requires a wide format for the imput. Moreover, the file name MUST be in the following format (the submit script uses the file names to retrieve data needed to run the script):  
 \"SPECIESCODE\_(anything but without \"\_\" e.g. where it comes from)\_(month or day).csv\"  
 
 |Columns|Explanation|
@@ -47,13 +49,17 @@ If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_
 |Year| year of measurement (for monthly data)|
 |Month| month of measurement (can either be M or MM; for monthly data)|
 |date| date of measurement in \"dd\\mm\\yyyy\" (for daily data)|
+|Climate values| Each climate driver needs its own column| 
 
 ## Data Management
 
-For now the scripts are very sensitive to having the correct column names and value format for the date. The individually data needs to contain the following columns in the following formats:  
-* year = the year of measurements (YYYY)
-* month = the month for the measurement (1-12; code can deal with both \"01\" and \"1\")
-* day = the day in the month (1-31; code can deal with both \"01\" and \"1\") of the measurements. If unknown fill in NA, the climwin scripts will use \"01\" as default
+For now the scripts are very sensitive to having the correct column names and value format for the date. The individually data needs to contain the following columns in the following formats: 
+
+|Columns|Explanation|
+|-------|-----------|
+|year | The year of measurements (YYYY)|
+|month | The month for the measurement (1-12; code can deal with both \"01\" and \"1\")|
+|day | The day in the month (1-31; code can deal with both \"01\" and \"1\") of the measurements. If NA, the climwin scripts will use \"01\" as default. |
 
 **add more as code develops**
 
@@ -142,7 +148,19 @@ Metadata for the OPIM dataset
 \*\* Personal note from Tom - Not super reliable, very difficult to distinguish recruits from small older plants  
 
 ### FRSP
+I used the reformatting script to reformat the original data sheets into a usable format
 
+|Columns    |Explanation  |
+|---------  |-------------|
+|year| calendar year of time T\* |
+|month| month when size was measured at time T. Because I work with a fixed reference date set to 7 |
+|day| day when size was measured at time T. Because I work with a fixed reference date set to 15 |
+|plantID| Unique identifier of individual.|
+|sizeT| Number of leaves in basal rosettes at time T. |
+|recruitT| Is the individual a new recruit yes (1) or no (0)| 
+|sizeT1|Number of leaves in basal rosettes at time T + 1. |
+|survival| if the individual survived from time T to T + 1 (1) or not (0)\* |
+|pFlowerT1| Did the individual flower| 
 
 ### ARTR
 I use only ungrazed records from both the historical and recent data. For the recent data, I only use those from the Control treatment.  
@@ -173,6 +191,6 @@ For this analysis I am using the [Climwin package](https://github.com/LiamDBaile
 #### Vital rate: Survival
 *For now the Climwin analysis works with the submit script on EVE (the UFZ HPC cluster). I will create a script that does the same only in R when I'm sure the script and analysis are in their final form*
 
-The slidingwindow analysis is now species and month/day generic. For each species and vital rate, a different baseline is specified in the script. For now, there is no spatial component in the slidingwindow analysis.  
+The slidingwindow analysis can now be run for all 5 species. For each species and vital rate, a different baseline is specified in the script. For now, there is no spatial component in the slidingwindow analysis.  
 * For the Biological data: make sure the required date columns and format are as discribed in the section **\"Data Management\"**.  
 * The Climate data will work as long as the data is retrieved using the species specific \_Get\_Climate.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (*row ....*) reflect the column names of the climate drivers of interest.
