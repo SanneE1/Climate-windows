@@ -74,7 +74,7 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 12 options
+if(cdata == "month") {                          ## 14 options
   
   xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled", "SPEI")
   type <- c("absolute")
@@ -100,9 +100,9 @@ options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper
 
 ## add growing degree days using "sum"
 
-if(cdata == "day"){
-options <- rbind(options, c("prcp", "absolute", "sum", "lin", 0, NA), c("prcp", "absolute", "sum", "quad", 0, NA),
-                          c("prcp_scaled_M", "absolute", "sum", "lin", 0, NA), c("prcp_scaled_M", "absolute", "sum", "quad", 0, NA)
+if(cdata == "month"){
+options <- rbind(options, c("min_tmin_scaled", "absolute", "min", "lin", 0, NA), c("min_tmin_scaled", "absolute", "min", "quad", 0, NA),
+                          c("max_tmax_scaled", "absolute", "max", "lin", 0, NA), c("max_tmax_scaled", "absolute", "max", "quad", 0, NA)
                   )
 }
 

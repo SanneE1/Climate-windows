@@ -18,7 +18,7 @@
 #$ -l h_vmem=8G
 
 # Array numbers 
-#$ -t 1-12
+#$ -t 1-16
 
 #needed when submitting a non-parallel job
 #$ -binding linear:1
