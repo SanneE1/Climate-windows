@@ -74,7 +74,7 @@ if(cdata == "day") {
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 14 options
+if(cdata == "month") {                          ## 16 options
   
   xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled", "SPEI")
   type <- c("absolute")
@@ -170,7 +170,7 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 if (species == "HEQU") {
 
   
-  if (vitalrate == "s") {
+  if (vitalrate == "s") {                  
     print("Running survival vital rate")
     Biol <- Biol[which(!(is.na(Biol$survival))),]
     model <- glmer(formula = survival ~ lnsizeT + population + (1|year),
@@ -178,7 +178,7 @@ if (species == "HEQU") {
                    family = binomial) 
   }
   
-  if (vitalrate =="g"){
+  if (vitalrate =="g"){                         #### Change this to negative binomial
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
     model <- glmer(sizeT1 ~ lnsizeT + population + (1|year),
@@ -193,7 +193,7 @@ if (species == "HEQU") {
                    family = binomial)
   }
  
-  if (vitalrate =="fn") {
+  if (vitalrate =="fn") {                        #### Change this to negative binomial
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
     Biol$fertilityT <- as.integer(Biol$fertilityT)
@@ -202,10 +202,13 @@ if (species == "HEQU") {
                    family = poisson)
   }
   
-  if (vitalrate =="pa") {
+  if (vitalrate =="pa") {                         #### Change this to Beta binomial
     print("Running chance to abort")
-    print("This still needs a baseline model")
-    q(status = 1)   
+    Biol$pAbort <- Biol$abort.stalks / Biol$fertilityT
+    Biol <- Biol[which(Biol$pflowerT == 1),]
+    model <- glmer(pAbort ~ population + (1|year),
+                   data = Biol,
+                   family = binomial)
   }
 }
 
@@ -280,6 +283,14 @@ if (species == "OPIM") {
                    data = Biol,
                    family = poisson)
   }
+  
+  if(vitalrate == "pa") {
+    Biol$pAbort <- Biol$ABFlowerbuds_t / Biol$fertilityT
+    Biol <- Biol[which(Biol$pflowerT == 1),]
+    model <- glmer(pAbort ~ (1|Plot) + (1|year),
+                   data = Biol,
+                   family = binomial)
+  }
 }
 
 if (species == "ARTR") {
@@ -346,6 +357,10 @@ if(vitalrate == "fp") {
 }
 
 if(vitalrate == "fn") {
+  range <- c(36, 0)
+}
+
+if(vitalrate == "pa") {
   range <- c(36, 0)
 }
 
