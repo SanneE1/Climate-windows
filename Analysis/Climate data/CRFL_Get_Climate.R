@@ -24,7 +24,9 @@ sites <- data.frame(id = "Redfleet" ,
 # 
 # write.csv(all_stations, "Data/Climate data/all_stations.csv")
 # 
-all_stations <- read.csv("Data/Climate data/all_stations.csv")
+all_stations <- read.csv("Data/Climate data/all_stations.csv") %>%
+     filter(first_year <= 1987, last_year >= 2012)
+
 
 
 Stations <- meteo_nearby_stations(lat_lon_df = sites,

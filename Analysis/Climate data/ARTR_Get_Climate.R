@@ -38,7 +38,7 @@ Stations <- meteo_nearby_stations(lat_lon_df = sites,
 closest_stations <- Stations[[1]][c(1,2),]
 
 nearby_stations <- Stations[[1]][c(1:10),]
-write.csv(nearby_stations, "Data/Climate data/CRFL_nearb_stations.csv")
+write.csv(nearby_stations, "Data/Climate data/ARTR_nearb_stations.csv")
 
 #############################
 ## Get weather information ##
