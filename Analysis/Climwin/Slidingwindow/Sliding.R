@@ -152,6 +152,9 @@ if (species == "FRSP"){
   Biol <- read.csv(SpeciesInput)
   Biol$lnsizeT <- log(Biol$sizeT)
   Biol <- Biol[which(!is.na(Biol$sizeT)),]
+ if (vitalrate == "fn"){
+  Biol$year <- Biol$yearT1
+ }
 }
 
 ### General data modification
@@ -316,7 +319,7 @@ if (species == "FRSP") {
   
   if(vitalrate == "fn") {
     print("Running flower numbers T+1")
-    model <- glmer(nFlowersT1 ~ lnsizeT + (1|year),
+    model <- glmer(nFlowersT1 ~ lnsizeT + (1|yearT1),
                    data = Biol,
                    family = poisson)
   }
@@ -346,7 +349,7 @@ if(vitalrate == "fp") {
 
 if(vitalrate == "fn") {
   if(species == "FRSP") {
-    range <- c(36, -12)
+    range <- c(48, 0)
   } else {
   range <- c(36, 0)
   }
