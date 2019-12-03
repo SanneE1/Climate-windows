@@ -161,6 +161,8 @@ mutate(plantID = as.character(plantID),
          yearT1 = as.integer(yearT1),
          sizeT = as.integer(sizeT),
          nFlowersT1 = as.integer(nFlowersT1))
+Numbers$month <- 7
+Numbers$day <- 15
 write.csv(Numbers, "Data/Biol data/FRSP_Cleaned_FlowerN.csv")
 
 
