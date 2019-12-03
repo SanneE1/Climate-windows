@@ -2,6 +2,8 @@ library(dplyr)
 library(readxl)
 library(tidyr)
 
+### Formating demography sheet (Sheet for Flower numbers below)-----------------------------------------------------------------------------
+
 # I checked -> There is no PlantID in the "CPASS" sheets that is also not in the "Flowered" or "Died" sheet, 
 # but these sheets do have extra IDs
 
@@ -130,3 +132,36 @@ Biol$day <- 15
 
 
 write.csv(Biol, "Data/Biol data/FRSP_demography_data.csv")
+
+
+### Formatting Sheet for flowernumbers ------------------------------------------------------------------------------------------------
+
+Numbers <- read_xls("Data/Biol data/Original data/FRSP_original_data/flower stalk data.xls",
+                    sheet = "Sheet1")
+Numbers <- as.data.frame(t(Numbers))
+names(Numbers) <- as.character(unlist(Numbers[1,]))
+Numbers <- Numbers[-1,]
+
+Numbers <- Numbers[, c("tag #", "Year flowering", "# leaves in year before flowering", "Total # flowers")] %>%
+  rename(plantID = "tag #",
+         yearT1 = "Year flowering",
+         sizeT = "# leaves in year before flowering",
+         nFlowersT1 = "Total # flowers") 
+
+Numbers$nFlowersT1 <- gsub("\\+", "", Numbers$nFlowersT1)
+Numbers$nFlowersT1 <- gsub("\\+", "", Numbers$nFlowersT1)
+Numbers$nFlowersT1 <- gsub("\\s", "", Numbers$nFlowersT1)
+Numbers$sizeT <- gsub("\\s", "", Numbers$sizeT)
+
+Numbers[which(Numbers$plantID == 381),] <- NA
+Numbers <- Numbers[complete.cases(Numbers),]     ### Remove rows with all NA
+
+Numbers <- Numbers %>%  
+mutate(plantID = as.character(plantID),
+         yearT1 = as.integer(yearT1),
+         sizeT = as.integer(sizeT),
+         nFlowersT1 = as.integer(nFlowersT1))
+write.csv(Numbers, "Data/Biol data/FRSP_Cleaned_FlowerN.csv")
+
+
+
