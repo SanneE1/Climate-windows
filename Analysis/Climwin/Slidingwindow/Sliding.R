@@ -25,7 +25,7 @@ Parsoptions <- list (
     opt_str = c("-s", "--species-used"),
     dest    = "species_used",
     help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP|ARTR")
+    metavar = "HEQU|CRFL|OPIM|FRSP")
 
 )
   
@@ -147,11 +147,6 @@ if (species == "OPIM"){
   
 }
 
-if (species == "ARTR"){
-  Biol <- read.csv(SpeciesInput)
-  
-  Biol <- Biol[which(Biol$seedling != 1),]  ### Remove seedlings
-}
 
 if (species == "FRSP"){
   Biol <- read.csv(SpeciesInput)
@@ -168,7 +163,6 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
-
   
   if (vitalrate == "s") {                  
     print("Running survival vital rate")
@@ -212,9 +206,8 @@ if (species == "HEQU") {
   }
 }
 
-if (species == "CRFL") {
-  
 
+if (species == "CRFL") {
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
@@ -249,8 +242,8 @@ if (species == "CRFL") {
   }
 }
 
+
 if (species == "OPIM") {
-  
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
@@ -294,24 +287,6 @@ if (species == "OPIM") {
   }
 }
 
-if (species == "ARTR") {
-  
-
-  if (vitalrate == "s") {
-    print("Running survival vital rate")
-    model <- glmer(survival ~ lnsizeT + (1|year) + (1|quad), 
-                   data = Biol, 
-                   family = binomial) 
-  }
-  
-  if (vitalrate =="g"){
-    Biol <- Biol[which(!(is.na(Biol$lnsizeT))),]
-    Biol <- Biol[which(!(is.na(Biol$lnsizeT1))),]
-    print("Running growth vital rate")
-    model <- lmer(lnsizeT1 ~ lnsizeT + (1|year) + (1|quad), 
-                  data = Biol)                          
-  }
-}
 
 if (species == "FRSP") {
   
@@ -338,6 +313,13 @@ if (species == "FRSP") {
                    data = Biol,
                    family = binomial)
   }
+  
+  if(vitalrate == "fn") {
+    print("Running flower numbers T+1")
+    model <- glmer(nFlowersT1 ~ lnsizeT + (1|year),
+                   data = Biol,
+                   family = poisson)
+  }
 }
 
 #### Set Range ----------------------------------------------------------------------------------------------------------------------------
@@ -363,7 +345,11 @@ if(vitalrate == "fp") {
 }
 
 if(vitalrate == "fn") {
+  if(species == "FRSP") {
+    range <- c(36, -12)
+  } else {
   range <- c(36, 0)
+  }
 }
 
 if(vitalrate == "pa") {
