@@ -152,15 +152,16 @@ Numbers$nFlowersT1 <- gsub("\\+", "", Numbers$nFlowersT1)
 Numbers$nFlowersT1 <- gsub("\\+", "", Numbers$nFlowersT1)
 Numbers$nFlowersT1 <- gsub("\\s", "", Numbers$nFlowersT1)
 Numbers$sizeT <- gsub("\\s", "", Numbers$sizeT)
+Numbers$plantID <- gsub("\\s", "", Numbers$plantID)
 
 Numbers[which(Numbers$plantID == 381),] <- NA
 Numbers <- Numbers[complete.cases(Numbers),]     ### Remove rows with all NA
 
 Numbers <- Numbers %>%  
 mutate(plantID = as.character(plantID),
-         yearT1 = as.integer(yearT1),
-         sizeT = as.integer(sizeT),
-         nFlowersT1 = as.integer(nFlowersT1))
+         yearT1 = as.numeric(levels(yearT1))[yearT1],
+         sizeT = as.numeric(sizeT),
+         nFlowersT1 = as.numeric(nFlowersT1))
 Numbers$month <- 7
 Numbers$day <- 15
 write.csv(Numbers, "Data/Biol data/FRSP_Cleaned_FlowerN.csv")
