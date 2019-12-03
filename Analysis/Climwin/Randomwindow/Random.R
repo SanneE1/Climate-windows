@@ -20,7 +20,7 @@ Parsoptions <- list (
     opt_str = c("-s", "--species-used"),
     dest    = "species_used",
     help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP|ARTR")
+    metavar = "HEQU|CRFL|OPIM|FRSP")
 )
 
 parser <- OptionParser(
@@ -91,10 +91,8 @@ if (species == "HEQU") {
   Biol <- Biol[which(Biol$year!= 2012),]
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
   Biol$lnsizeT <- log(Biol$sizeT)
-  
-  
-  
 }
+
 
 if (species == "CRFL"){
   Biol <- read.csv(SpeciesInput) %>%
@@ -104,28 +102,25 @@ if (species == "CRFL"){
   Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),]
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
   Biol$lnsizeT <- log(Biol$sizeT)
-  
-  
 }
+
 
 if (species == "OPIM"){
   Biol <- read.csv(SpeciesInput)
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
   Biol <- Biol[which(Biol$year != 2018),]
   Biol$lnsizeT <- log(Biol$sizeT)
-  
+
 }
 
-if (species == "ARTR"){
-  Biol <- read.csv(SpeciesInput)
-  
-  Biol <- Biol[which(Biol$seedling != 1),]  ### Remove seedlings
-}
 
 if (species == "FRSP"){
   Biol <- read.csv(SpeciesInput)
   Biol$lnsizeT <- log(Biol$sizeT)
   Biol <- Biol[which(!is.na(Biol$sizeT)),]
+  if (vitalrate == "fn"){
+    Biol$year <- Biol$yearT1
+  }
 }
 
 ### General data modification
@@ -137,7 +132,6 @@ Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") ,
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
-  
   
   if (vitalrate == "s") {
     print("Running survival vital rate")
@@ -178,9 +172,8 @@ if (species == "HEQU") {
   }
 }
 
+
 if (species == "CRFL") {
-  
-  
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
@@ -215,9 +208,9 @@ if (species == "CRFL") {
   }
 }
 
+
 if (species == "OPIM") {
-  
-  
+
   if(vitalrate =="s"){
     print("Running survival vital rate")
     Biol <- Biol[which(!(is.na(Biol$survival))),]
@@ -251,27 +244,8 @@ if (species == "OPIM") {
   }
 }
 
-if (species == "ARTR") {
-  
-  
-  if (vitalrate == "s") {
-    print("Running survival vital rate")
-    model <- glmer(survival ~ lnsizeT + (1|year) + (1|quad), 
-                   data = Biol, 
-                   family = binomial) 
-  }
-  
-  if (vitalrate =="g"){
-    Biol <- Biol[which(!(is.na(Biol$lnsizeT))),]
-    Biol <- Biol[which(!(is.na(Biol$lnsizeT1))),]
-    print("Running growth vital rate")
-    model <- lmer(lnsizeT1 ~ lnsizeT + (1|year) + (1|quad), 
-                  data = Biol)                          
-  }
-}
 
 if (species == "FRSP") {
-  
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
@@ -295,6 +269,13 @@ if (species == "FRSP") {
                    data = Biol,
                    family = binomial)
   }
+  
+  if(vitalrate == "fn") {
+    print("Running flower numbers T+1")
+    model <- glmer(nFlowersT1 ~ lnsizeT + (1|yearT1),
+                   data = Biol,
+                   family = poisson)
+  }
 }
 
 #### Set Range ----------------------------------------------------------------------------------------------------------------------------
@@ -303,7 +284,12 @@ if(vitalrate == "s") {
 }
 
 if(vitalrate == "g") {
-  range <- c(24,-12)
+  if(species == "FRSP") {
+    print("Range set to 5 years")
+    range <- c(48, -12)
+  } else {
+    range <- c(24,-12)
+  }
 }
 
 if(vitalrate == "fp") {
@@ -314,11 +300,18 @@ if(vitalrate == "fp") {
   }
 }
 
+
 if(vitalrate == "fn") {
-  range <- c(36, 0)
+  if(species == "FRSP") {
+    range <- c(48, 0)
+  } else {
+    range <- c(36, 0)
+  }
 }
 
-
+if(vitalrate == "pa") {
+  range <- c(36, 0)
+}
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Get Sliding result 

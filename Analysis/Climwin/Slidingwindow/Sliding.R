@@ -122,10 +122,8 @@ Biol <- Biol[which(Biol$seedling != 1),]
 Biol <- Biol[which(Biol$year!= 2012),]
 Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
 Biol$lnsizeT <- log(Biol$sizeT)
-
-
-
 }
+
 
 if (species == "CRFL"){
   Biol <- read.csv(SpeciesInput) %>%
@@ -135,16 +133,14 @@ if (species == "CRFL"){
   Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),]
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
   Biol$lnsizeT <- log(Biol$sizeT)
-  
-  
 }
+
 
 if (species == "OPIM"){
   Biol <- read.csv(SpeciesInput)
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
   Biol <- Biol[which(Biol$year != 2018),]
   Biol$lnsizeT <- log(Biol$sizeT)
-  
 }
 
 
@@ -292,8 +288,7 @@ if (species == "OPIM") {
 
 
 if (species == "FRSP") {
-  
-  
+
   if(vitalrate =="s"){
     print("Running survival vital rate")
     model <- glmer(formula = survival ~ lnsizeT + (1|year),
@@ -332,7 +327,7 @@ if(vitalrate == "s") {
 
 if(vitalrate == "g") {
   if(species == "FRSP") {
-    print("Range set to  years")
+    print("Range set to 5 years")
     range <- c(48, -12)
   } else {
   range <- c(24,-12)
@@ -341,6 +336,7 @@ if(vitalrate == "g") {
 
 if(vitalrate == "fp") {
   if(species == "FRSP") {
+    print("Range set to 4 years")
     range <- c(36, -12)
   } else {
   range <- c(36, 0)
@@ -349,6 +345,7 @@ if(vitalrate == "fp") {
 
 if(vitalrate == "fn") {
   if(species == "FRSP") {
+    print("Range set to 4 years")
     range <- c(48, 0)
   } else {
   range <- c(36, 0)
