@@ -202,7 +202,7 @@ if (species == "CRFL") {
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
     Biol <- Biol[which(!is.na(Biol$sizeT)),]
-    model <- glmer(formula = fertilityT ~ lnsizeT + (1|year),
+    model <- glmer(formula = fertilityT ~ lnsizeT + Block + (1|year),
                    data = Biol,
                    family = poisson)
   }
