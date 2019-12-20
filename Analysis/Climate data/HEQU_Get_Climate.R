@@ -25,7 +25,8 @@ sites <- data.frame(id = c("low", "mid", "high"),
 # 
 # write.csv(all_stations, "Data/Climate data/all_stations.csv")
 # 
-all_stations <- read.csv("Data/Climate data/all_stations.csv")
+all_stations <- read.csv("Data/Climate data/all_stations.csv") %>%
+  filter(first_year <= 1996, last_year >= 2012)
 
 
 Stations <- meteo_nearby_stations(lat_lon_df = sites,
@@ -38,6 +39,8 @@ Stations <- meteo_nearby_stations(lat_lon_df = sites,
 
 mid_station <- Stations[["mid"]][1,]
 low_station <- Stations[["low"]][1,]
+
+
 
 #############################
 ## Get weather information ##

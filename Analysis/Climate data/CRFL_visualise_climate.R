@@ -4,7 +4,7 @@ library(ggplot2)
 library(leaflet)
 library(htmlwidgets)
 library(lubridate)
-
+library(mapview)
 
 ### CRFL population coordinates ------------------------------------------------------------------
 
@@ -50,6 +50,8 @@ Map <- leaflet(locations) %>%
   addScaleBar()
 
 saveRDS(Map, "Visual/CRFL_Locations.rds")
+mapshot(Map, file = "Visual/CRFL_Locations.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton"))
 
 
 #############################

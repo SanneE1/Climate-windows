@@ -4,7 +4,7 @@ library(ggplot2)
 library(leaflet)
 library(htmlwidgets)
 library(lubridate)
-
+library(mapview)
 
 ### HEQU population coordinates ------------------------------------------------------------------
 
@@ -21,8 +21,6 @@ sites <- data.frame(id = c("low", "mid", "high"),
 nearby_Stations <- read.csv("Data/Climate data/HEQU_nearb_stations.csv")
 nearby_Stations$X <- NULL
 nearby_Stations$id <- as.character(nearby_Stations$id)
-nearby_Stations$id[which(nearby_Stations$station == "USC00051959" )] <- "USC00051959"
-nearby_Stations$id[which(nearby_Stations$station == "USS0007K11S" )] <- "USS0007K11S"
 nearby_Stations$id[which(nearby_Stations$station == "USS0006L11S" )] <- "USS0006L11S"
 
 
@@ -33,7 +31,7 @@ nearby_Stations$id[which(nearby_Stations$station == "USS0006L11S" )] <- "USS0006
 locations <- rbind(sites, nearby_Stations)
 
 
-pal <- colorFactor(c("#be29ec","#be29ec","#be29ec", "#F8766D", "#00BA38", "#619CFF", "gray50"), domain = c("low", "mid", "high","USS0007K11S","USS0006L11S", "USC00051959", "NOAA options"), ordered = T)
+pal <- colorFactor(c("navy","navy","navy", "red", "gray50"), domain = c("low", "mid", "high","USS0006L11S", "NOAA options"), ordered = T)
 
 Map <- leaflet(locations) %>%
   setView(lng = sum(sites$longitude)/3, lat = sum(sites$latitude)/3, zoom = 10) %>%
@@ -44,12 +42,15 @@ Map <- leaflet(locations) %>%
     stroke = FALSE,
     popup = ~htmltools::htmlEscape(station)) %>%
   addLegend("bottomright",
-            colors = c("#be29ec", "#F8766D", "#00BA38", "#619CFF", "gray50"),
-            labels = c("Populations", "Station USS0007K11S","Station USS0006L11S", "Station USC00051959", "Other station options"),
+            colors = c("navy", "red", "gray50"),
+            labels = c("Populations", "Station USS0006L11S" ,"Other station options"),
             values = ~id, opacity = 1, title = "Locations") %>%
   addScaleBar()
 
 saveRDS(Map, "Visual/HEQU_Locations.rds")
+mapshot(Map, file = "Visual/HEQU_Locations.png", 
+        remove_controls = c("zoomControl", "layersControl", "homeButton"))
+
 
 
 #############################

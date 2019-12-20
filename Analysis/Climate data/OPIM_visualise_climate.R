@@ -5,7 +5,7 @@ library(leaflet)
 library(htmlwidgets)
 library(lubridate)
 library(geosphere)
-
+library(mapview)
 
 ### OPIM population coordinates ------------------------------------------------------------------
 
@@ -54,6 +54,9 @@ Map <- leaflet(locations) %>%
   addScaleBar()
 
 saveRDS(Map, "Visual/OPIM_Locations.rds")
+mapshot(Map, file = "Visual/OPIM_Locations.png",
+        remove_controls = c("zoomControl", "layersControl", "homeButton"))
+
 
 
 #############################
