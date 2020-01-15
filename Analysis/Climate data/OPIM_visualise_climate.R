@@ -40,7 +40,7 @@ locations$id[which(!(locations$name == "SEVLTER50" | locations$name == "Sevillet
 pal <- colorFactor(c("red", "navy", "gray50"), domain = c("SEVLTER50", "Sevilleta", "options"), ordered = T)
 
 Map <- leaflet(locations) %>%
-  setView(lng = -106.631444, lat = 34.334806, zoom = 11) %>%
+  setView(lng = -106.631444, lat = 34.334806, zoom = 13) %>%
   addProviderTiles(providers$Esri.WorldStreetMap) %>% 
   addCircleMarkers(
     color = ~pal(id),
@@ -54,6 +54,7 @@ Map <- leaflet(locations) %>%
   addScaleBar()
 
 saveRDS(Map, "Visual/OPIM_Locations.rds")
+
 mapshot(Map, file = "Visual/OPIM_Locations.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton"))
 
