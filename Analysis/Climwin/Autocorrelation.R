@@ -1,5 +1,6 @@
 library(lme4)
 library(climwin)
+library(dplyr)
 
 #### HEQU growth  (FRSP Fp below)
 Biol <- read.csv("Data/Biol data/HEQU_demography_data.csv")%>%
@@ -18,10 +19,11 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 Hg <- readRDS("Results/Climwin/HEQU_g_month_result.rds")
 Hgrowth = 2
 
+
 # auto <- autowin(reference = Hg[[Hgrowth]],
 #                 xvar = list(Tmin = Clim$mean_tmin_scaled),
 #                 cdate = Clim$date, bdate = Biol$date,
-#                 baseline = glmer(sizeT1 ~ lnsizeT + population + (1|year),
+#                 baseline = glmer(sizeT1 ~ lnsizeT + (1|year),
 #                                  data = Biol,
 #                                  family = poisson),
 #                 range = c(24, -12),
@@ -98,3 +100,5 @@ ggplot(Tmax, aes(x = max_tmax.x, y = max_tmax.y)) +
   xlab("Mean minimum temperatures (scaled) at time T") +
   ylab("Mean minimum temperatures (scaled) at time T + 2")
 ggsave("Visual/FRSP_Fp_CorrTest.png")
+
+
