@@ -55,7 +55,7 @@ Hgrowth <- 2
 HpFlwr <- 16
 HnFlwr <-12 
 
-Fsurv <- 12
+Fsurv <- 14
 Fgrowth <- 10
 FpFlwr <- 14
 FnFlwr <- 2

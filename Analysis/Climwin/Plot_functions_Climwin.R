@@ -206,7 +206,7 @@ ggsave( "Visual/FRSP_nFl_plotall.png", p,
 
 
 #### One summary -------------------------------------------------------------------------------------
-source("Analysis/Climwin/Custom_climwin_plot_functions.R")
+source("../../Scrap code/Custom_climwin_plot_functions.R")
 
 Hs1 <- plotdelta_custom(Hs[[Hsurv]]$Dataset, arrow = T, legend_position = "right") 
 Hs2 <- plotbetas_custom(Hs[[Hsurv]]$Dataset, arrow = T, legend_position = "bottom") 
@@ -292,7 +292,7 @@ lay <- rbind(c( 1,  2, 3, 4),
              c(18, 19, 21, 22))
 
 HEQU <- textGrob("H. quinquenervis", gp = gpar(fontsize = 12, fontface = "italic"), just = "left")
-OPIM <- textGrob("O. imbricate", gp = gpar(fontsize = 12, fontface = "italic"), just = "left")
+OPIM <- textGrob("C. imbricata", gp = gpar(fontsize = 12, fontface = "italic"), just = "left")
 CRFL <- textGrob("C. flava", gp = gpar(fontsize = 12, fontface = "italic"), just = "left")
 FRSP <- textGrob("F. speciose", gp = gpar( fontsize = 12, fontface = "italic"), just = "left")
 Alpine <- textGrob("Alpine", gp = gpar(col="blue4", fontsize = 12))
@@ -326,7 +326,7 @@ allsurv <- grid.arrange(OPIM, CRFL, HEQU, FRSP,
                         Os2,  Cs2,  Hs2,  Fs2,
                         Os3,  Cs3,  Hs3,  Fs3,
                         layout_matrix = lay)
-saveRDS(allsurv, "Results/Quick_summary/Allsurv.RDS")
+saveRDS(allsurv, "Visual/Allsurv.RDS")
 
 allgrowth <- grid.arrange(OPIM, CRFL, HEQU, FRSP,
                           OgrowthClim, CgrowthClim, HgrowthClim, FgrowthClim,
@@ -334,7 +334,7 @@ allgrowth <- grid.arrange(OPIM, CRFL, HEQU, FRSP,
                           Og2,  Cg2,  Hg2,  Fg2,
                           Og3,  Cg3,  Hg3,  Fg3,
                           layout_matrix = lay)
-saveRDS(allgrowth, "Results/Quick_summary/Allgrowth.RDS")
+saveRDS(allgrowth, "Visual/Allgrowth.RDS")
 
 allFp <- grid.arrange(OPIM, CRFL, HEQU, FRSP,
                       OpFlwrClim, CpFlwrClim, HpFlwrClim, FpFlwrClim,
@@ -343,7 +343,7 @@ allFp <- grid.arrange(OPIM, CRFL, HEQU, FRSP,
                       Ofp3,  Cfp3,  Hfp3,  Ffp3,
                       layout_matrix = lay)
 
-saveRDS(allFp, "Results/Quick_summary/AllFp.RDS")
+saveRDS(allFp, "Visual/AllFp.RDS")
 
 
 allFn <- grid.arrange(OPIM, CRFL, HEQU, FRSP,
@@ -353,6 +353,6 @@ allFn <- grid.arrange(OPIM, CRFL, HEQU, FRSP,
                       Ofn3,  Cfn3,  Hfn3,  Ffn3,
                       layout_matrix = lay)
 
-saveRDS(allFn, "Results/Quick_summary/AllFn.RDS")
+saveRDS(allFn, "Visual/AllFn.RDS")
 
 

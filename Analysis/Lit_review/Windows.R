@@ -7,14 +7,14 @@ library(patchwork)
 
 ### Get data --------------------------------------------------------------------------------------------------------
 
-df <- readxl::read_excel("Analysis/Lit_review/Biomes window open close.xlsx", skip = 1) %>%
+df <- readxl::read_excel("Data/Lit_review/Biomes window open close.xlsx", skip = 1) %>%
   filter(Biome == "DES")
 df$Studies <- as.factor(df$Studies)
 df$TP <- as.factor(df$`T/P`)
 df <- df[which(df$Studies != "Maschinski et al. 1997"),]     ## Remove studies with missing information
 df <- df[which(df$Studies != "Raghu et al. 2013"),]
 
-df1 <- readxl::read_excel("Analysis/Lit_review/Biomes window open close.xlsx", skip = 1) %>%
+df1 <- readxl::read_excel("Data/Lit_review/Biomes window open close.xlsx", skip = 1) %>%
   filter(Biome == "TCF")
 df1$Studies <- as.factor(df1$Studies)
 df1$TP <- as.factor(df1$`T/P`)
