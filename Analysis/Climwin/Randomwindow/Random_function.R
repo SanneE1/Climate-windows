@@ -1,81 +1,33 @@
-suppressPackageStartupMessages(library(climwin))
-suppressPackageStartupMessages(library(dplyr))
-suppressPackageStartupMessages(library(lme4))
-suppressPackageStartupMessages(library(optparse))
-suppressPackageStartupMessages(library(lubridate))
+#' Function for the random window analysis
+#'
+#' @param species Species abbreviation. Options: "HEQU", "FRSP", "OPIM", "CRFL"
+#' @param vitalrate Vital rate abbreviation. Options: "s", "g", "fp", "fn"
+#' @param Climate File location for the file with climate variables (.csv)
+#' @param SpeciesInput File location for the demographic file (.csv)
+#' @param Results_sliding File location of a .RDS file with the results of climwin's slidingwindow analysis
+#' @param winner Number of the best combination's list element
+#' 
+#' @return a rds file with the results of the climwin randomization analysis
+#' 
+#' @examples 
+#' sliding_r("HEQU", "s", "file/path/climate.csv", "file/path/demographic.csv", 
+#' "file/path/sliding/result.rds, 2)
 
 
-#  ----------------------------------------------------------------------------------------------------------------------------
-# parsing arguments
-#  ----------------------------------------------------------------------------------------------------------------------------
-
-Parsoptions <- list (
-  make_option(
-    opt_str = c("-c", "--climate-data-format"),
-    dest    = "climate_data_format",
-    help    = "Specify the format of the climate data, either month or day",
-    metavar = "month|day"),
-
-   make_option(
-    opt_str = c("-s", "--species-used"),
-    dest    = "species_used",
-    help    = "Specify the species that will be used",
-    metavar = "HEQU|CRFL|OPIM|FRSP")
-)
-
-parser <- OptionParser(
-  usage       = "Rscript %prog [options] Climate SpeciesInput Results_sliding winner output",
-  option_list = Parsoptions,
-  description = "\nan Run randomwindow analysis",
-  epilogue    = ""
-)
-
-cli <- parse_args(parser, positional_arguments = 5)
-
-### Assign shortcuts ------------------------------------------------------------------------------------------
-
-cdata <- cli$options$climate_data_format
-species <- cli$options$species_used
-Climate   <- cli$args[1]
-SpeciesInput  <- cli$args[2]
-Results_sliding <- cli$args[3]
-w <- as.integer(cli$args[4])
-output <- cli$args[5]
-taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
-
-
-## Get which vital rate was analysed ------------------------------------------------------------------------------
-getinfo <- stringr::str_split(Results_sliding, "[[:punct:]]")
-vitalrate <- getinfo[[1]][7]
-
-
-cdata
-species
-vitalrate
-Climate
-SpeciesInput
-Results_sliding
-w
-
-### Check 
-if (!(cdata == "month"||cdata == "day")) {
-  print("Climate data format needs to be either \"month\" or \"day\"")
-  q(status = 1)
-}
-
+random_r <- function(species, vitalrate,
+                      Climate, SpeciesInput,
+                      Results_sliding, winner) {
+  
+  if(any(!(c("climwin", "dplyr", "lme4") %in% (.packages())))){
+    stop("make sure that the \"climwin\", \"dplyr\" and \"lme4\" packages are loaded before running this function")
+  }
+  
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Prepare Climate data 
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
-
-if(cdata == "month") {
- Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
-}
-
-if(cdata == "day") {
-  Clim$date <- as.character(Clim$date)                                         
-}
+Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Prepare Biological data 
@@ -344,6 +296,11 @@ random <- randwin(repeats = 1,
 )
 
 
+return(random)
 
-saveRDS(random, file = output)
+
+
+
+}
+
 
