@@ -1,8 +1,8 @@
 # Biome
 
-Project: Testing the importance of growing season climate for predicting population dynamics
+Project: Testing the importance of growing season climate for predicting plant vital rates
 
-## Biological Datasets
+## Biological Data
 
 #### Helianthella quinquenervis (**HEQU**)
    Iler, A. M., Compagnoni, A., Inouye, D. W., Williams, J. L., CaraDonna, P. J., Anderson, A., & Miller, T. E. (2019). Reproductive losses due to climate change‐induced earlier flowering are not the primary threat to plant population viability in a perennial herb. Journal of Ecology.  
@@ -14,7 +14,7 @@ Project: Testing the importance of growing season climate for predicting populat
    [Article](https://doi.org/10.1890/13-1256.1)  
    [Figshare](https://doi.org/10.6084/m9.figshare.c.3306537.v1)
 
-#### Opuntia imbricata (**OPIM**)
+#### Cylindriopuntia imbricata (**OPIM**)
 Provided by Tom Miller. the data spans from 2004 to 2018. 
 Details on data gathering etc can be found in the following articles  
 [Eldred & Miller, 2016](https://doi.org/10.1890/15-1526.1)  
@@ -33,10 +33,10 @@ Data on the climate used for this project is retrieved from two sources:
 
 In case data on specific dates were not available, the values were imputed using 1 or 2 other nearest stations. Any remaining missing data (in case the data was also missing from the other stations) is imputed using the same method as the `Climwin`'s \"method1\" 
    
-I will be using monthly (scaled) data.  
+I used monthly (scaled) data.  
 
-If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_Get\_Climate\"), the easiest way to use them would be to make sure the following columns are in the file and change the xvar lists in *sliding.R* to reflect the name of the different climate drivers you want to test. `Climwin` requires a wide format for the imput. Moreover, the file name MUST be in the following format (the submit script uses the file names to retrieve data needed to run the script):  
-\"SPECIESCODE\_(anything but without \"\_\" e.g. where it comes from)\_(month or day).csv\"  
+If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_Get\_Climate\"), the easiest way to use them would be to make sure the following columns are in the file and change the xvar lists in *sliding_EVE.R* to reflect the name of the different climate drivers you want to test. `Climwin` requires a wide format for the imput. Moreover, the file name MUST be in the following format (the submit script uses the file names to retrieve data needed to run the script):  
+\"SPECIESCODE\_(anything but without \"\_\" e.g. where it comes from).csv\"  
 
 |Columns|Explanation|
 |-------|-----------|
@@ -47,15 +47,13 @@ If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_
 
 ## Data Management
 
-For now the scripts are very sensitive to having the correct column names and value format for the date. The individually data needs to contain the following columns in the following formats: 
+The scripts require the correct column names and value format for the date. The individually data needs to contain the following columns in the following formats: 
 
 |Columns|Explanation|
 |-------|-----------|
 |year | The year of measurements (YYYY)|
 |month | The month for the measurement (1-12; code can deal with both \"01\" and \"1\")|
 |day | The day in the month (1-31; code can deal with both \"01\" and \"1\") of the measurements. If NA, the climwin scripts will use \"01\" as default. |
-
-**add more as code develops**
 
 
 ### HEQU
@@ -70,8 +68,8 @@ Metadata for the HEQU dataset
 |day        | Day of measurements at time T|
 |presentT   | Presence at time T (0/1)\*|
 |presentT1  | Presence at time T+1 (0/1)\*|
-|survival   | Survival from year T to year T+1 (0/1)\** . |
-|seedling   | Is individual seedling in year T (0/1)\** |
+|survival   | Survival from year T to year T+1 (0/1)\* |
+|seedling   | Is individual seedling in year T (0/1)\* |
 |sizeT      | The number of clumps of leaves per plant at time T\* |
 |sizeT1     | The number of clumps of leaves per plant at time T+1\* |
 |pflowerT   | The probability of flowering (producing at least one stalk) at time T\* |
@@ -80,8 +78,7 @@ Metadata for the HEQU dataset
 |fertilityT | Total number of flowering stalks in which the plant invested at time T\*|
 |fertilityT1 | Total number of flowering stalks in which the plant invested at time T+1\*| 
 
-\* Same as found in the original data  
-\** For details see the original [README](https://doi.org/10.5061/dryad.863c8sk)  
+\* Same as found in the original data; For details see the original [README](https://doi.org/10.5061/dryad.863c8sk)  
 
 ### CRFL
 Metadata for the CRFL dataset
@@ -91,7 +88,7 @@ Metadata for the CRFL dataset
 |Treatment|Treatment applied to the permanent plot. C: Control; D1: Rainout shelter in summer 1998; D2: Rainout shelter in summer 1999\*|
 |Block|Location where the treatments were assigned in groups of three plots\*|
 |Plot| Plot number. Permanent plots of 5 × 5 m²\*|
-|Quadrat|Each permanent plot is conformed by 13 samplable 1 × 1 m² quadrats. Note that in plots 1–9 all quadrats were sampled, but in plots 10–18 only a random subset were sampled.\*\*|
+|Quadrat|Each permanent plot is conformed by 13 samplable 1 × 1 m² quadrats. Note that in plots 1–9 all quadrats were sampled, but in plots 10–18 only a random subset were sampled.\*|
 |plantID|Individual unique identifier, a concatenation of the values for variables "Treatment", "Block", "Plot", "Quadrat", "X" and "Y", separated by "." \*|
 |year|Year of census (at time T)\*|
 |month| Month of census (at time T)|
@@ -106,8 +103,7 @@ Metadata for the CRFL dataset
 |Compass|Compass direction from the center of the closest shrub to the target individual of Cryptantha flava\*|
 |Distance|Closest distance from the target individual of Cryptantha flava to the edge of the shrub. Negative values mean the individual of Cryptantha flava is under the shrub. Positive values mean the individual of Cryptantha flava is not under the shrub.\*|
 
-\* Same as found in the original data  
-\** For details see the original [README](https://doi.org/10.6084/m9.figshare.c.3306537.v1)  
+\* Same as found in the original data. For details see the original [README](https://doi.org/10.6084/m9.figshare.c.3306537.v1)  
 
 ### OPIM
 Metadata for the OPIM dataset
@@ -142,29 +138,30 @@ Metadata for the OPIM dataset
 \*\* Personal note from Tom - Not super reliable, very difficult to distinguish recruits from small older plants  
 
 ### FRSP
-I used the reformatting script to reformat the original data sheets into a usable format
+I used the reformatting script to reformat the original data sheets into a format usuable for this study
 
 |Columns    |Explanation  |
 |---------  |-------------|
-|year| calendar year of time T\* |
+|year| calendar year of time T |
 |month| month when size was measured at time T. Because I work with a fixed reference date set to 7 |
 |day| day when size was measured at time T. Because I work with a fixed reference date set to 15 |
 |plantID| Unique identifier of individual.|
 |sizeT| Number of leaves in basal rosettes at time T. |
 |recruitT| Is the individual a new recruit yes (1) or no (0)| 
 |sizeT1|Number of leaves in basal rosettes at time T + 1. |
-|survival| if the individual survived from time T to T + 1 (1) or not (0)\* |
+|survival| if the individual survived from time T to T + 1 (1) or not (0) |
 |pFlowerT1| Did the individual flower| 
 
 
 ## Analysis
 
-### Sliding window
-For this analysis I am using the [Climwin package](https://github.com/LiamDBailey/climwin)
+### Climate effects
+For this analysis I used the [Climwin package](https://github.com/LiamDBailey/climwin)
 
-#### Vital rate: Survival
-*For now the Climwin analysis works with the submit script on EVE (the UFZ HPC cluster). I will create a script that does the same only in R when I'm sure the script and analysis are in their final form*
+#### Sliding window analyses
+The sliding window scripts (Analysis\\Climwin\\Slidingwindow) are set up to run on UFZ's EVE as an array job after which the output is merged back into a normal climwin output format for further analyses.
+The random analyses scripts (Analysis\\Climwin\\Randomwindow) are also set up to run on EVE, and require a normal climwin output format (i.e. what the merged format produces), the number of the combination to run the randomization for, as well as the original climate and biological imput
 
-The slidingwindow analysis can now be run for all 5 species. For each species and vital rate, a different baseline is specified in the script. For now, there is no spatial component in the slidingwindow analysis.  
-* For the Biological data: make sure the required date columns and format are as discribed in the section **\"Data Management\"**.  
-* The Climate data will work as long as the data is retrieved using the species specific \_Get\_Climate.R code is used. If other data needs to be used, make sure that the data columns are present and formatted as mentioned in **\"Data Management\"** and change the xvar variables (*row ....*) reflect the column names of the climate drivers of interest.
+all vital rates (survival, growth, flower probability and flower numbers) of the 4 species can be run with the same scripts.
+
+

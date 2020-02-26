@@ -1,4 +1,4 @@
-### This script needs to be run when the Sliding analysis was run on EVE as an Array job
+
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(optparse))
 

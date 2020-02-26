@@ -8,7 +8,7 @@ library(gridExtra)
 library(scales)
 library(patchwork)
 
-data <- readxl::read_excel("Analysis/Lit_review/Biomes from sApropos.xlsx",sheet = "Sheet1", skip = 1)
+data <- readxl::read_excel("Data/Lit_review/Biomes from sApropos.xlsx",sheet = "Sheet1", skip = 1)
 data <- data[!is.na(data$Biome),]
 
 
@@ -18,7 +18,6 @@ Tropical <- c("TMB", "TDB", "TSC", "TGV", "MAN")
 Temperate <-  c("FGS", "TBM", "TGS", "TCF", "MED")
 Alpine <- c("MON")
 Tundra <- c("TUN", "BOR")
-Boreal <- c("BOR")
 Arid <- c("DES")
 
 data$region <- 1
@@ -26,10 +25,32 @@ data$region[which(data$Biome %in% Tropical)] <- "Tropical & Subtropical"
 data$region[which(data$Biome %in% Temperate)] <- "Temperate"
 data$region[which(data$Biome %in% Alpine)] <- "Alpine"
 data$region[which(data$Biome %in% Tundra)] <- "Tundra & Boreal Forest"
-#data$region[which(data$Biome %in% Boreal)] <- "Boreal Forest"
 data$region[which(data$Biome %in% Arid)] <- "Arid"
-data$region <- factor(data$region, levels = c("Arid", "Tundra & Boreal Forest", "Temperate", "Tropical & Subtropical"))
 
+data$region <- factor(data$region, levels = c("Arid", "Tundra & Boreal Forest", "Temperate", "Tropical & Subtropical", "Alpine"))
+
+
+km2 <- data.frame( Biome = c("TMB", "TDB", "TSC", "TBM", "TCF", "BOR", 
+                             "TGV", "TGS", "FGS", "MON", "TUN", "MED", 
+                             "DES", "MAN"),
+                   area = c(19775456.55, 3009534.172, 709291.3819, 12831028.28, 4086174.833, 15126778.94,
+                            20177549.1, 10101575.31, 1091569.309, 5187550.471, 11655052.69, 3220386.04,
+                            27885678.92, 346432.0369)
+)
+
+km2$region <- 1
+km2$region[which(km2$Biome %in% Tropical)] <- "Tropical & Subtropical"
+km2$region[which(km2$Biome %in% Temperate)] <- "Temperate"
+km2$region[which(km2$Biome %in% Alpine)] <- "Alpine"
+km2$region[which(km2$Biome %in% Tundra)] <- "Tundra & Boreal Forest"
+km2$region[which(km2$Biome %in% Arid)] <- "Arid"
+km2$region[which(km2$Biome %in% Alpine)] <- "Alpine"
+
+km2$region <- factor(km2$region, levels = c("Arid", "Tundra & Boreal Forest", "Temperate", "Tropical & Subtropical", "Alpine"))
+
+km2 <- km2 %>%
+  group_by(region) %>%
+  summarise( area = sum(area))
 
 ## Prepare dataframes ---------------------------------------------------------------------------------------------
 
@@ -37,6 +58,10 @@ df <- data %>%
   group_by(region) %>%
   summarise(Populations = length(unique(c(plant_species, Population))))
              
+df <- left_join(df, km2)
+totkm2 <- sum(df$area)
+df$prop <- df$Populations * (df$area/totkm2)
+
 
 df1 <- data %>%
   group_by(region, TType) %>%
@@ -65,39 +90,6 @@ df2$relative2 <- df2$Populations/df2$total2
 
 df2$Ptype <- factor(df2$Ptype, levels = c("Both", "Seasonal", "Annual"))
 
-### Include those studies that don't considere the specific driver  ------------------------------------------------------------------------------------
-# df <- data %>%
-#   group_by(region) %>%
-#   summarise(Populations = length(unique(c(plant_species, Population))))
-# 
-# 
-# df1 <- data %>%
-#   group_by(region, TType) %>%
-#   summarise(Populations = length(unique(c(plant_species, Population)))) 
-# 
-# df1$TType[which(is.na(df1$TType))] <- "None"
-# df1$total2 <- 1
-# df1$total2[which(df1$region=="Arid")] = sum(df1$Populations[which(df1$region == "Arid")])
-# df1$total2[which(df1$region=="Tundra and Boreal Forest")] = sum(df1$Populations[which(df1$region == "Tundra and Boreal Forest")])
-# df1$total2[which(df1$region=="Temperate")] = sum(df1$Populations[which(df1$region == "Temperate")])
-# df1$total2[which(df1$region=="Tropical & Subtropical")] = sum(df1$Populations[which(df1$region == "Tropical & Subtropical")])
-# df1$relative2 <- df1$Populations/df1$total2
-# df1$TType <- factor(df1$TType, levels = c("None", "Both", "Seasonal", "Annual"))
-# 
-# df2 <- data %>%
-#   group_by(region, Ptype) %>%
-#   summarise(Populations = length(unique(c(plant_species, Population)))) 
-# 
-# df2$Ptype[which(is.na(df2$Ptype))] <- "None"
-# df2$total2 <- 1
-# df2$total2[which(df2$region=="Arid")] = sum(df2$Populations[which(df2$region == "Arid")])
-# df2$total2[which(df2$region=="Tundra and Boreal Forest")] = sum(df2$Populations[which(df2$region == "Tundra and Boreal Forest")])
-# df2$total2[which(df2$region=="Temperate")] = sum(df2$Populations[which(df2$region == "Temperate")])
-# df2$total2[which(df2$region=="Tropical & Subtropical")] = sum(df2$Populations[which(df2$region == "Tropical & Subtropical")])
-# df2$relative2 <- df2$Populations/df2$total2
-# 
-# df2$Ptype <- factor(df2$Ptype, levels = c("None", "Both", "Seasonal", "Annual"))
-# 
 
 ### Absolute population numbers ------------------------------------------------------------------------------------
 

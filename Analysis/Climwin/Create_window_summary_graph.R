@@ -1,4 +1,8 @@
 
+# To change the growing season to dashed rectangles I need patternGrob() 
+# which is only available in an older version of gridExtra
+install.packages("gridExtra", repos="http://R-Forge.R-project.org")
+
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -12,71 +16,7 @@ source("../../Scrap code/create_dashed.R")
 
 ### Get Climwin result files ------------------------------------------------------------------------------------------
 ### HEQU
-Hs <- readRDS("Results/Climwin/HEQU_s_month_result.rds")
-Hg <- readRDS("Results/Climwin/HEQU_g_month_result.rds")
-Hfp <- readRDS("Results/Climwin/HEQU_fp_month_result.rds")
-Hfn <- readRDS("Results/Climwin/HEQU_fn_month_result.rds")
-
-Hsr <- readRDS("Results/Climwin/HEQU_s_month_random.rds")
-Hgr <- readRDS("Results/Climwin/HEQU_g_month_random.rds")
-Hfpr <- readRDS("Results/Climwin/HEQU_fp_month_random.rds")
-Hfnr <- readRDS("Results/Climwin/HEQU_fn_month_random.rds")
-
-
-### CRFL
-Cs <- readRDS("Results/Climwin/CRFL_s_month_result.rds")
-Cg <- readRDS("Results/Climwin/CRFL_g_month_result.rds")
-Cfp <- readRDS("Results/Climwin/CRFL_fp_month_result.rds")
-Cfn <- readRDS("Results/Climwin/CRFL_fn_month_result.rds")
-
-Csr <- readRDS("Results/Climwin/CRFL_s_month_random.rds")
-Cgr <- readRDS("Results/Climwin/CRFL_g_month_random.rds")
-Cfpr <- readRDS("Results/Climwin/CRFL_fp_month_random4.rds")
-Cfnr <- readRDS("Results/Climwin/CRFL_fn_month_random.rds")
-
-### OPIM
-Os <- readRDS("Results/Climwin/OPIM_s_month_result.rds")
-Og <- readRDS("Results/Climwin/OPIM_g_month_result.rds")
-Ofp <- readRDS("Results/Climwin/OPIM_fp_month_result.rds")
-Ofn <- readRDS("Results/Climwin/OPIM_fn_month_result.rds")
-
-Osr <- readRDS("Results/Climwin/OPIM_s_month_random.rds")
-Ogr <- readRDS("Results/Climwin/OPIM_g_month_random.rds")
-Ofpr <- readRDS("Results/Climwin/OPIM_fp_month_random.rds")
-Ofnr <- readRDS("Results/Climwin/OPIM_fn_month_random.rds")
-
-### FRSP
-Fs <- readRDS("Results/Climwin/FRSP_s_month_result.rds")
-Fg <- readRDS("Results/Climwin/FRSP_g_month_result_5yrs.rds")
-Ffp <- readRDS("Results/Climwin/FRSP_fp_month_result.rds")
-Ffn <- readRDS("Results/Climwin/FRSP_fn_month_result.rds")
-
-Fsr <- readRDS("Results/Climwin/FRSP_s_month_random.rds")
-Fgr <- readRDS("Results/Climwin/FRSP_g_month_random_5yrs.rds")
-Ffpr <- readRDS("Results/Climwin/FRSP_fp_month_random.rds")
-Ffnr <- readRDS("Results/Climwin/FRSP_fn_month_random.rds")
-
-### Set winners ---------------------------------------------------------------------------------------------------------------------------------------------
-Hsurv <- 13
-Hgrowth <- 2
-HpFlwr <- 16
-HnFlwr <-12 
-
-Fsurv <- 12
-Fgrowth <- 10
-FpFlwr <- 14
-FnFlwr <- 2
-
-Csurv <- 16
-Cgrowth <- 1
-CpFlwr <- 4
-CnFlwr <- 4
-
-Osurv <- 3
-Ogrowth <- 12
-OpFlwr <- 2
-OnFlwr <- 3
-
+source("Analysis/Climwin/Load_Climwin_results.R")
 
 ### Functions to get 95 CI for the windows -------------------------------------------------------------------------------------------------------
 
@@ -232,16 +172,16 @@ Surv <- ggplot() +
   geom_rect(data=rects, aes(ymin=-13, ymax=24, xmin=xstart,
                             xmax=xend, fill= col), 
             alpha =0.3) +
-  geom_linerange(data= s1, aes(ymin = s1$WindowClose, ymax = s1$WindowOpen, x = s1$species,  colour = c("red", "grey50", "red", "red")), size = 2,  
+  geom_linerange(data= s1, aes(ymin = s1$WindowClose, ymax = s1$WindowOpen, x = s1$species,  colour = c("red", "red", "red", "red")), size = 2,  
                  show.legend = NA) +
   geom_text(aes(label = c("T[obs]", "T[mean_max]", "T[avg]", "T[max]"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
             size = 4,
             parse = TRUE, 
             show.legend = FALSE) +
   coord_flip() +
-  scale_colour_manual(name = "Window", values = c('red' = '#0072B2', 'grey50' = '#56B4E9'), labels = c( 'Non-significant', 'Significant')) +
-  scale_fill_manual(name = "Range for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
-                    labels = c( 'H. quinquenervis','F. speciosa', 'O. imbricata', 'C. flava'),
+  scale_colour_manual(name = "Randomization", values = c('red' = '#0072B2', 'grey50' = '#56B4E9'), labels = c( 'Non-significant', 'Significant')) +
+  scale_fill_manual(name = "Time range \nconsidered for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
+                    labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
   scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
   scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
@@ -249,7 +189,7 @@ Surv <- ggplot() +
                      name = "Year before census of response variable",
                      limits = c(-13, 49)) +
   scale_x_discrete(name = "\nSurvival",
-                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'O. imbricata', 'CRFL' = 'C. flava')) +
+                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
   theme(panel.background = element_blank(),
         axis.title.x = element_blank(),
         axis.text.x = element_blank(),
@@ -260,7 +200,7 @@ Surv <- ggplot() +
         axis.text.y = element_text(size = 11, face = "italic"),
         panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 5))),
         panel.grid.minor.x=element_blank(),
-        legend.position = "right",
+        legend.position = "none",
         legend.key = element_blank(),
         legend.background = element_blank()
         ) 
@@ -273,7 +213,7 @@ Growth <-   ggplot() +
                            xmax=xend,
                            size = 'Growing seasons'), 
             alpha =0.3,
-            fill = 'grey50',
+            fill = NA,
             show.legend = TRUE) +
   geom_rect(data=rects, aes(ymin=-13, ymax=c(24, 48, 24, 24), xmin=xstart,
                             xmax=xend, fill=col), 
@@ -287,7 +227,7 @@ Growth <-   ggplot() +
   coord_flip() +
   scale_colour_manual(name = "Window", values = c('red' = '#0072B2', 'grey50' = '#56B4E9'), labels = c( 'Non-significant', 'Significant')) +
   scale_fill_manual(name = "Range for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
-                    labels = c( 'H. quinquenervis','F. speciosa', 'O. imbricata', 'C. flava'),
+                    labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
   scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
   scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
@@ -295,19 +235,24 @@ Growth <-   ggplot() +
                      name = "Year before census of response variable",
                      limits = c(-13, 49)) +
   scale_x_discrete(name = "\nGrowth",
-                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'O. imbricata', 'CRFL' = 'C. flava')) +
+                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
+  guides(fill = guide_legend(order = 1),
+         colour = guide_legend(order = 2),
+         size = guide_legend(order = 3)) +
   theme(panel.background = element_blank(),
         axis.title.x = element_blank(),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.line.y = element_line(colour = "black"),
         axis.line.x = element_blank(),
-        legend.position = "none",
         axis.title = element_text(size = 14),
         axis.text.y = element_text(size = 11, face = "italic"),
         panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 5))),
-        panel.grid.minor.x=element_blank()
-  )
+        panel.grid.minor.x=element_blank(),
+        legend.position = "right",
+        legend.key = element_blank(),
+        legend.background = element_blank()
+  ) 
 
 
 
@@ -333,7 +278,7 @@ FlwrProb <-   ggplot() +
   coord_flip() +
   scale_colour_manual(name = "Window", values = c('red' = '#0072B2', 'grey50' = '#56B4E9'), labels = c( 'Non-significant', 'Significant')) +
   scale_fill_manual(name = "Range for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
-                    labels = c( 'H. quinquenervis','F. speciosa', 'O. imbricata', 'C. flava'),
+                    labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
   scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
   scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
@@ -341,7 +286,7 @@ FlwrProb <-   ggplot() +
                      name = "Year before census of response variable",
                      limits = c(-13, 49)) +
   scale_x_discrete(name = "Flower \nprobability",
-                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'O. imbricata', 'CRFL' = 'C. flava')) +
+                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
   theme(panel.background = element_blank(),
         axis.title.x = element_blank(),
         axis.text.x = element_blank(),
@@ -377,7 +322,7 @@ FlwrNum <-   ggplot() +
   coord_flip() +
   scale_colour_manual(name = "Window", values = c('red' = '#0072B2', 'grey50' = '#56B4E9'), labels = c( 'Non-significant', 'Significant')) +
   scale_fill_manual(name = "Range for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
-                    labels = c( 'H. quinquenervis','F. speciosa', 'O. imbricata', 'C. flava'),
+                    labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
   scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
   scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
@@ -385,7 +330,7 @@ FlwrNum <-   ggplot() +
                      name = "Year before census of response variable",
                      limits = c(-13, 49)) +
   scale_x_discrete(name = "Inflorescence  \nnumbers",
-                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'O. imbricata', 'CRFL' = 'C. flava')) +
+                   labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
   theme(panel.background = element_blank(),
         # axis.title.x = element_blank(),
         # axis.text.x = element_blank(),
@@ -402,7 +347,7 @@ FlwrNum <-   ggplot() +
 
 ### Grow period hacked to dashes -------------------------------------------------------------------------------------------------
 
-legend <- get_legend(Surv)
+legend <- get_legend(Growth)
 legend$grobs[[3]]$grobs[[4]] <- patternGrob(
   y = legend$grobs[[3]]$grobs[[4]]$y,
   x = legend$grobs[[3]]$grobs[[4]]$x,
@@ -410,7 +355,7 @@ legend$grobs[[3]]$grobs[[4]] <- patternGrob(
   height = legend$grobs[[3]]$grobs[[4]]$height,
   pattern = 1, granularity = unit(2.5, "mm"),
   gp = gpar(fill = NA))
-Surv <- Surv + theme(legend.position = "none")
+Growth <- Growth + theme(legend.position = "none")
 
 Surv <- dashing(Surv)
 Growth <- dashing(Growth)
