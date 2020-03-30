@@ -32,14 +32,12 @@ Climate=$1
 SpeciesInput=$2
 Results_sliding=$3
 winner=$4
-cdata=$(basename $Climate .csv | cut -d _ -f3)
 species=$(basename $SpeciesInput .csv | cut -d _ -f1)
 vitalrate=$(basename $Results_sliding .rds | cut -d _ -f2)
-output="$output_dir"/${JOB_NAME}_${species}_${cdata}_${vitalrate}_${JOB_ID}_$SGE_TASK_ID.rds
+output="$output_dir"/${JOB_NAME}_${species}_month_${vitalrate}_${JOB_ID}_$SGE_TASK_ID.rds
 
  
 Rscript $HOME/Biome/Analysis/Climwin/Randomwindow/Random.R \
-  --climate-data-format=$cdata \
   --species-used=$species \
   $Climate \
   $SpeciesInput \

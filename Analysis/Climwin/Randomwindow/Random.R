@@ -10,11 +10,6 @@ suppressPackageStartupMessages(library(lubridate))
 #  ----------------------------------------------------------------------------------------------------------------------------
 
 Parsoptions <- list (
-  make_option(
-    opt_str = c("-c", "--climate-data-format"),
-    dest    = "climate_data_format",
-    help    = "Specify the format of the climate data, either month or day",
-    metavar = "month|day"),
 
    make_option(
     opt_str = c("-s", "--species-used"),
@@ -34,7 +29,6 @@ cli <- parse_args(parser, positional_arguments = 5)
 
 ### Assign shortcuts ------------------------------------------------------------------------------------------
 
-cdata <- cli$options$climate_data_format
 species <- cli$options$species_used
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
@@ -49,7 +43,6 @@ getinfo <- stringr::str_split(Results_sliding, "[[:punct:]]")
 vitalrate <- getinfo[[1]][7]
 
 
-cdata
 species
 vitalrate
 Climate
@@ -57,25 +50,13 @@ SpeciesInput
 Results_sliding
 w
 
-### Check 
-if (!(cdata == "month"||cdata == "day")) {
-  print("Climate data format needs to be either \"month\" or \"day\"")
-  q(status = 1)
-}
-
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Prepare Climate data 
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
+Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
 
-if(cdata == "month") {
- Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
-}
-
-if(cdata == "day") {
-  Clim$date <- as.character(Clim$date)                                         
-}
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Prepare Biological data 
@@ -337,7 +318,7 @@ random <- randwin(repeats = 1,
                   stat = c(as.character(results$combos$stat[w])),
                   func = c(as.character(results$combos$func[w])),
                   refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
-                  cinterval = cdata,
+                  cinterval = "month",
                   cdate = Clim$date, bdate = Biol$date,
                   window = "sliding",
                   cmissing = "method1"

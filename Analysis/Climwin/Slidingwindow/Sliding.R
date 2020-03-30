@@ -15,12 +15,7 @@ start <- Sys.time()
 #  ----------------------------------------------------------------------------------------------------------------------------
 
 Parsoptions <- list (
-  make_option(
-    opt_str = c("-c", "--climate-data-format"),
-    dest    = "climate_data_format",
-    help    = "Specify the format of the climate data, either month or day",
-    metavar = "month|day"),
- 
+
    make_option(
     opt_str = c("-s", "--species-used"),
     dest    = "species_used",
@@ -42,7 +37,6 @@ cli <- parse_args(parser, positional_arguments = 4)
 # Assign shortcuts
 #  ----------------------------------------------------------------------------------------------------------------------------
 
-cdata <- cli$options$climate_data_format    
 species <- cli$options$species_used
 vitalrate <- cli$args[1]
 Climate   <- cli$args[2]
@@ -52,59 +46,31 @@ taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 species
 
-### Check 
-if (!(cdata == "month"||cdata == "day")) {
-  print("Climate data format needs to be either \"month\" or \"day\"")
-  q(status = 1)
-}
-
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Prepare Climate data 
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
-
-if(cdata == "month") {
-  Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
-}
-
-if(cdata == "day") {
-  Clim$date <- as.character(Clim$date)                                         
-}
+Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-if(cdata == "month") {                          ## 16 options
-  
-  xvar <- c("mean_prcp_scaled", "mean_tobs_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled", "SPEI")
+                          ## 16 options
+  xvar <- c("sum_prcp_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled", "SPEI")
   type <- c("absolute")
   stat <- c("mean")
   func <- c("lin", "quad")
   upper <- NA            
   lower <- NA            
-  
-}
-
-if(cdata == "day") {                           ## 24 options
-  
-  xvar <- c( "prcp_scaled_M", "tmax_scaled_M", "tmin_scaled_M", "tobs_scaled_M", "tavg_scaled_M")
-  type <- c("absolute")
-  stat <- c("mean", "sd")
-  func <- c("lin", "quad")
-  upper <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
-  lower <- NA            ## LEAVE these as NA, when adding stat = sum, use rbind function on row 37
-  
-}
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
 ## add growing degree days using "sum"
 
-if(cdata == "month"){
+
 options <- rbind(options, c("min_tmin_scaled", "absolute", "min", "lin", 0, NA), c("min_tmin_scaled", "absolute", "min", "quad", 0, NA),
                           c("max_tmax_scaled", "absolute", "max", "lin", 0, NA), c("max_tmax_scaled", "absolute", "max", "quad", 0, NA)
                   )
-}
 
 print(options[taskID,])
 
@@ -370,7 +336,7 @@ result <- slidingwin(baseline = model,
            lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
            func = options$func[taskID],
            refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
-           cinterval = cdata,
+           cinterval = "month",
            cdate = as.character(Clim$date), bdate = as.character(Biol$date),
            cmissing = "method1"
            )

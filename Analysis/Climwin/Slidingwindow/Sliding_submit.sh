@@ -33,13 +33,11 @@ module load foss/2018b R/3.5.1
 vitalrate=$3
 climate=$1
 SpeciesInput=$2
-cdata=$(basename $climate .csv | cut -d _ -f3)
 species=$(basename $SpeciesInput .csv | cut -d _ -f1)
-output="$output_dir"/${JOB_NAME}_${species}_${vitalrate}_${cdata}_${JOB_ID}_$SGE_TASK_ID.rds
+output="$output_dir"/${JOB_NAME}_${species}_${vitalrate}_month_${JOB_ID}_$SGE_TASK_ID.rds
 
 
 Rscript $HOME/Biome/Analysis/Climwin/Slidingwindow/Sliding.R \
-  --climate-data-format=$cdata \
   --species-used=$species \
   $vitalrate \
   $climate \
