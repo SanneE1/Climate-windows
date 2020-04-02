@@ -69,7 +69,6 @@ low <- read.csv("Data/Climate data/HEQU_lowstation_original.csv") %>%
 mid <- read.csv("Data/Climate data/HEQU_midstation_original.csv") %>%
   mutate(date = as.Date(date))
 
-mid$tobs[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
 mid$tmin[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
 mid$tmax[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
 mid$tavg[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
@@ -85,13 +84,6 @@ tavg.l <- glm(tavg ~ tmax.x + tmin.x + tobs.x + tmax.y + tmin.y + tobs.y, data =
 
 both$ptavg <- predict(tavg.l, both)
 both$tavg[which(is.na(both$tavg))] <- both$ptavg[which(is.na(both$tavg))]
-
-### Tobs
-tobs.l <- glm(tobs.y ~ tobs.x, data = both)
-# plot(tobs.l)
-
-both$ptobs <- predict(tobs.l, both)
-both$tobs.y[which(is.na(both$tobs.y))] <- both$ptobs[which(is.na(both$tobs.y))]
 
 ### Tmin
 tmin.l <- glm(tmin.y ~ tmin.x, data = both)
@@ -118,44 +110,22 @@ clean <- both[,c("date", "id.y", "prcp.y", "tmax.y", "tmin.y", "tobs.y", "tavg")
          tavg = tavg)
 
 
-## Using Climwin's Method 1 to subsitude the last few values
-for (j in c("prcp", "tmax", "tmin", "tobs", "tavg")) {
-  for (i in which(is.na(clean[[j]]))){
-    clean[i,j] <- mean(clean[[j]][which(clean$date %in%
-                                          c(clean$date[i] - (1:2), clean$date[i] + (1:2)))],
-                       na.rm = T)
-  }
-  
-}
-
-
-
 ##Monthly data ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 MonthlyInfo <- clean %>%
   group_by(Month = month(date), Year = year(date)) %>%
   summarise(sum_prcp = sum(prcp),
-            mean_prcp = mean(prcp),
-            sd_prcp = sd(prcp),
-            mean_tobs = mean(tobs, na.rm = T),
-            sd_tobs = sd(tobs, na.rm = T),
             mean_tmax = mean(tmax, na.rm = T),
             mean_tmin = mean(tmin, na.rm = T),
             max_tmax = max(tmax, na.rm = T),
             min_tmin = min(tmin, na.rm = T),
             mean_tavg = mean(tavg, na.rm = T))
 
-
-
 ### scale Clim drivers ----------------------------------------------------------------
 
 MonthlyInfo <- MonthlyInfo %>%
   group_by(Month) %>%
   mutate(sum_prcp_scaled = scale(sum_prcp),
-         mean_prcp_scaled = scale(mean_prcp),
-         sd_prcp_scaled = scale(sd_prcp),
-         mean_tobs_scaled = scale(mean_tobs),
-         sd_tobs_scaled = scale(sd_tobs),
          mean_tmax_scaled = scale(mean_tmax),
          mean_tmin_scaled = scale(mean_tmin),
          max_tmax_scaled = scale(max_tmax),
@@ -163,8 +133,18 @@ MonthlyInfo <- MonthlyInfo %>%
          mean_tavg_scaled = scale(mean_tavg))
 
 
-MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year),]
+MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
 
+
+for (j in c(8,10:14)) {
+  for (i in which(is.na(MonthlyInfo[[j]]))){
+    a <- c((i-2):(i+2))
+    a <- ifelse(a < 1, 12- abs(a), ifelse(a > 12, a - 12, a))
+    MonthlyInfo[i,j] <- mean(MonthlyInfo[[j]][a],
+                             na.rm = T)
+  }
+  
+}
 
 ### get SPEI values ----------------------------------------------------------------
 
@@ -189,7 +169,17 @@ spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
   pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
   mutate(Month = as.numeric(Month))
 
-All_Climate <- left_join(MonthlyInfo, spei_df)
+
+
+All_Climate <- left_join(MonthlyInfo, spei_df) %>% 
+  select(Month, Year, sum_prcp_scaled, mean_tavg_scaled, mean_tmin_scaled, mean_tmax_scaled,
+         min_tmin_scaled, max_tmax_scaled, SPEI) %>%
+  rename(sum_prcp = sum_prcp_scaled,
+         mean_tavg = mean_tavg_scaled,
+         mean_tmin = mean_tmin_scaled,
+         mean_tmax = mean_tmax_scaled,
+         min_tmin = min_tmin_scaled,
+         max_tmax = max_tmax_scaled)
 
 write.csv(All_Climate, "Data/Climate data/HEQU_NOAA_month_imputed.csv" )
 

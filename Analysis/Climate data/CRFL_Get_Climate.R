@@ -68,14 +68,7 @@ WeatherInfo$date <-  as.Date(WeatherInfo$date, "%Y-%m-%d")
 WeatherInfo$X <- NULL
 
 ## Using Climwin's Method 1 to subsitude the last few values
-for (j in c(3,5:8)) {
-  for (i in which(is.na(WeatherInfo[[j]]))){
-    WeatherInfo[i,j] <- mean(WeatherInfo[[j]][which(WeatherInfo$date %in% 
-                                                      c(WeatherInfo$date[i] - (1:2), WeatherInfo$date[i] + (1:2)))],
-                             na.rm = T)
-  }
-  
-}
+
 
 ############################################################################
 ## Add missing Clim data and Scale weather information  ---- Monthly ---- ##
@@ -86,10 +79,6 @@ WeatherInfo$tmin[which(WeatherInfo$date == "1993-10-06")] <- NA  ## Remove extre
 MonthlyInfo <- WeatherInfo %>%
   group_by(id, Month = month(date), Year = year(date)) %>%
   summarise(sum_prcp = sum(prcp),
-            mean_prcp = mean(prcp),
-            sd_prcp = sd(prcp),
-            mean_tobs = mean(tobs),
-            sd_tobs = sd(tobs),
             mean_tmax = mean(tmax),
             mean_tmin = mean(tmin, na.rm = T),
             max_tmax = max(tmax),
@@ -97,16 +86,11 @@ MonthlyInfo <- WeatherInfo %>%
             mean_tavg = mean(tavg))
 
 
-
 ### scale Clim drivers ----------------------------------------------------------------
 
 MonthlyInfo <- MonthlyInfo %>%                      
   group_by(id, Month) %>%
   mutate(sum_prcp_scaled = scale(sum_prcp),
-         mean_prcp_scaled = scale(mean_prcp),
-         sd_prcp_scaled = scale(sd_prcp),
-         mean_tobs_scaled = scale(mean_tobs),
-         sd_tobs_scaled = scale(sd_tobs),
          mean_tmax_scaled = scale(mean_tmax),
          mean_tmin_scaled = scale(mean_tmin),
          max_tmax_scaled = scale(max_tmax),
@@ -114,9 +98,18 @@ MonthlyInfo <- MonthlyInfo %>%
          mean_tavg_scaled = scale(mean_tavg))
 
 
-MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year),]
+MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
 
 
+for (j in c(9, 11:15)) {
+  for (i in which(is.na(MonthlyInfo[[j]]))){
+    a <- c((i-2):(i+2))
+    a <- ifelse(a < 1, 12- abs(a), ifelse(a > 12, a - 12, a))
+    MonthlyInfo[i,j] <- mean(MonthlyInfo[[j]][a],
+                             na.rm = T)
+  }
+  
+}
 ### get SPEI values ----------------------------------------------------------------
 
 # Compute potential evapotranspiration (PET) and climatic water balance (BAL)
@@ -140,7 +133,17 @@ spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
   pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
   mutate(Month = as.numeric(Month))
 
-All_Climate <- left_join(MonthlyInfo, spei_df)
+
+All_Climate <- left_join(MonthlyInfo, spei_df) %>%
+  select(Month, Year, sum_prcp_scaled, mean_tavg_scaled, mean_tmin_scaled, mean_tmax_scaled,
+         min_tmin_scaled, max_tmax_scaled, SPEI) %>%
+  rename(sum_prcp = sum_prcp_scaled,
+         mean_tavg = mean_tavg_scaled,
+         mean_tmin = mean_tmin_scaled,
+         mean_tmax = mean_tmax_scaled,
+         min_tmin = min_tmin_scaled,
+         max_tmax = max_tmax_scaled)
+
 
 write.csv(All_Climate, "Data/Climate data/CRFL_NOAA_month.csv" )
 
