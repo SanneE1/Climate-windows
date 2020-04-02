@@ -55,8 +55,8 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
-                          ## 16 options
-  xvar <- c("sum_prcp_scaled", "mean_tmax_scaled", "mean_tmin_scaled", "mean_tavg_scaled", "SPEI")
+                          ## 14 options
+  xvar <- c("mean_tmax", "mean_tmin", "mean_tavg", "SPEI")
   type <- c("absolute")
   stat <- c("mean")
   func <- c("lin", "quad")
@@ -65,11 +65,9 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
-## add growing degree days using "sum"
-
-
-options <- rbind(options, c("min_tmin_scaled", "absolute", "min", "lin", 0, NA), c("min_tmin_scaled", "absolute", "min", "quad", 0, NA),
-                          c("max_tmax_scaled", "absolute", "max", "lin", 0, NA), c("max_tmax_scaled", "absolute", "max", "quad", 0, NA)
+options <- rbind(options, c("min_tmin", "absolute", "min", "lin", 0, NA), c("min_tmin", "absolute", "min", "quad", 0, NA),
+                          c("max_tmax", "absolute", "max", "lin", 0, NA), c("max_tmax", "absolute", "max", "quad", 0, NA),
+                          c("sum_prcp", "absolute", "sum", "lin", NA, NA), c("sum_prcp", "absolute", "sum", "quad", NA, NA)
                   )
 
 print(options[taskID,])
@@ -333,8 +331,8 @@ result <- slidingwin(baseline = model,
            type = "absolute",
            range = range,
            stat = options$stat[taskID], 
-           upper = ifelse(options$stat[taskID] == "sum", options$upper[taskID], NA),
-           lower = ifelse(options$stat[taskID] == "sum", options$lower[taskID], NA),
+           upper = NA,
+           lower = NA,
            func = options$func[taskID],
            refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
            cinterval = "month",
