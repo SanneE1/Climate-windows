@@ -146,11 +146,6 @@ if (species == "HEQU") {
                    family = poisson)
   }
   
-  if (vitalrate =="pa") {
-    print("Running chance to abort")
-    print("This still needs a baseline model")
-    q(status = 1)   
-  }
 }
 
 

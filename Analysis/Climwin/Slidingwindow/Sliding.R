@@ -159,14 +159,6 @@ if (species == "HEQU") {
                    family = poisson)
   }
   
-  if (vitalrate =="pa") {                         #### Change this to Beta binomial
-    print("Running chance to abort")
-    Biol$pAbort <- Biol$abort.stalks / Biol$fertilityT
-    Biol <- Biol[which(!is.na(Biol$pAbort)),]
-    model <- glmer(pAbort ~ population + (1|year),
-                   data = Biol,
-                   family = binomial)
-  }
 }
 
 
@@ -240,14 +232,6 @@ if (species == "OPIM") {
                    family = poisson)
   }
   
-  if(vitalrate == "pa") {
-    Biol <- Biol[which(Biol$pflowerT == 1),]
-    Biol$ABFlowerbuds_t[which(is.na(Biol$ABFlowerbuds_t))] <- 0
-    Biol$pAbort <- Biol$ABFlowerbuds_t / Biol$fertilityT
-    model <- glmer(pAbort ~ (1|Plot) + (1|year),
-                   data = Biol,
-                   family = binomial)
-  }
 }
 
 
