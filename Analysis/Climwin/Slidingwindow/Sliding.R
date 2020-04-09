@@ -273,8 +273,9 @@ if(vitalrate == "s") {
   if(species == "FRSP"){
     print("Range set to 6 years")
     range <- c(60, -12)
-  }
+  } else {
   range <- c(24,-12)
+ }
 }
 
 if(vitalrate == "g") {
