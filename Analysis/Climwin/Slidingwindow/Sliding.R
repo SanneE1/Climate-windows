@@ -149,7 +149,7 @@ if (species == "HEQU") {
                    family = binomial)
   }
  
-  if (vitalrate =="fn") {                        #### Change this to negative binomial
+  if (vitalrate =="fn") {                        
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
     Biol$fertilityT <- as.integer(Biol$fertilityT)
