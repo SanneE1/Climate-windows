@@ -225,6 +225,7 @@ if (species == "FRSP") {
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
+    Biol <- Biol[which(Biol$pFlowerT != 1),]
     model <- glmer(formula = survival ~ lnsizeT + (1|year),
                    data = Biol, 
                    family = binomial) 
