@@ -65,10 +65,6 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
-options <- rbind(options, c("min_tmin", "absolute", "min", "lin", 0, NA), c("min_tmin", "absolute", "min", "quad", 0, NA),
-                          c("max_tmax", "absolute", "max", "lin", 0, NA), c("max_tmax", "absolute", "max", "quad", 0, NA)
-                 )
-
 print(options[taskID,])
 
 ##----------------------------------------------------------------------------------------------------------------------------------
