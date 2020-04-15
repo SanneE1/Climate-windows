@@ -63,27 +63,32 @@ mapshot(Map, file = "Visual/OPIM_Locations.png",
 #############################
 ##   Explore weather info  ##
 #############################
-NOAA <- read.csv("Data/Climate data/OPIM_NOAA_month.csv" ) %>%
-  rename(mean_tavg = mean_tobs,
-         sd_tavg = sd_tobs,
-         mean_tavg_scaled = mean_tobs_scaled,
-         sd_tavg_scaled = sd_tobs_scaled) %>%
-  mutate(id = as.character(id))
-SEV <- read.csv("Data/Climate data/OPIM_SEVLTER_month_imputed.csv")
+NOAA <- read.csv("Data/Climate data/OPIM_SEVLTER50.csv" ) %>%
+  mutate(Date = as.Date(Date, "%Y-%m-%d"))
+NOAA[NOAA == -999] <- NA
 
-Monthly <- rbind(NOAA, SEV)
+Monthly <- NOAA %>%
+  group_by(year(Date), month(Date)) %>%
+  summarise(sum_prcp = sum(Precip),
+            mean_tavg = mean(Avg.Temp, na.rm = T),
+            mean_tmax = mean(Max.Temp, na.rm = T),
+            mean_tmin = mean(Min.Temp, na.rm = T),
+            tmin = min(Min.Temp, na.rm = T),
+            tmax = max(Max.Temp, na.rm = T))
+names(Monthly)[c(1,2)] <- c("Year", "Month")  
+Monthly[Monthly == Inf] <- NA
+Monthly[Monthly == -Inf] <- NA
 
-PrcpGrid2 <- ggplot(Monthly, aes(x= Month, y= mean_prcp, color = id))+
+PrcpGrid2 <- ggplot(Monthly, aes(x= Month, y= sum_prcp))+
   geom_line(colour = "blue")+
-  geom_ribbon(aes(ymin= ifelse(mean_prcp - sd_prcp < 0, 0,mean_prcp - sd_prcp), ymax= (mean_prcp + sd_prcp)), linetype = 2, alpha = 0)+
   facet_wrap(vars(Year)) +
   scale_x_continuous(breaks = c(1:12))+
   ylab("Mean daily Precipitation (mm)")
 
-TempGrid2 <- ggplot(Monthly, aes(x= Month, y= mean_tavg, color = id))+
+TempGrid2 <- ggplot(Monthly, aes(x= Month, y= mean_tavg))+
   geom_line()+
   geom_ribbon(aes(ymin= mean_tmin, ymax= mean_tmax), linetype = 2, alpha = 0)+
-  geom_ribbon(aes(ymin= min_tmin, ymax= max_tmax), linetype = 2, alpha = 0, colour = "red")+
+  geom_ribbon(aes(ymin= tmin, ymax= tmax), linetype = 2, alpha = 0, colour = "red")+
   facet_wrap(vars(Year))+
   scale_x_continuous(breaks = c(1:12))+
   ylab("Temperature (degrees)")

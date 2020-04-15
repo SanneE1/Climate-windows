@@ -9,18 +9,19 @@ library(mapview)
 ### FRSP population coordinates ------------------------------------------------------------------
 
 
-sites <- data.frame(id = "Rocky Mountain Biol. Lab." , 
-                    name = "Rocky Mountain Biol. Lab.", 
-                    latitude = 38.958646, 
-                    longitude = -106.987745, 
-                    distance = NA)
+sites <- data.frame(id = "Cumberland Pass" , 
+                    name = "Cumberland Pass", 
+                    latitude = 38.693867, 
+                    longitude = -106.475817, 
+                    distance = NA,
+                    elevation = 3772)
 
 
 ### Weather stations nearby -------------------------------------------------------------------------
 
 nearby_Stations <- read.csv("Data/Climate data/FRSP_nearb_stations.csv")
 nearby_Stations$X <- NULL
-nearby_Stations$name <- nearby_Stations$id
+# nearby_Stations$name <- nearby_Stations$id
 
 
 ################################
@@ -28,12 +29,11 @@ nearby_Stations$name <- nearby_Stations$id
 ################################
 
 locations <- rbind(sites, nearby_Stations) %>%
-  mutate(id = as.character(id),
-         name = as.character(id))
-locations$id[which(locations$name == "USC00051959")] <- "NOAA station"
-locations$id[which(!(locations$name == "USC00051959" | locations$name == "Rocky Mountain Biol. Lab."))] <- "NOAA options"
+  mutate(id = as.character(id))
+locations$id[which(locations$name == "TAYLOR PARK")] <- "Climate Station"
+locations$id[which(!(locations$name == "Cumberland Pass" | locations$name == "TAYLOR PARK"))] <- "NOAA options"
 
-pal <- colorFactor(c("navy", "red", "gray50"), domain = c("Rocky Mountain Biol. Lab.", "NOAA station", "NOAA options"), ordered = T)
+pal <- colorFactor(c("navy", "red", "gray50"), domain = c("Cumberland Pass", "Climate Station", "NOAA options"), ordered = T)
 
 Map <- leaflet(locations) %>%
   setView(lng = sites$longitude[1], lat = sites$latitude[1], zoom = 9) %>%
@@ -42,7 +42,7 @@ Map <- leaflet(locations) %>%
     color = ~pal(id),
     fillOpacity = 1,
     stroke = FALSE,
-    popup = ~htmltools::htmlEscape(name)) %>%
+    popup = ~htmltools::htmlEscape(paste(name, "<br/>", "Distance: ",round(distance, digits = 2), "km", "<br/>", "Elevation: ",  elevation, "m"))) %>%
   addLegend("bottomright",
             colors = c("navy", "red", "gray50"),
             labels = c("Rocky Mountain Biol. Lab.", "NOAA station", "NOAA options"),
@@ -50,7 +50,7 @@ Map <- leaflet(locations) %>%
   addScaleBar()
 
 saveRDS(Map, "Visual/FRSP_Locations.rds")
-mapshot(Map, file = "Visual/FRSP_Locations.png",
+mapshot(Map, file = "Visual/FRSP_Locations_options.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton"))
 
 

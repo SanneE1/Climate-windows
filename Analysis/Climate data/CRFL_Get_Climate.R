@@ -48,7 +48,7 @@ write.csv(nearby_stations, "Data/Climate data/CRFL_nearb_stations.csv")
 
 
 
-WeatherInfo <- meteo_pull_monitors(closest_stations$id, date_max = "2013-12-31", date_min = "1990-01-01")
+WeatherInfo <- meteo_pull_monitors(closest_stations$id, date_max = "2016-12-31", date_min = "1986-01-01")
 WeatherInfo$population <- "Redfleet"
 WeatherInfo$prcp <- WeatherInfo$prcp / 10
 WeatherInfo$tmax <- WeatherInfo$tmax / 10

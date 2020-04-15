@@ -206,6 +206,7 @@ a <- a %>% mutate(sum_prcp.x = replace(sum_prcp.x,
 All_Climate <- a %>%
   select(id.x, Month, Year, sum_prcp.x, mean_tavg.x, mean_tmin.x, mean_tmax.x, min_tmin.x, max_tmax.x, SPEI.x) %>%
   rename(id = id.x,
+         sum_prcp = sum_prcp.x,
          mean_tavg = mean_tavg.x,
          mean_tmin = mean_tmin.x,
          mean_tmax = mean_tmax.x,

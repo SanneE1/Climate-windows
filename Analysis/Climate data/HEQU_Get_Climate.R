@@ -46,21 +46,21 @@ low_station <- Stations[["low"]][1,]
 ## Get weather information ##
 #############################
 
-# low <- meteo_pull_monitors(low_station$id, date_max = "2012-12-31", date_min = "1990-01-01")
-# low$prcp <- low$prcp / 10
-# low$tmax <- low$tmax / 10
-# low$tmin <- low$tmin / 10
-# low$tobs <- low$tobs / 10
-# 
-# mid <- meteo_pull_monitors(mid_station$id, date_max = "2012-12-31", date_min = "1990-01-01")
-# mid$prcp <- mid$prcp / 10
-# mid$tavg <- mid$tavg / 10
-# mid$tmax <- mid$tmax / 10
-# mid$tmin <- mid$tmin / 10
-# mid$tobs <- mid$tobs / 10
-# 
-# write.csv(low, "Data/Climate data/HEQU_lowstation_original.csv")
-# write.csv(mid, "Data/Climate data/HEQU_midstation_original.csv")
+low <- meteo_pull_monitors(low_station$id, date_max = "2016-12-31", date_min = "1985-01-01")
+low$prcp <- low$prcp / 10
+low$tmax <- low$tmax / 10
+low$tmin <- low$tmin / 10
+low$tobs <- low$tobs / 10
+
+mid <- meteo_pull_monitors(mid_station$id, date_max = "2016-12-31", date_min = "1985-01-01")
+mid$prcp <- mid$prcp / 10
+mid$tavg <- mid$tavg / 10
+mid$tmax <- mid$tmax / 10
+mid$tmin <- mid$tmin / 10
+mid$tobs <- mid$tobs / 10
+
+write.csv(low, "Data/Climate data/HEQU_lowstation_original.csv")
+write.csv(mid, "Data/Climate data/HEQU_midstation_original.csv")
 
 
 low <- read.csv("Data/Climate data/HEQU_lowstation_original.csv") %>%
