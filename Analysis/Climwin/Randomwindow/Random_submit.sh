@@ -37,10 +37,10 @@ vitalrate=$(basename $Results_sliding .rds | cut -d _ -f2)
 output="$output_dir"/${JOB_NAME}_${species}_month_${vitalrate}_${JOB_ID}_$SGE_TASK_ID.rds
 
  
-Rscript $HOME/Biome/Analysis/Climwin/Randomwindow/Random.R \
-  --species-used=$species \
-  $Climate \
-  $SpeciesInput \
-  $Results_sliding \
-  $winner \
-  $output
+Rscript "$HOME"/Biome/Analysis/Climwin/Randomwindow/Random.R \
+  --species-used="$species"\
+  "$Climate" \
+  "$SpeciesInput" \
+  "$Results_sliding" \
+  "$winner" \
+  "$output"
