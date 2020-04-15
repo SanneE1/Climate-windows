@@ -25,6 +25,6 @@ module load foss/2018b R/3.5.1
 ## The master submit will pass the output directory that belongs to the first job to output
 output_dir=$1
 
-Rscript $HOME/Biome/Analysis/Climwin/Slidingwindow/Merge_sliding.R \
-  $output_dir \
+Rscript "$HOME"/Biome/Analysis/Climwin/Slidingwindow/Merge_sliding.R \
+  "$output_dir" \
   

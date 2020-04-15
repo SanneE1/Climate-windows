@@ -146,11 +146,6 @@ if (species == "HEQU") {
                    family = poisson)
   }
   
-  if (vitalrate =="pa") {
-    print("Running chance to abort")
-    print("This still needs a baseline model")
-    q(status = 1)   
-  }
 }
 
 
@@ -230,6 +225,7 @@ if (species == "FRSP") {
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
+    Biol <- Biol[which(Biol$pFlowerT != 1),]
     model <- glmer(formula = survival ~ lnsizeT + (1|year),
                    data = Biol, 
                    family = binomial) 

@@ -56,7 +56,7 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 ### Climate signal combies ----------------------------------------------------------------------------------------------------------------------------
 
                           ## 14 options
-  xvar <- c("mean_tmax", "mean_tmin", "mean_tavg", "SPEI")
+  xvar <- c("sum_prcp", "mean_tmax", "mean_tmin", "mean_tavg", "SPEI")
   type <- c("absolute")
   stat <- c("mean")
   func <- c("lin", "quad")
@@ -66,9 +66,8 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
 
 options <- rbind(options, c("min_tmin", "absolute", "min", "lin", 0, NA), c("min_tmin", "absolute", "min", "quad", 0, NA),
-                          c("max_tmax", "absolute", "max", "lin", 0, NA), c("max_tmax", "absolute", "max", "quad", 0, NA),
-                          c("sum_prcp", "absolute", "sum", "lin", NA, NA), c("sum_prcp", "absolute", "sum", "quad", NA, NA)
-                  )
+                          c("max_tmax", "absolute", "max", "lin", 0, NA), c("max_tmax", "absolute", "max", "quad", 0, NA)
+                 )
 
 print(options[taskID,])
 
@@ -150,7 +149,7 @@ if (species == "HEQU") {
                    family = binomial)
   }
  
-  if (vitalrate =="fn") {                        #### Change this to negative binomial
+  if (vitalrate =="fn") {                        
     print("Running Number of Flowers")
     Biol <- Biol[which(!is.na(Biol$fertilityT)),]
     Biol$fertilityT <- as.integer(Biol$fertilityT)
@@ -159,14 +158,6 @@ if (species == "HEQU") {
                    family = poisson)
   }
   
-  if (vitalrate =="pa") {                         #### Change this to Beta binomial
-    print("Running chance to abort")
-    Biol$pAbort <- Biol$abort.stalks / Biol$fertilityT
-    Biol <- Biol[which(!is.na(Biol$pAbort)),]
-    model <- glmer(pAbort ~ population + (1|year),
-                   data = Biol,
-                   family = binomial)
-  }
 }
 
 
@@ -240,14 +231,6 @@ if (species == "OPIM") {
                    family = poisson)
   }
   
-  if(vitalrate == "pa") {
-    Biol <- Biol[which(Biol$pflowerT == 1),]
-    Biol$ABFlowerbuds_t[which(is.na(Biol$ABFlowerbuds_t))] <- 0
-    Biol$pAbort <- Biol$ABFlowerbuds_t / Biol$fertilityT
-    model <- glmer(pAbort ~ (1|Plot) + (1|year),
-                   data = Biol,
-                   family = binomial)
-  }
 }
 
 
@@ -255,6 +238,7 @@ if (species == "FRSP") {
 
   if(vitalrate =="s"){
     print("Running survival vital rate")
+    Biol <- Biol[which(Biol$pFlowerT1 != 1),]
     model <- glmer(formula = survival ~ lnsizeT + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -287,16 +271,17 @@ if (species == "FRSP") {
 #### Set Range ----------------------------------------------------------------------------------------------------------------------------
 if(vitalrate == "s") {
   if(species == "FRSP"){
-    print("Range set to 5 years")
-    range <- c(48, -12)
-  }
+    print("Range set to 6 years")
+    range <- c(60, -12)
+  } else {
   range <- c(24,-12)
+ }
 }
 
 if(vitalrate == "g") {
   if(species == "FRSP") {
-    print("Range set to 5 years")
-    range <- c(48, -12)
+    print("Range set to 6 years")
+    range <- c(60, -12)
   } else {
   range <- c(24,-12)
  }
