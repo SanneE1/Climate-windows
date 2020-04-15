@@ -32,8 +32,8 @@ Climate=$1
 SpeciesInput=$2
 Results_sliding=$3
 winner=$4
-species=$(basename $SpeciesInput .csv | cut -d _ -f1)
-vitalrate=$(basename $Results_sliding .rds | cut -d _ -f2)
+species=$(basename "$SpeciesInput" .csv | cut -d _ -f1)
+vitalrate=$(basename "$Results_sliding" .rds | cut -d _ -f2)
 output="$output_dir"/${JOB_NAME}_${species}_month_${vitalrate}_${JOB_ID}_$SGE_TASK_ID.rds
 
  
