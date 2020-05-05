@@ -3,7 +3,7 @@ library(ggplot2)
 library(grid)
 library(gridExtra)
 library(patchwork)
-
+library(tidyr)
 
 ### Get data --------------------------------------------------------------------------------------------------------
 
@@ -22,6 +22,27 @@ df1 <- df1[which(df1$Studies != "Stevens&Latimer 2015"),]     ## Remove studies 
 df1 <- df1[which(df1$Studies != "Olsen et al. 2016"),]
 df1 <- df1[which(df1$Studies != "Conlisk et al. 2017"),]
 
+### McNemar test --------------------------------------------------------------------------------------------------------
+
+des <- df %>%
+  group_by(Studies, TP) %>%
+  summarise(N = n()) %>%
+  ungroup() %>%
+  complete(N, fill = list(N = 0)) %>%
+  mutate(N = replace(N, N > 0, 1)) %>%
+  pivot_wider(names_from = TP, values_from = N, values_fill = list(N = 0)) 
+
+tcf <- df1 %>%
+  group_by(Studies, TP) %>%
+  summarise(N = n()) %>%
+  ungroup() %>%
+  complete(N, fill = list(N = 0)) %>%
+  mutate(N = replace(N, N > 0, 1)) %>%
+  pivot_wider(names_from = TP, values_from = N, values_fill = list(N = 0)) 
+
+mcnemar.test(table(tcf$T, tcf$P))
+mcnemar.test(factor(des$T), factor(des$P, levels = c(0,1)))
+
 ### Create graphs --------------------------------------------------------------------------------------------------------
 
 Arid <- ggplot(df, aes(ymin = df$Closes, ymax = df$Open, x = df$Studies, colour = df$TP, group = df$TP)) +
@@ -32,13 +53,14 @@ Arid <- ggplot(df, aes(ymin = df$Closes, ymax = df$Open, x = df$Studies, colour 
   ggtitle("Arid") +
   scale_y_continuous(breaks = c(0,6,12,18,24), 
                      name = "Months relative to observation at month 0") +
-  scale_colour_manual(name = "Driver", 
+  scale_colour_manual(name = "Climate Variable", 
                       labels = c('Precipitation', 'Temperature'),
                       values = c('P' = '#0072B2', 'T' = '#D55E00'),
                       breaks = c('P', 'T')) +
   theme_minimal() +
   theme(axis.title = element_blank(),
-        plot.title = element_text(hjust = -0.3))
+        plot.title = element_text(hjust = -0.3),
+        text = element_text(size = 20))
 
 
 TCF <- ggplot(df1, aes(ymin = df1$Closes, ymax = df1$Open, x = df1$Studies, colour = df1$TP, group = df1$TP)) +
@@ -46,23 +68,25 @@ TCF <- ggplot(df1, aes(ymin = df1$Closes, ymax = df1$Open, x = df1$Studies, colo
   geom_point(aes(y=df1$Closes, x = df1$Studies), shape = 3, position = position_dodge(width = 0.4), size = 1, stroke = 2)+
   geom_linerange(aes(ymin = df1$Closes, ymax = df1$Open, x = df1$Studies), size = 1.25 ,position = position_dodge(width = 0.4)) +
   coord_flip()+
-  ggtitle("TCF") +
+  ggtitle("Temperate coniferous forest") +
   scale_y_continuous(breaks = c(0,6,12,18,24), 
                      name = "Months relative to observation at month 0") +
-  scale_colour_manual(name = "Driver", 
+  scale_colour_manual(name = "Climate Variable", 
                       labels = c('Precipitation', 'Temperature'),
                       values = c('P' = '#0072B2', 'T' = '#D55E00'),
                       breaks = c('P', 'T')) +
   theme_minimal() +
   theme(axis.title.y = element_blank(),
-        plot.title = element_text(hjust = -0.3))
-
+        plot.title = element_text(hjust = -1.5),
+        text = element_text(size = 20))
 
 
 
 both <- (Arid / TCF) + plot_layout(guides = "collect", heights = c(4,2))
 
+
+
 # ggsave("Visual/Time windows Arid.png", Arid)
 # ggsave("Visual/Time windows TCF.png", TCF)
-ggsave("Visual/Time windows Arid&TCF.png", both, width = 10, height = 5)
+ggsave("Visual/Time windows Arid&TCF.png", both)
 
