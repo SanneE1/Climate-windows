@@ -5,6 +5,7 @@ library(gridExtra)
 library(grid)
 library(ggplot2)
 library(patchwork)
+library(cowplot)
 library(lme4)
 
 ### Import climwin results ----------------------------------------------------------------------------------------
@@ -99,8 +100,7 @@ H2 <- ggplot() +
                       breaks = c("- sd", "mean", "+ sd")) +
   theme_classic() + ggtitle("H. quinquenervis mid population", subtitle = Hg$combos$climate[Hgrowth]) +
   xlab("Size (log # rosettes)") +
-  ylab("# rosettes in t+1") +
-  theme(legend.position = "none")
+  ylab("# rosettes in t+1")
 
 
 
@@ -457,24 +457,8 @@ C4 <- ggplot() +
                       breaks = c("- sd","mean", "+ sd")) +
   theme_classic() + ggtitle("C. flava", subtitle = Cfn$combos$climate[CnFlwr]) +
   xlab("Size (log # rosettes)") +
-  ylab("Number of \nflowering rosettes") +
-  theme(legend.position = "none")
+  ylab("Number of \nflowering rosettes")
 
-
-
-### Arrange per vital rate ---------------------------------------------------------------------------------------------------------------
-
-Survival <- (H1 + F1) / (O1 + C1) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
-ggsave("Visual/Best_surv_models.png", Survival, height = 7.5, width = 7.5, units = "in")
-
-Growth <- (H2 + F2) / (O2 + C2) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
-ggsave("Visual/Best_growth_models.png", Growth, height = 7.5, width = 7.5, units = "in")
-
-pFlwr <- (H3 + F3) / (O3 + C3) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
-ggsave("Visual/Best_pFlwr_models.png", pFlwr, height = 7.5, width = 7.5, units = "in")
-
-nFlwr <- (H4 + F4) / (O4 + C4) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
-ggsave("Visual/Best_nFlwr_models.png", nFlwr, height = 10, width = 10, units = "in")
 
 ## Calculate effect size using mean size ---------------------------------------------------------------------------------
 
@@ -515,3 +499,77 @@ ESizeFn
 ### Relative difference in flower numbers
 lapply(ESizeFn, function(x) x$flowernumber[2] / x$flowernumber[1])
 
+
+
+### Arrange per vital rate ---------------------------------------------------------------------------------------------------------------
+
+Survival <- (H1 + F1) / (O1 + C1) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
+ggsave("Visual/Best_surv_models.png", Survival, height = 7.5, width = 7.5, units = "in")
+
+Growth <- (H2 + F2) / (O2 + C2) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
+ggsave("Visual/Best_growth_models.png", Growth, height = 7.5, width = 7.5, units = "in")
+
+pFlwr <- (H3 + F3) / (O3 + C3) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
+ggsave("Visual/Best_pFlwr_models.png", pFlwr, height = 7.5, width = 7.5, units = "in")
+
+nFlwr <- (H4 + F4) / (O4 + C4) + plot_layout(guides = "collect") + plot_annotation(tag_levels = "A")
+ggsave("Visual/Best_nFlwr_models.png", nFlwr, height = 10, width = 10, units = "in")
+
+
+### Arrange per P & F ---------------------------------------------------------------------------------------------------------------
+
+H1 <- H1 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+H2 <- H2 + theme(title = element_blank(), plot.subtitle = element_blank(), text = element_text(size = 20))
+H3 <- H3 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+H4 <- H4 + theme(title = element_blank(), plot.subtitle = element_blank(), text = element_text(size = 20))
+F1 <- F1 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+F2 <- F2 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+F3 <- F3 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+F4 <- F4 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+O1 <- O1 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+O2 <- O2 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+O3 <- O3 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+O4 <- O4 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+C1 <- C1 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+C2 <- C2 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+C3 <- C3 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+C4 <- C4 + theme(title = element_blank(), plot.subtitle = element_blank(), legend.position = "none", text = element_text(size = 20))
+
+Surv <- textGrob("Survival", gp = gpar(fontface = "bold", fontsize = 16))
+Growth <- textGrob("Growth", gp = gpar(fontface = "bold", fontsize = 16))
+Prop <- textGrob("Probability", gp = gpar(fontface = "bold", fontsize = 16))
+Numb <- textGrob("Numbers", gp = gpar(fontface = "bold", fontsize = 16))
+
+hequ <- textGrob("H. quinquenervis", rot = 90, gp = gpar(fontface = "italic", fontsize = 14))
+frsp <- textGrob("F. speciosa", rot = 90, gp = gpar(fontface = "italic", fontsize = 14))
+opim <- textGrob("C. imbricata",rot = 90, gp = gpar(fontface = "italic", fontsize = 14))
+crfl <- textGrob("C. flava", rot = 90, gp = gpar(fontface = "italic", fontsize = 14))
+
+
+Pplot <- plot_spacer() + hequ + frsp + opim + crfl + 
+  wrap_elements(Surv) + H1 + F1 + O1 + C1 + 
+  wrap_elements(Growth) + H2 + F2 + O2 + C2 + plot_layout(byrow = F, guides = "collect", 
+                                                          ncol = 3, widths = c(0.5,4,4),
+                                                          heights = c(1,4,4,4,4))
+Pplot[[7]] <- Pplot[[7]] + ylim(c(0:1))
+Pplot[[8]] <- Pplot[[8]] + ylim(c(0:1))
+Pplot[[9]] <- Pplot[[9]] + ylim(c(0:1))
+Pplot[[10]] <- Pplot[[10]] + ylim(c(0:1))
+
+ggsave(Pplot, filename = "Visual/Best_P_models.png", width = 8, height = 8)
+
+
+Fplot <- plot_spacer() + hequ + frsp + opim + crfl + 
+  wrap_elements(Prop) + H3 + F3 + O3 + C3 + 
+  wrap_elements(Numb) + H4 + F4 + O4 + C4 + plot_layout(byrow = F, guides = "collect", 
+                                                          ncol = 3, widths = c(0.5,4,4),
+                                                          heights = c(1,4,4,4,4)) +
+  plot_annotation(title = "Flowering",
+                  theme = theme(plot.title = element_text(size = 18, face = "bold", hjust = 0.5)))
+
+Fplot[[7]] <- Fplot[[7]] + ylim(c(0:1))
+Fplot[[8]] <- Fplot[[8]] + ylim(c(0:1))
+Fplot[[9]] <- Fplot[[9]] + ylim(c(0:1))
+Fplot[[10]] <- Fplot[[10]] + ylim(c(0:1))
+
+ggsave(Fplot, filename = "Visual/Best_F_models.png", width = 8, height = 8)
