@@ -45,7 +45,7 @@ Map <- leaflet(locations) %>%
     popup = ~htmltools::htmlEscape(paste(name, "<br/>", "Distance: ",round(distance, digits = 2), "km", "<br/>", "Elevation: ",  elevation, "m"))) %>%
   addLegend("bottomright",
             colors = c("navy", "red", "gray50"),
-            labels = c("Rocky Mountain Biol. Lab.", "NOAA station", "NOAA options"),
+            labels = c("Cumberland Pass", "Climate Station", "NOAA options"),
             values = ~id, opacity = 1, title = "Locations") %>%
   addScaleBar()
 
