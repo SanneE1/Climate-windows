@@ -75,8 +75,8 @@ print(options[taskID,])
 
 if (species == "HEQU") {                                
  Biol <- read.csv(SpeciesInput) %>%
-  mutate(sizeT = as.integer(levels(sizeT))[sizeT],
-         sizeT1 = as.integer(levels(sizeT1))[sizeT1])
+  mutate(sizeT = as.integer(sizeT),
+         sizeT1 = as.integer(sizeT1))
 Biol <- Biol[which(Biol$seedling != 1),]                           
 Biol <- Biol[which(Biol$year!= 2012),]
 Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
