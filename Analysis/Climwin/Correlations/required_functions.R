@@ -109,7 +109,7 @@ for (x in names(Clim[c(1:length(names(Clim))-1)])) {
       seqDate <- seq.Date(from = reference$date[j] %m+% months(-windows$Open[i]),
                           to = reference$date[j] %m+% months(-(windows$Close[i]-1)),
                           by = "day")
-      ClimMat[j] <- do.call(options$stat,
+      ClimMat[j] <- do.call(as.character(options$stat),
                             list(Clim[which(as.Date(Clim$date, format = "%d/%m/%Y") %in% seqDate),
                                       x],
                                  na.rm = T))
