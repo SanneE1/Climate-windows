@@ -1,88 +1,15 @@
 
-# To change the growing season to dashed rectangles I need patternGrob() 
-# which is only available in an older version of gridExtra
-install.packages("gridExtra", repos="http://R-Forge.R-project.org")
-
 library(dplyr)
 library(tidyr)
 library(ggplot2)
-library(climwin)
-library(gridExtra)
-library(grid)
 library(patchwork)
+library(ggpattern)
 
-source("../../Scrap code/get_legend.R")
-source("../../Scrap code/create_dashed.R")
+source("../../52 Scrap code/get_legend.R")
+source("../../52 Scrap code/create_dashed.R")
 
 ### Get Climwin result files ------------------------------------------------------------------------------------------
-### HEQU
 source("Analysis/Climwin/Load_Climwin_results.R")
-
-### Functions to get 95 CI for the windows -------------------------------------------------------------------------------------------------------
-
-
-getwindow <- function(dataset, species, vitalrate, cw = 0.95) {
-  
-  dataset <- dataset[order(-dataset$ModWeight), ]
-  dataset$cw <- as.numeric(cumsum(dataset$ModWeight) <= 
-                               cw)
-  datasetcw <- subset(dataset, cw == 1)
-  if (nrow(datasetcw) == 0) {
-    datasetcw <- dataset[1, ]
-  }
-  keep = c("WindowClose", "WindowOpen")
-  datasetcw <- datasetcw[keep]
-  datasetcw$species <- species
-  datasetcw$vitalrate <- vitalrate
-
-  return(datasetcw)
-  
-}
-
-a <- getwindow(Hs[[Hsurv]]$Dataset, "HEQU", "s")
-b <- getwindow(Hg[[Hgrowth]]$Dataset, "HEQU", "g")
-c <- getwindow(Hfp[[HpFlwr]]$Dataset, "HEQU", "fp")
-a$climate <- Hs$combos$climate[Hsurv]
-b$climate <- Hg$combos$climate[Hgrowth]
-c$climate <- Hfp$combos$climate[HpFlwr]
-
-d <- getwindow(Fs[[Fsurv]]$Dataset, "FRSP", "s")
-e <- getwindow(Fg[[Fgrowth]]$Dataset, "FRSP", "g")
-f <- getwindow(Ffp[[FpFlwr]]$Dataset, "FRSP", "fp")
-d$climate <- Fs$combos$climate[Fsurv]
-e$climate <- Fg$combos$climate[Fgrowth]
-f$climate <- Ffp$combos$climate[FpFlwr]
-
-g <- getwindow(Os[[Osurv]]$Dataset, "OPIM", "s")
-h <- getwindow(Og[[Ogrowth]]$Dataset, "OPIM", "g")
-i <- getwindow(Ofp[[OpFlwr]]$Dataset, "OPIM", "fp")
-g$climate <- Os$combos$climate[Osurv]
-h$climate <- Og$combos$climate[Ogrowth]
-i$climate <- Ofp$combos$climate[OpFlwr]
-
-j <- getwindow(Cs[[Csurv]]$Dataset, "CRFL", "s")
-k <- getwindow(Cg[[Cgrowth]]$Dataset, "CRFL", "g")
-l <- getwindow(Cfp[[CpFlwr]]$Dataset, "CRFL", "fp")
-j$climate <- Cs$combos$climate[Csurv]
-k$climate <- Cg$combos$climate[Cgrowth]
-l$climate <- Cfp$combos$climate[CpFlwr]
-
-m <- getwindow(Hfn[[HnFlwr]]$Dataset, "HEQU", "fn")
-n <- getwindow(Ffn[[FnFlwr]]$Dataset, "FRSP", "fn")
-o <- getwindow(Ofn[[OnFlwr]]$Dataset, "OPIM", "fn")
-p <- getwindow(Cfn[[CnFlwr]]$Dataset, "CRFL", "fn")
-m$climate <- Hfn$combos$climate[HnFlwr]
-n$climate <- Ffn$combos$climate[FnFlwr]
-o$climate <- Ofn$combos$climate[OnFlwr]
-p$climate <- Cfn$combos$climate[CnFlwr]
-
-
-
-df <- bind_rows(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p)
-df$species <- factor(df$species, levels = c("HEQU", "FRSP", "OPIM", "CRFL"))
-df$climate <- factor(df$climate)
-
-df$WindowClose <- df$WindowClose - 1
 
 ### Get best windows ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -119,41 +46,42 @@ df1$WindowClose <- df1$WindowClose - 1           ### The month mentioned is the 
 rects <- data.frame(xstart = seq(0.5,3.5,1), 
                     xend = seq(1.5,4.5,1),
                     col = c("HEQU", "FRSP", "OPIM", "CRFL"))
-grow <- data.frame(xstart = rep(rects$xstart, each = 6),
-                   xend = rep(rects$xend, each = 6),
-                   col = rep(rects$col, each = 6),
-                   ymin = c(-13,-2, 10, 22, 34, 46,
-                            -13,-2, 10, 22, 34, 46,
-                            -13, -5, 7, 19, 31, 43,
-                            -13, -1, 11, 23, 35, 47),
-                   ymax = c(-11, 1, 13, 25, 37, 49,
-                            -11, 1, 13, 25, 37, 49,
-                            -12, 0, 12, 24, 36, 48, 
-                            -10, 2, 14, 26, 38, 49)
+grow <- data.frame(xstart = rep(rects$xstart, each = 4),
+                   xend = rep(rects$xend, each = 4),
+                   col = rep(rects$col, each = 4),
+                   ymin = c(-13,-2, 10, 22,
+                            -13,-2, 10, 22,
+                            -13, -5, 7, 19,
+                            -13, -3, 9, 21),
+                   ymax = c(-11, 1, 13, 25,
+                            -11, 1, 13, 25,
+                            -12, 0, 12, 24,
+                            -11, 1, 13, 25)
                    )
+grow <- rbind(grow,
+              data.frame(xstart = rep(1.5, 3),
+                         xend = rep(2.5, 3),
+                         col = rep("FRSP", 3),
+                         ymin = c(34,46,58),
+                         ymax = c(37,49,61))
+              )
+
 
 ### split up df into different vital rates ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-s <- df[which(df$vitalrate == "s"),]
 s1 <- df1[which(df1$vitalrate == "s"),]
 
-g <- df[which(df$vitalrate == "g"),]
 g1 <- df1[which(df1$vitalrate == "g"),]
 
-f <- df[which(df$vitalrate == "fp"),] 
 f1 <- df1[which(df1$vitalrate == "fp"),]
 
-n <- df[which(df$vitalrate == "fn"),] 
 n1 <- df1[which(df1$vitalrate == "fn"),]
 
-f$WindowClose[which(f$species != "FRSP")] <- f$WindowClose[which(f$species != "FRSP")] - 12
-f$WindowOpen[which(f$species != "FRSP")] <- f$WindowOpen[which(f$species != "FRSP")] - 12
 f1$WindowClose[which(f1$species != "FRSP")] <- f1$WindowClose[which(f1$species != "FRSP")] - 12
 f1$WindowOpen[which(f1$species != "FRSP")] <- f1$WindowOpen[which(f1$species != "FRSP")] - 12
 
-n$WindowClose <- n$WindowClose - 12
-n$WindowOpen <- n$WindowOpen - 12
+
 n1$WindowClose <- n1$WindowClose - 12
 n1$WindowOpen <- n1$WindowOpen - 12
 
@@ -161,20 +89,27 @@ n1$WindowOpen <- n1$WindowOpen - 12
 ### Plot best windows ----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Surv <- ggplot() +
-  geom_rect(data=grow, aes(ymin=ymin, 
+  geom_rect_pattern(data=grow, aes(ymin=ymin, 
                            ymax= ymax, 
                            xmin=xstart,
                            xmax=xend,
                            size = 'Growing seasons'), 
-            alpha =0.3,
-            fill = NA,
-            show.legend = TRUE) +
-  geom_rect(data=rects, aes(ymin=-13, ymax=24, xmin=xstart,
+                    fill= NA,
+                    colour = NA,
+                    pattern = "stripe",
+                    pattern_spacing = 0.02,
+                    pattern_density = 0.1,
+                    pattern_fill = "grey20",
+                    pattern_colour = "grey20",
+                    pattern_size = 0.01,
+                    pattern_angle = 45,
+            show.legend = FALSE) +
+  geom_rect(data=rects, aes(ymin=-13, ymax=c(24,60,24,24), xmin=xstart,
                             xmax=xend, fill= col), 
             alpha =0.3) +
-  geom_linerange(data= s1, aes(ymin = s1$WindowClose, ymax = s1$WindowOpen, x = s1$species,  colour = c("red", "red", "red", "red")), size = 2,  
+  geom_linerange(data= s1, aes(ymin = s1$WindowClose, ymax = s1$WindowOpen, x = s1$species,  colour = c("red", "grey50", "red", "red")), size = 2,  
                  show.legend = NA) +
-  geom_text(aes(label = c("T[obs]", "T[mean_max]", "T[avg]", "T[max]"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
+  geom_text(aes(label = c("T[mean_min]", "T[mean_min]", "T[avg]", "T[mean_max]"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
             size = 4,
             parse = TRUE, 
             show.legend = FALSE) +
@@ -183,11 +118,11 @@ Surv <- ggplot() +
   scale_fill_manual(name = "Time range \nconsidered for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
                     labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
-  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
-  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
-                     labels = c("", "T", "", "T-1", "", "T-2", "", "T-3", "", "T-4", ""),
+  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey20")))) +
+  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5, 53.5, 59.5),
+                     labels = c("", "T", "", "T-1", "", "T-2", "", "T-3", "", "T-4", "", "T-5", ""),
                      name = "Year before census of response variable",
-                     limits = c(-13, 49)) +
+                     limits = c(-13, 61)) +
   scale_x_discrete(name = "\nSurvival",
                    labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
   theme(panel.background = element_blank(),
@@ -198,29 +133,37 @@ Surv <- ggplot() +
         axis.line.x = element_blank(),
         axis.title = element_text(size = 14),
         axis.text.y = element_text(size = 11, face = "italic"),
-        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 5))),
+        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 6))),
         panel.grid.minor.x=element_blank(),
-        legend.position = "none",
+        legend.position = "right",
         legend.key = element_blank(),
         legend.background = element_blank()
-        ) 
+        )
 
 
 Growth <-   ggplot() +
-  geom_rect(data=grow, aes(ymin=ymin, 
-                           ymax= ymax, 
-                           xmin=xstart,
-                           xmax=xend,
-                           size = 'Growing seasons'), 
-            alpha =0.3,
-            fill = NA,
-            show.legend = TRUE) +
-  geom_rect(data=rects, aes(ymin=-13, ymax=c(24, 48, 24, 24), xmin=xstart,
+  geom_rect_pattern(data=grow, aes(ymin=ymin, 
+                                   ymax= ymax, 
+                                   xmin=xstart,
+                                   xmax=xend,
+                                   size = 'Growing seasons'), 
+                    fill= NA,
+                    colour = NA,
+                    pattern = "stripe",
+                    pattern_spacing = 0.02,
+                    pattern_density = 0.1,
+                    pattern_fill = "grey20",
+                    pattern_colour = "grey20",
+                    pattern_size = 0.01,
+                    pattern_angle = 45,
+                    show.legend = TRUE) + 
+  geom_rect(data=rects, aes(ymin=-13, ymax=c(24,60,24,24), xmin=xstart,
                             xmax=xend, fill=col), 
-            alpha =0.3) +
+            alpha =0.3,
+            show.legend = FALSE) +
   geom_linerange(data= g1, aes(ymin = g1$WindowClose, ymax = g1$WindowOpen, x = g1$species, colour = c("red", "red", "grey50", "red")), size = 2,
-                 show.legend = NA) +
-  geom_text(aes(label = c("T[mean_min]", "Prcp", "T[mean_max]", "Prcp"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
+                 show.legend = FALSE) +
+  geom_text(aes(label = c("T[mean_min]", "P", "T[avg]", "P[sum]"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
             size = 4,
             parse = TRUE, 
             show.legend = FALSE) +
@@ -229,11 +172,11 @@ Growth <-   ggplot() +
   scale_fill_manual(name = "Range for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
                     labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
-  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
-  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
-                     labels = c("", "T", "", "T-1", "", "T-2", "", "T-3", "", "T-4", ""),
+  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey20")))) +
+  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5, 53.5, 59.5),
+                     labels = c("", "T", "", "T-1", "", "T-2", "", "T-3", "", "T-4", "", "T-5", ""),
                      name = "Year before census of response variable",
-                     limits = c(-13, 49)) +
+                     limits = c(-13, 61)) +
   scale_x_discrete(name = "\nGrowth",
                    labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
   guides(fill = guide_legend(order = 1),
@@ -247,31 +190,40 @@ Growth <-   ggplot() +
         axis.line.x = element_blank(),
         axis.title = element_text(size = 14),
         axis.text.y = element_text(size = 11, face = "italic"),
-        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 5))),
+        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 6))),
         panel.grid.minor.x=element_blank(),
         legend.position = "right",
         legend.key = element_blank(),
         legend.background = element_blank()
-  ) 
+  ) + guides(fill = FALSE,
+             colour = FALSE,
+             size = guide_legend(override.aes = list(pattern_spacing = 0.01)))
 
 
 
 
 FlwrProb <-   ggplot() +
-  geom_rect(data=grow, aes(ymin=ymin, 
-                           ymax= ymax, 
-                           xmin=xstart,
-                           xmax=xend,
-                           size = 'Growing seasons'), 
-            alpha =0.3,
-            fill = 'grey50',
-            show.legend = TRUE) +
+  geom_rect_pattern(data=grow[-c(18,19),], aes(ymin=ymin, 
+                                   ymax= ymax, 
+                                   xmin=xstart,
+                                   xmax=xend,
+                                   size = 'Growing seasons'), 
+                    fill= NA,
+                    colour = NA,
+                    pattern = "stripe",
+                    pattern_spacing = 0.02,
+                    pattern_density = 0.1,
+                    pattern_fill = "grey20",
+                    pattern_colour = "grey20",
+                    pattern_size = 0.01,
+                    pattern_angle = 45,
+                    show.legend = TRUE) +
   geom_rect(data=rects, aes(ymin= -13, ymax=c(24,36,24,24), xmin=xstart,
                             xmax=xend, fill=col), 
             alpha =0.3) +
   geom_linerange(data= f1, aes(ymin = f1$WindowClose, ymax = f1$WindowOpen, x = f1$species, colour = "red"), size = 2,
                  show.legend = NA) +
-  geom_text(aes(label = c("T[max]", "T[max]", "T[mean_min]", "SPEI"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
+  geom_text(aes(label = c("SPEI", "T[mean_max]", "T[mean_min]", "SPEI"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
             size = 4,
             parse = TRUE, 
             show.legend = FALSE) +
@@ -280,11 +232,11 @@ FlwrProb <-   ggplot() +
   scale_fill_manual(name = "Range for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
                     labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
-  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
-  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
-                     labels = c("", "T", "", "T-1", "", "T-2", "", "T-3", "", "T-4", ""),
+  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey20")))) +
+  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5, 53.5, 59.5),
+                     labels = c("", "T", "", "T-1", "", "T-2", "", "T-3", "", "T-4", "", "T-5", ""),
                      name = "Year before census of response variable",
-                     limits = c(-13, 49)) +
+                     limits = c(-13, 61)) +
   scale_x_discrete(name = "Flower \nprobability",
                    labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
   theme(panel.background = element_blank(),
@@ -296,26 +248,33 @@ FlwrProb <-   ggplot() +
         legend.position = "none",
         axis.title = element_text(size = 14),
         axis.text.y = element_text(size = 11, face = "italic"),
-        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 5))),
+        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 6))),
         panel.grid.minor.x=element_blank()
   )
 
 
 FlwrNum <-   ggplot() +
-  geom_rect(data=grow, aes(ymin=ymin, 
-                           ymax= ymax, 
-                           xmin=xstart,
-                           xmax=xend,
-                           size = 'Growing seasons'), 
-            alpha =0.3,
-            fill = 'grey50',
-            show.legend = TRUE) +
+  geom_rect_pattern(data=grow[-c(18,19),], aes(ymin=ymin, 
+                                   ymax= ymax, 
+                                   xmin=xstart,
+                                   xmax=xend,
+                                   size = 'Growing seasons'), 
+                    fill= NA,
+                    colour = NA,
+                    pattern = "stripe",
+                    pattern_spacing = 0.02,
+                    pattern_density = 0.1,
+                    pattern_fill = "grey20",
+                    pattern_colour = "grey20",
+                    pattern_size = 0.01,
+                    pattern_angle = 45,
+                    show.legend = TRUE) +
   geom_rect(data=rects, aes(ymin= -13, ymax=c(24,36,24,24), xmin=xstart,
                             xmax=xend, fill=col), 
             alpha =0.3) +
   geom_linerange(data= n1, aes(ymin = n1$WindowClose, ymax = n1$WindowOpen, x = n1$species, colour = "red"), size = 2,
                  show.legend = FALSE) +
-  geom_text(aes(label = c("Prcp", "T[mean_min]", "T[avg]", "SPEI"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
+  geom_text(aes(label = c("P", "T[avg]", "T[avg]", "SPEI"), x = c(1:4), y = 41, fontface = 'bold'), colour = c('#009E73', '#F0E442', '#D55E00', '#CC79A7'),
             size = 4,
             parse = TRUE, 
             show.legend = FALSE) +
@@ -324,11 +283,11 @@ FlwrNum <-   ggplot() +
   scale_fill_manual(name = "Range for", values = c('HEQU' = '#009E73','FRSP' = '#F0E442', 'OPIM' = '#D55E00', 'CRFL' = '#CC79A7') , 
                     labels = c( 'H. quinquenervis','F. speciosa', 'C. imbricata', 'C. flava'),
                     breaks = c('HEQU', 'FRSP', 'OPIM', 'CRFL')) +
-  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey50")))) +
-  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5),
-                     labels = c("", "T", "", "T-1", "", "T-2", "", "T-3", "", "T-4", ""),
+  scale_size_manual(name = "", values = c(4), guide = guide_legend(override.aes = list(fill = c("grey20")))) +
+  scale_y_continuous(breaks = c(-12.5, -6.5, -0.5, 5.5, 11.5, 17.5, 23.5, 29.5, 35.5, 41.5, 47.5, 53.5, 59.5),
+                     labels = c("", "t", "", "t-1", "", "t-2", "", "t-3", "", "t-4", "", "t-5", ""),
                      name = "Year before census of response variable",
-                     limits = c(-13, 49)) +
+                     limits = c(-13, 61)) +
   scale_x_discrete(name = "Inflorescence  \nnumbers",
                    labels = c('HEQU' = 'H. \nquinquenervis','FRSP' = 'F. speciosa', 'OPIM' = 'C. imbricata', 'CRFL' = 'C. flava')) +
   theme(panel.background = element_blank(),
@@ -340,33 +299,12 @@ FlwrNum <-   ggplot() +
         legend.position = "none",
         axis.title = element_text(size = 14),
         axis.text.y = element_text(size = 11, face = "italic"),
-        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 5))),
+        panel.grid.major.x = element_line(colour = c("grey50", rep(c(NA, "grey50"), 6))),
         panel.grid.minor.x=element_blank()
   )
 
+## Plot all 4 together -------------------------------------------------------------------------------------------------------
 
-### Grow period hacked to dashes -------------------------------------------------------------------------------------------------
+WindowsC <- (Surv / Growth / FlwrProb / FlwrNum) + plot_layout(guides = "collect")
+ggsave("Visual/Best_Windows.png", WindowsC, width = 14, height = 7, units = "in", dpi = 450)
 
-legend <- get_legend(Growth)
-legend$grobs[[3]]$grobs[[4]] <- patternGrob(
-  y = legend$grobs[[3]]$grobs[[4]]$y,
-  x = legend$grobs[[3]]$grobs[[4]]$x,
-  width = legend$grobs[[3]]$grobs[[4]]$width,
-  height = legend$grobs[[3]]$grobs[[4]]$height,
-  pattern = 1, granularity = unit(2.5, "mm"),
-  gp = gpar(fill = NA))
-Growth <- Growth + theme(legend.position = "none")
-
-Surv <- dashing(Surv)
-Growth <- dashing(Growth)
-FlwrProb <- dashing(FlwrProb)
-FlwrNum <- dashing(FlwrNum)
-
-# WindowsB <- grid.arrange(Surv, Growth, FlwrProb, FlwrNum, ncol = 1)
-# ggsave("Visual/Best_Windows_w_other95_B.png", WindowsB, width = 15, height = 10, units = "in")
-
-WindowsC <- arrangeGrob(Surv, Growth, FlwrProb, FlwrNum, legend = legend, ncol = 1, heights = c(3,3,3,3.3))
-
-WindowsC
-
-ggsave("Visual/Best_Windows_w_other95_C.png", WindowsC, width = 14, height = 7, units = "in", dpi = 450)
