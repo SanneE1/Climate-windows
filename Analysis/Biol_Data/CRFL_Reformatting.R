@@ -27,7 +27,7 @@ Biol <- subset(Biol, !(is.na(Biol$sizeT) & is.na(Biol$sizeT1)))
 
 
 ### Add other missing columns -------------------------------------------------------------------------------------------------------------------
-Biol$survival <- ifelse(Biol$sizeT > 0 & Biol$sizeT1 > 0, 1, ifelse(Biol$sizeT > 0, 0, NA))
+Biol$survival <- ifelse(Biol$sizeT > 0 & (Biol$sizeT1 == 0 | is.na(Biol$sizeT1)), 1, 0)
 Biol$pflowerT <- ifelse(Biol$fertilityT > 0, 1, 0)
 Biol$fertilityT <- replace(Biol$fertilityT, Biol$fertilityT == 0, NA)
 
