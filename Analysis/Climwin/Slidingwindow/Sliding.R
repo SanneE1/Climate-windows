@@ -161,6 +161,7 @@ if (species == "CRFL") {
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
+    Biol <- Biol[which(!(is.na(Biol$survival))),]
     model <- glmer(formula = survival ~ lnsizeT + Block + (1|year),
                    data = Biol, 
                    family = binomial) 

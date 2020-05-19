@@ -20,16 +20,17 @@ Biol$pflowerT <- ifelse(Biol$fertilityT > 0 | Biol$Goodbuds_t > 0 | Biol$ABFlowe
 Biol$pflowerT[which(is.na(Biol$pflowerT))] <- 0
 Biol$pflowerT1 <- ifelse(Biol$fertilityT > 0 | Biol$Goodbuds_t > 0 | Biol$ABFlowerbuds_t > 0, 1, 0)
 Biol$pflowerT1[which(is.na(Biol$pflowerT1))] <- 0
-
-for (i in c(which(is.na(Biol$fertilityT)))) {
-  Biol$fertilityT[i] <- sum(Biol$Goodbuds_t[i], Biol$ABFlowerbuds_t[i], na.rm = T)
-}
-
-for (i in c(which(is.na(Biol$fertilityT1)))) {
-  Biol$fertilityT1[i] <- sum(Biol$Goodbuds_t1[i], Biol$ABFlowerbuds_t1[i], na.rm = T)
-}
-
 Biol$year[which(is.na(Biol$year))] <- Biol$Year_t1[which(is.na(Biol$year))] - 1
+
+Biol <- Biol %>%
+  mutate(fertilityT = replace(fertilityT,
+                              is.na(fertilityT),
+                              sum(Goodbuds_t, ABFlowerbuds_t, na.rm = T))) %>%
+  select(plantID, Plot, year, month, day, sizeT, pflowerT, fertilityT, survival, sizeT1)
+Biol$fertilityT[which(Biol$fertilityT == 0)] <- NA
+
+
+
 
 write.csv(Biol, "Data/Biol data/OPIM_demography_data.csv")
 
