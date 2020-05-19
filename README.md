@@ -121,7 +121,7 @@ Metadata for the OPIM dataset
 |Perp_t | The width perpendicular to the maximum width in year t (in cm)\*|
 |sizeT | The volume of the plant in year t, calculated as a cone, using Height_t, Width_t and Perp_t|
 |Goodbuds_t | The number of viable flowerbuds on a plant in year t|
-|TotFlowerbuds_t | The total number of flowerbuds (viable + inviable) in year t|
+|fertilityT | The total number of flowerbuds (viable + inviable) in year t|
 |ABFlowerbuds_t | The number of aborted/inviable flowerbuds in year t|
 |Recruit|0 or 1. Estimated if this is a 0 year recruit in year t\*\* |
 |Newplant|0 or 1. Is this a new plant in the census|
