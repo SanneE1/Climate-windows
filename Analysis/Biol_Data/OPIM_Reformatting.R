@@ -16,19 +16,21 @@ Biol <- Biol[which(Biol$Transplant!= 1),]
 ### Add some missing columns -------------------------------------------------------------------------------------------------------------------
 Biol$month <- 5
 Biol$day <- 20
+Biol$year[which(is.na(Biol$year))] <- Biol$Year_t1[which(is.na(Biol$year))] - 1
+
 Biol$pflowerT <- ifelse(Biol$fertilityT > 0 | Biol$Goodbuds_t > 0 | Biol$ABFlowerbuds_t > 0 , 1, 0)
 Biol$pflowerT[which(is.na(Biol$pflowerT))] <- 0
 Biol$pflowerT1 <- ifelse(Biol$fertilityT > 0 | Biol$Goodbuds_t > 0 | Biol$ABFlowerbuds_t > 0, 1, 0)
 Biol$pflowerT1[which(is.na(Biol$pflowerT1))] <- 0
-Biol$year[which(is.na(Biol$year))] <- Biol$Year_t1[which(is.na(Biol$year))] - 1
 
 Biol <- Biol %>%
+  rowwise() %>%
   mutate(fertilityT = replace(fertilityT,
                               is.na(fertilityT),
                               sum(Goodbuds_t, ABFlowerbuds_t, na.rm = T))) %>%
   select(plantID, Plot, year, month, day, sizeT, pflowerT, fertilityT, survival, sizeT1)
-Biol$fertilityT[which(Biol$fertilityT == 0)] <- NA
 
+Biol$fertilityT[which(Biol$pflowerT == 0)] <- NA
 
 
 
