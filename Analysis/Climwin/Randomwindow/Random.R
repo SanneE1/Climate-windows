@@ -66,8 +66,8 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 
 if (species == "HEQU") {                                
   Biol <- read.csv(SpeciesInput) %>%
-    mutate(sizeT = as.integer(levels(sizeT))[sizeT],
-           sizeT1 = as.integer(levels(sizeT1))[sizeT1])
+    mutate(sizeT = as.integer(sizeT),
+           sizeT1 = as.integer(sizeT1))
   Biol <- Biol[which(Biol$seedling != 1),]                           
   Biol <- Biol[which(Biol$year!= 2012),]
   Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
@@ -152,6 +152,7 @@ if (species == "CRFL") {
   
   if(vitalrate =="s"){
     print("Running survival vital rate")
+    Biol <- Biol[which(!(is.na(Biol$survival))),]
     model <- glmer(formula = survival ~ lnsizeT + Block + (1|year),
                    data = Biol, 
                    family = binomial) 
@@ -291,6 +292,7 @@ if(vitalrate == "fn") {
     range <- c(36, 0)
   }
 }
+
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Get Sliding result 
