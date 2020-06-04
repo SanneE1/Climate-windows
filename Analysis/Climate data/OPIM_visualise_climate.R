@@ -10,15 +10,15 @@ library(mapview)
 ### OPIM population coordinates ------------------------------------------------------------------
 
 
-sites <- data.frame(id = c("Sevilleta", "SEVLTER50", "SEVLTER40", "SEVLTER49") , 
-                    name = c("Sevilleta", "SEVLTER50", "SEVLTER40", "SEVLTER49"), 
-                    latitude = c(34.334806, 34.334527, 34.358855,34.332659), 
-                    longitude = c(-106.631444, -106.632057, -106.689043,-106.727045), 
+sites <- data.frame(id = c("Sevilleta","Sevilleta","Sevilleta","Sevilleta","Sevilleta","Sevilleta","Sevilleta","Sevilleta", "SEVLTER50", "SEVLTER40", "SEVLTER49") , 
+                    name = c("Plot 1","Plot 2","Plot 3","Plot 4","Plot 5","Plot 6","Plot 7","Plot 8", "SEVLTER50", "SEVLTER40", "SEVLTER49"), 
+                    latitude = c(34.329,34.329,34.329,34.329,34.328,34.33,34.327,34.325, 34.334527, 34.358855,34.332659), 
+                    longitude = c(-106.621,-106.62,-106.621,-106.622,-106.621,-106.619,-106.622,-106.622, -106.632057, -106.689043,-106.727045), 
                     distance = NA)
 
-sites$distance[2] <- distVincentyEllipsoid(sites[1,c("longitude", "latitude")], sites[2, c("longitude", "latitude")])/1000
-sites$distance[3] <- distVincentyEllipsoid(sites[1,c("longitude", "latitude")], sites[3, c("longitude", "latitude")])/1000
-sites$distance[4] <- distVincentyEllipsoid(sites[1,c("longitude", "latitude")], sites[4, c("longitude", "latitude")])/1000
+sites$distance[2] <- distVincentyEllipsoid(sites[1,c("longitude", "latitude")], sites[9, c("longitude", "latitude")])/1000
+sites$distance[3] <- distVincentyEllipsoid(sites[1,c("longitude", "latitude")], sites[10, c("longitude", "latitude")])/1000
+sites$distance[4] <- distVincentyEllipsoid(sites[1,c("longitude", "latitude")], sites[11, c("longitude", "latitude")])/1000
 
 ### Weather stations nearby -------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ Map <- leaflet(locations) %>%
     popup = ~htmltools::htmlEscape(name)) %>%
   addLegend("bottomright",
             colors = c("navy", "red", "gray50"),
-            labels = c("Sevilleta", "SEVLTER50", "SEVLTER or NOAA options"),
+            labels = c("Plots", "SEVLTER50", "SEVLTER or NOAA options"),
             values = ~id, opacity = 1, title = "Locations") %>%
   addScaleBar()
 
