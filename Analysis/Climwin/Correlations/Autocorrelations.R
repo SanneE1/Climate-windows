@@ -4,7 +4,7 @@ library(plyr); library(dplyr)
 library(lubridate)
 library(patchwork)
 
-source("Analysis/Climwin/Load_Climwin_results.R")
+source("Results/Load_Climwin_results.R")
 source("Analysis/Climwin/Correlations/required_functions.R")
 
 ### Survival
