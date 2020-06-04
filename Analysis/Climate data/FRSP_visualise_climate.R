@@ -50,7 +50,7 @@ Map <- leaflet(locations) %>%
   addScaleBar()
 
 saveRDS(Map, "Visual/FRSP_Locations.rds")
-mapshot(Map, file = "Visual/FRSP_Locations_options.png",
+mapshot(Map, file = "Visual/FRSP_Locations.png",
         remove_controls = c("zoomControl", "layersControl", "homeButton"))
 
 
