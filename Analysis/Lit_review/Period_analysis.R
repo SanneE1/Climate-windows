@@ -2,15 +2,14 @@
 ##
 
 library(dplyr)
-library(ggplot2)
-library(grid)
-library(gridExtra)
-library(scales)
-library(patchwork)
 library(tidyr)
+library(ggplot2)
+library(ggpattern)
+library(patchwork)
 library(RVAideMemoire)
+library(scales)
+library(ggpattern)
 
-source("Analysis/Lit_review/DashSeason_function.R")
 
 ### Read data -----------------------------------------------------------------------------------------------------------------
 data <- readxl::read_excel("Data/Lit_review/Biomes from sApropos.xlsx",sheet = "Sheet1", skip = 1)
@@ -85,33 +84,39 @@ c <- c %>% subset(!is.na(category)) %>%
   group_by(Climate_Variable) %>%
   mutate(prop_number = prop.table(number))
 
+c$dorm <- NA
+c$dorm[which(c$category %in% c("All", "Dormant season", "Growing & Dormant", "Annual & Dormant"))] <- "yes" 
+c$dorm <- as.factor(c$dorm)
+
 ### Create Plot -----------------------------------------------------------------------------------------------------------------
-d <- ggplot(c) +
-  geom_bar(stat = "identity", aes(x = Climate_Variable, y = prop_number, fill = category), 
-           position = position_stack(reverse = TRUE)) +
+d <- ggplot() +
+  geom_bar(data = c, stat = "identity", aes(x = Climate_Variable, y = prop_number, fill = category),
+                   position = position_stack(reverse = TRUE)) +
+  geom_bar_pattern(data = c %>% drop_na(dorm),
+                   stat = "identity", aes(x = Climate_Variable, y = prop_number, 
+                                          fill = category, pattern_fill = dorm, pattern_colour = dorm),
+                   pattern = "stripe",
+                   position = position_stack(reverse = TRUE),
+                   show.legend = FALSE) +
   geom_text(aes(x = 1, y = 1, label = c("N =  36")), vjust = -0.75, size = 5) +
   geom_text(aes(x = 2, y = 1, label = c("N =  58")), vjust = -0.75, size = 5) +
   ylim(c(0,1)) +
   theme_classic() +
   ylab("Proportion of Studies") +
   xlab("Climate Variable") +
-  ggtitle("The type of time periods considered \nby studies", subtitle = "") +
+  ggtitle("The type of time periods \nconsidered by studies", subtitle = "") +
   scale_fill_manual(breaks = c("Annual", "Annual & Growing", "Growing season", "Annual & Dormant", "Growing & Dormant", "Dormant season", "All"),
                     labels = c("Annual", "Annual & Growing", "Growing season", "Annual & Dormant", "Growing & Dormant", "Dormant season", "All"),
                     values = c(RColorBrewer::brewer.pal("Paired", n = 7), "Grey50"),
                     name = "Periods considered") +
+  scale_pattern_color_manual(breaks = c("yes"),
+                             labels = c("Dormatn season explicitely considered"),
+                             values = c("black"), na.translate = FALSE) +
+  scale_pattern_fill_manual(values = c("black"), na.translate = FALSE) +
   theme(text = element_text(size = 20),
-        plot.title = element_text(hjust = 0.5))
+        plot.title = element_text(hjust = 0.5)) +
+  coord_cartesian(clip = "off")
 
-e <- DashSeasons(d)  ### Dash the area of studies that consider 
-
-## this turns off the clipping of the "N = .." from the graph
-f <- ggplot_gtable(ggplot_build(e))
-f$layout$clip[f$layout$name == "panel"] <- "off"
-grid.draw(f)
-
-
-ggsave("Visual/Seasons_plot.png", f)
-
+ggsave("Visual/Seasons_plot.png", d, width = 7)
 
 
