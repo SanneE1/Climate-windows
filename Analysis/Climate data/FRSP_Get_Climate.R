@@ -28,7 +28,7 @@ sites <- data.frame(id = "Cumberland Pass" ,
 all_stations <- read.csv("Data/Climate data/all_stations.csv") %>%
   filter(first_year <= 1969, last_year >= 2012)
 
-
+# find the 10 closest stations
 Stations <- meteo_nearby_stations(lat_lon_df = sites,
                                   lat_colname =  "latitude",
                                   lon_colname = "longitude",
@@ -36,11 +36,13 @@ Stations <- meteo_nearby_stations(lat_lon_df = sites,
                                   var = "all",
                                   limit = 10
 )
+
+# get information on closest station
 Stations <- inner_join(Stations[[1]], all_stations) %>% 
   select(id, name, latitude, longitude, distance, elevation) %>% 
   unique()
 
-
+# save nearby stations for location map
 nearby_stations <- Stations[c(1:10),]
 write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
 
@@ -48,18 +50,19 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
 ## Get weather information ##
 #############################
 
+## retrieve climate data for 1st and 8th climate station
+
   for (k in c(1,8)) {
-    
 
   closest_stations <- Stations[k,]
   
-  WeatherInfo <- meteo_pull_monitors(closest_stations$id, date_max = "2020-12-31", date_min = "1965-01-01")
-  WeatherInfo$population <- "Cumberland Pass"
-  WeatherInfo$prcp <- WeatherInfo$prcp / 10
-  WeatherInfo$tmax <- WeatherInfo$tmax / 10
-  WeatherInfo$tmin <- WeatherInfo$tmin / 10
-  WeatherInfo$tobs <- WeatherInfo$tobs / 10
-  write.csv(WeatherInfo, file = paste("Data/Climate data/FRSP_NOAA_", k, ".csv", sep = ""))
+  # WeatherInfo <- meteo_pull_monitors(closest_stations$id, date_max = "2020-12-31", date_min = "1965-01-01")
+  # WeatherInfo$population <- "Cumberland Pass"
+  # WeatherInfo$prcp <- WeatherInfo$prcp / 10
+  # WeatherInfo$tmax <- WeatherInfo$tmax / 10
+  # WeatherInfo$tmin <- WeatherInfo$tmin / 10
+  # WeatherInfo$tobs <- WeatherInfo$tobs / 10
+  # write.csv(WeatherInfo, file = paste("Data/Climate data/FRSP_NOAA_", k, ".csv", sep = ""))
 
   
   ##########################################################################
@@ -71,13 +74,14 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
   WeatherInfo$date <-  as.Date(WeatherInfo$date, "%Y-%m-%d")
   WeatherInfo$X <- NULL
   
+  # calculate average temperature
   WeatherInfo$tavg <- (WeatherInfo$tmin + WeatherInfo$tmax) / 2
   
   ##################################################
   ## Scale weather information  ---- Monthly ---- ##
   ##################################################
   
-  
+  # calculate monthly climate from daily data
   MonthlyInfo <- WeatherInfo %>%
     group_by(id, Month = month(date), Year = year(date)) %>%
     summarise(sum_prcp = sum(prcp, na.rm = T),
@@ -105,6 +109,7 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
   
   
   ### scale Clim drivers ----------------------------------------------------------------
+  # scale for each month seperately 
   
   MonthlyInfo <- MonthlyInfo %>%                      
     group_by(id, Month) %>%
@@ -118,7 +123,8 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
   
   MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
   
-
+  # Use climwin's method 1 here to calculate any missing months - so it doesn't happen in each Sliding.R parallel run
+  
   for (j in c(5,11:15)) {
     for (i in which(is.na(MonthlyInfo[[j]]))){
       a <- c((i-2):(i+2))
@@ -140,7 +146,7 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
                   end = c(2018,12),
                   frequency = 12)
   
-  # calculate SPEI
+  # calculate SPEI - scale set to 12 months
   SP <- spei(Timescale[,"BAL"], 12)
   
   spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
@@ -152,6 +158,8 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
     pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
     mutate(Month = as.numeric(Month))
   
+  
+  # merge SPEI dataframe with the rest of the climate data
   All_Climate <- left_join(MonthlyInfo, spei_df) %>% 
     select(Month, Year, sum_prcp_scaled, mean_tavg_scaled, mean_tmin_scaled, mean_tmax_scaled,
            min_tmin_scaled, max_tmax_scaled, SPEI) %>%
@@ -166,6 +174,8 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
   
   }
 
+# compare/correlate climate from station 1 and station 8 
+# compute missing months in station 1 using values from station 8
 
 Clim1 <- read.csv("Data/Climate data/FRSP_NOAA_month_1.csv")
 Clim8 <- read.csv("Data/Climate data/FRSP_NOAA_month_8.csv")

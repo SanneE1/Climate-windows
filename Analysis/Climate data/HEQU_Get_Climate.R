@@ -37,6 +37,13 @@ Stations <- meteo_nearby_stations(lat_lon_df = sites,
                                   limit = 10
                                   )
 
+# select the closest stations for mid and low populations. climate from mid station will be used for analysis, 
+# the data from the low station will be used to compute missing data in the mid station climate
+
+# because of the location of climate stations and populations, we use only one climate station, instead of 
+# a climate station per population (as this would mean using climate stations for mid and high that are very far away
+# even though those populations are relatively close)
+
 mid_station <- Stations[["mid"]][1,]
 low_station <- Stations[["low"]][1,]
 
@@ -45,6 +52,8 @@ low_station <- Stations[["low"]][1,]
 #############################
 ## Get weather information ##
 #############################
+
+# correlate climate from the two stations
 
 low <- meteo_pull_monitors(low_station$id, date_max = "2016-12-31", date_min = "1985-01-01")
 low$prcp <- low$prcp / 10
@@ -69,6 +78,8 @@ low <- read.csv("Data/Climate data/HEQU_lowstation_original.csv") %>%
 mid <- read.csv("Data/Climate data/HEQU_midstation_original.csv") %>%
   mutate(date = as.Date(date))
 
+# remove extreme values
+
 mid$tmin[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
 mid$tmax[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
 mid$tavg[which(mid$date > as.Date("2002-07-15") & mid$date < as.Date("2003-07-15"))] <- NA
@@ -78,6 +89,8 @@ mid$tavg[which(mid$date == as.Date("1992-06-23"))] <- NA
 
 
 both <- merge(low, mid, by = "date", all = T)
+
+# compute climate in mid station if data is missing
 
 ### Tavg
 tavg.l <- glm(tavg ~ tmax.x + tmin.x + tobs.x + tmax.y + tmin.y + tobs.y, data = both)
@@ -135,6 +148,8 @@ MonthlyInfo <- MonthlyInfo %>%
 
 MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
 
+# use climwin's method 1 to compute the last missing climate information so that analysis in Sliding.R doesn't do it
+# for each parallel run
 
 for (j in c(8,10:14)) {
   for (i in which(is.na(MonthlyInfo[[j]]))){
@@ -157,7 +172,7 @@ Timescale <- ts(MonthlyInfo[,-c(1,2)],
                 end = c(2018,12),
                 frequency = 12)
 
-# calculate SPEI
+# calculate SPEI on scale of 12 months
 SP <- spei(Timescale[,"BAL"], 12)
 
 spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
@@ -170,7 +185,7 @@ spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
   mutate(Month = as.numeric(Month))
 
 
-
+# merge SPEI dataframe with the rest of the climate data
 All_Climate <- left_join(MonthlyInfo, spei_df) %>% 
   select(Month, Year, sum_prcp_scaled, mean_tavg_scaled, mean_tmin_scaled, mean_tmax_scaled,
          min_tmin_scaled, max_tmax_scaled, SPEI) %>%

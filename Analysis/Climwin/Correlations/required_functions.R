@@ -1,3 +1,4 @@
+## wrapper to calculate and then plot correlations
 cor_wrap <- function(species, vitalrate, Climate, SlidingObject, Winner, Only_Auto = FALSE, plot = TRUE){
   
   data <- corr_climate(species, vitalrate, Climate, SlidingObject, Winner, Only_Auto)
@@ -12,22 +13,26 @@ cor_wrap <- function(species, vitalrate, Climate, SlidingObject, Winner, Only_Au
   }
 }
 
-
+# function to calculate climate correlations
 corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Only_Auto = FALSE){
   enquo(Climate)
 
   options <- SlidingObject$combos[Winner,]
   
-  Clim <- read.csv(Climate)                                                ### get a date that's accepted by climwin
-  Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
+  
+  #### data formatting ----------------------------------
+  Clim <- read.csv(Climate)
+  Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "") ### get a date that's accepted by climwin
 
-  #### Set Range ----------------------------------------------------------------------------------------------------------------------------
+  #### Set Range ------------------------------
+  
   if(vitalrate == "s") {
-    if(species == "FRSP") {
+    if(species == "FRSP"){
       print("Range set to 6 years")
       range <- c(60, -12)
     } else {
-    range <- c(24,-12)
+      print("Range set to 3 years")
+      range <- c(24,-12)
     }
   }
   
@@ -36,6 +41,7 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
       print("Range set to 6 years")
       range <- c(60, -12)
     } else {
+      print("Range set to 3 years")
       range <- c(24,-12)
     }
   }
@@ -45,6 +51,7 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
       print("Range set to 4 years")
       range <- c(36, -12)
     } else {
+      print("Range set to 3 years")
       range <- c(36, 0)
     }
   }
@@ -54,13 +61,15 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
       print("Range set to 4 years")
       range <- c(48, 0)
     } else {
+      print("Range set to 3 years")
       range <- c(36, 0)
     }
   }
-
+  
+  
   #### End data fromattin 
   
-  
+  # select the right climate window for which to correlate other climate drivers
   if(species == "FRSP" & vitalrate == "fn"){
     reference <- SlidingObject[[Winner]]$BestModelData %>%
       select(yearT1, climate) %>%
@@ -79,7 +88,7 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
                             format = "%d/%m/%Y")
   reference <- reference[order(reference$year),]
   
-
+# select climate vectors
   if (Only_Auto == FALSE){
   Clim <- Clim %>%
     select(sum_prcp, mean_tavg, mean_tmin, mean_tmax, SPEI, date) %>%
@@ -89,6 +98,7 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
       select(options$climate, date )
   }
   
+  # get open and closing month of best climate window (in relation to reference month)
   BestWindowOpen <- SlidingObject[[Winner]]$Dataset$WindowOpen[1]
   BestWindowClose <- SlidingObject[[Winner]]$Dataset$WindowClose[1]
   
@@ -98,24 +108,26 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
   windows <- data.frame(Open = SlidingObject[[Winner]]$Dataset$WindowOpen,
                         Close = SlidingObject[[Winner]]$Dataset$WindowClose)
   
-for (x in names(Clim[c(1:length(names(Clim))-1)])) {
+for (x in names(Clim[c(1:length(names(Clim))-1)])) {  # for each climate variable
   
-  for (i in c(1:length(windows$Open))){
+  for (i in c(1:length(windows$Open))){ #  for every possible relative time window
     
     ClimMat <- array(data = NA, dim = length(reference$date))
     
-    for(j in c(1:length(reference$date))){
+    for(j in c(1:length(reference$date))){ # for each census year
       
-      seqDate <- seq.Date(from = reference$date[j] %m+% months(-windows$Open[i]),
+      ## create sequence with dates that fall in time window
+      seqDate <- seq.Date(from = reference$date[j] %m+% months(-windows$Open[i]),  
                           to = reference$date[j] %m+% months(-(windows$Close[i]-1)),
                           by = "day")
-      ClimMat[j] <- do.call(as.character(options$stat),
+      ## and aggregate climate that falls in this sequence, according to stat column (for now always mean)
+      ClimMat[j] <- do.call(as.character(options$stat), 
                             list(Clim[which(as.Date(Clim$date, format = "%d/%m/%Y") %in% seqDate),
                                       x],
                                  na.rm = T))
       
     }
-    
+    # test correlation between specific time winows and reference time window across years
     windows[i, x] <- cor(reference$climate, ClimMat, use = "complete.obs")
     
   }
@@ -129,7 +141,7 @@ for (x in names(Clim[c(1:length(names(Clim))-1)])) {
   return(windows) 
 }  
 
-
+# plot correlation values along the lines of climwin plots
 corplot <- function(cor.output) {
   
   plot <- ggplot() + 

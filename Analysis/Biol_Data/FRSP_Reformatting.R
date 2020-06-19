@@ -2,10 +2,7 @@ library(dplyr)
 library(readxl)
 library(tidyr)
 
-### Formating demography sheet (Sheet for Flower numbers below)-----------------------------------------------------------------------------
-
-# I checked -> There is no PlantID in the "CPASS" sheets that is also not in the "Flowered" or "Died" sheet, 
-# but these sheets do have extra IDs
+### Formatting demography sheet (Sheet for Flower numbers below)-----------------------------------------------------------------------------
 
 ### Sheet Flowered
 df9 <- read_xls("Data/Biol data/Original data/FRSP_original_data/FRSO_original.xls", 
@@ -41,6 +38,7 @@ Sheet <- bind_rows(df9, df10) %>%
                          !(duplicated(plantID)) ~ plantID)) %>%
   pivot_longer(-plantID, names_to = "year", values_to = "sizeT") 
 
+### Switch out characters for values/NA's --------------------------------------------------------------------------------------------------------------
 
 ### Get Recruit data
 Sheet$recruit <- "NA"
@@ -98,7 +96,7 @@ Sheet$sizeT[which(Sheet$sizeT == "NF")] <- NA
 
 
 
-#Check non-numeric values  ----- 141 entries remainig. Discard them all for now
+#Check non-numeric values  ----- 
 # Sheet %>%
 #   filter(!grepl("^([0-9]+)$", Sheet$sizeT),
 #          !is.na(Sheet$sizeT),
@@ -122,15 +120,22 @@ Biolm1 <- select(Biol0,-c("survival")) %>%
          pFlowerT1 = pFlower)
 
 Biol <- full_join(Biol0, Biolm1)
+
+# select needed columns
 Biol <- Biol[c("plantID", "year", "sizeT", "recruitT", "sizeT1", "survival", "pFlowerT1")]
+
+# create survival and flower probability columns
 Biol$survival <- ifelse(!is.na(Biol$sizeT) & !is.na(Biol$sizeT1), 1, ifelse(!is.na(Biol$sizeT) & is.na(Biol$sizeT1), 0, NA))
 Biol$pFlowerT1 <- ifelse(is.na(Biol$survival) & Biol$pFlowerT1 == 0, NA, ifelse(Biol$survival == 1, 0, Biol$pFlowerT1))
 
+# remove extra rows
 Biol <- Biol[which(!(is.na(Biol$sizeT) & is.na(Biol$sizeT1))),]
+
+# required columns for climwin
 Biol$month <- 7
 Biol$day <- 15
 
-
+# Save object
 write.csv(Biol, "Data/Biol data/FRSP_demography_data.csv")
 
 
@@ -148,6 +153,7 @@ Numbers <- Numbers[, c("tag #", "Year flowering", "# leaves in year before flowe
          sizeT = "# leaves in year before flowering",
          nFlowersT1 = "Total # flowers") 
 
+# remove characters from cells
 Numbers$nFlowersT1 <- gsub("\\+", "", Numbers$nFlowersT1)
 Numbers$nFlowersT1 <- gsub("\\+", "", Numbers$nFlowersT1)
 Numbers$nFlowersT1 <- gsub("\\s", "", Numbers$nFlowersT1)
@@ -162,8 +168,12 @@ mutate(plantID = as.character(plantID),
          yearT1 = as.numeric(levels(yearT1))[yearT1],
          sizeT = as.numeric(sizeT),
          nFlowersT1 = as.numeric(nFlowersT1))
+
+# required columns for climwin
 Numbers$month <- 7
 Numbers$day <- 15
+
+# save flower number object
 write.csv(Numbers, "Data/Biol data/FRSP_Cleaned_FlowerN.csv")
 
 

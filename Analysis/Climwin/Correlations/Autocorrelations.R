@@ -1,11 +1,13 @@
+# Calculate climate (auto)correlation of the selected climate driver
 library(lme4)
 library(climwin)
 library(plyr); library(dplyr)
 library(lubridate)
 library(patchwork)
 
-source("Results/Load_Climwin_results.R")
-source("Analysis/Climwin/Correlations/required_functions.R")
+
+source("Results/Load_Climwin_results.R") # centralized script to load rds object, and selected climate drivers
+source("Analysis/Climwin/Correlations/required_functions.R") # costum functions to calculate correlations
 
 ### Survival
 

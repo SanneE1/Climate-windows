@@ -7,7 +7,7 @@ library(lubridate)
 ### Using the data downloaded from SEV-LTER on 24/10/2019 ###
 #############################################################
 
-### Climate data from the 3 closest stations. 50 is the closest to the population
+### Load climate data from the 3 closest stations. 50 is the closest to the population
 st50 <- read.csv("Data/Climate data/OPIM_SEVLTER50.csv")
 st49 <- read.csv("Data/Climate data/OPIM_SEVLTER49.csv")
 st40 <- read.csv("Data/Climate data/OPIM_SEVLTER40.csv")
@@ -127,7 +127,8 @@ MonthlyInfo <- MonthlyInfo %>%
 
 MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
 
-
+# use climwin's method 1 to compute the last missing climate information so that analysis in Sliding.R doesn't do it
+# for each parallel run
 
 for (j in c(4,9:15)) {
   for (i in which(is.na(MonthlyInfo[[j]]))){
@@ -151,7 +152,7 @@ Timescale <- ts(MonthlyInfo[,-c(1,2)],
                 end = c(2018,12),
                 frequency = 12)
 
-# calculate SPEI
+# calculate SPEI with scale of 12 months
 SP <- spei(Timescale[,"BAL"], 12)
 
 spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],

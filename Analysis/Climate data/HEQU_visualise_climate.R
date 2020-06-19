@@ -57,20 +57,28 @@ mapshot(Map, file = "Visual/HEQU_Locations.png",
 ##   Explore weather info  ##
 #############################
 
-Monthly <- read.csv("Data/Climate data/HEQU_NOAA_month_imputed.csv" ) 
+Monthly <- read.csv("Data/Climate data/HEQU_midstation_original.csv" ) %>%
+  group_by(year(date), month(date)) %>%
+  summarise(sum_prcp = sum(prcp),
+            mean_tavg = mean(tavg, na.rm = T),
+            mean_tmax = mean(tmax, na.rm = T),
+            mean_tmin = mean(tmin, na.rm = T),
+            tmin = min(tmin, na.rm = T),
+            tmax = max(tmax, na.rm = T))
+names(Monthly)[c(1,2)] <- c("Year", "Month")  
 
-
-PrcpGrid <- ggplot(Monthly, aes(x= Month, y= mean_prcp))+
+# plot precipitation (absolute values) across time
+PrcpGrid <- ggplot(Monthly, aes(x= Month, y= sum_prcp))+
   geom_line(colour = "blue")+
-  geom_ribbon(aes(ymin= ifelse(mean_prcp - sd_prcp < 0, 0,mean_prcp - sd_prcp), ymax= (mean_prcp + sd_prcp)), linetype = 2, alpha = 0.1,fill="blue")+
   facet_wrap(vars(Year)) +
   scale_x_continuous(breaks = c(1:12))+
-  ylab("Mean daily Precipitation (mm)")
+  ylab("Monthly Precipitation (mm)")
 
-TempGrid <- ggplot(Monthly, aes(x= Month, y= mean_tobs))+
+# plot temperature (absolute values) across time
+TempGrid <- ggplot(Monthly, aes(x= Month, y= mean_tavg))+
   geom_line()+
   geom_ribbon(aes(ymin= mean_tmin, ymax= mean_tmax), linetype = 2, alpha = 0.2, fill = "blue")+
-  geom_ribbon(aes(ymin= min_tmin, ymax= max_tmax), linetype = 2, alpha = 0, colour = "red")+
+  geom_ribbon(aes(ymin= tmin, ymax= tmax), linetype = 2, alpha = 0, colour = "red")+
   facet_wrap(vars(Year))+
   scale_x_continuous(breaks = c(1:12))+
   ylab("Temperature (degrees)")

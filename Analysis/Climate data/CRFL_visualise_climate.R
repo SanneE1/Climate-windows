@@ -16,7 +16,7 @@ sites <- data.frame(id = "Redfleet" ,
                     distance = NA)
 
 
-### Weather stations nearby -------------------------------------------------------------------------
+### Load weather stations nearby -------------------------------------------------------------------------
 
 nearby_Stations <- read.csv("Data/Climate data/CRFL_nearb_stations.csv")
 nearby_Stations$X <- NULL
@@ -67,12 +67,14 @@ Monthly <- read.csv("Data/Climate data/CRFL_NOAA.csv" ) %>%
             tmax = max(tmax, na.rm = T))
 names(Monthly)[c(1,2)] <- c("Year", "Month")  
 
+# plot precipitation (absolute values) across time
 PrcpGrid <- ggplot(Monthly, aes(x= Month, y= sum_prcp))+
   geom_line(colour = "blue")+
   facet_wrap(vars(Year)) +
   scale_x_continuous(breaks = c(1:12))+
   ylab("Monthly Precipitation (mm)")
 
+# plot temperature (absolute values) across time
 TempGrid <- ggplot(Monthly, aes(x= Month, y= mean_tavg))+
   geom_line()+
   geom_ribbon(aes(ymin= mean_tmin, ymax= mean_tmax), linetype = 2, alpha = 0.2, fill = "blue")+

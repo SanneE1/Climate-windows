@@ -1,3 +1,5 @@
+## run the randomization analysis of selected climate driver
+
 suppressPackageStartupMessages(library(climwin))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(lme4))
@@ -68,10 +70,11 @@ if (species == "HEQU") {
   Biol <- read.csv(SpeciesInput) %>%
     mutate(sizeT = as.integer(sizeT),
            sizeT1 = as.integer(sizeT1))
-  Biol <- Biol[which(Biol$seedling != 1),]                           
-  Biol <- Biol[which(Biol$year!= 2012),]
-  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
-  Biol$lnsizeT <- log(Biol$sizeT)
+  Biol <- Biol[which(Biol$seedling != 1),] # filter out seedlings - seperate stage class in previous lit.                          
+  Biol <- Biol[which(Biol$year!= 2012),] # filter out transition 2012-2013 due to gophers
+  
+  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),] # filter out individuals without size in time t
+  Biol$lnsizeT <- log(Biol$sizeT) # log transform size at time t
 }
 
 
@@ -80,35 +83,35 @@ if (species == "CRFL"){
     mutate(sizeT = as.integer(sizeT),
            sizeT1 = as.integer(sizeT1))
   
-  Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),]
-  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
-  Biol$lnsizeT <- log(Biol$sizeT)
+  Biol <- Biol[which(Biol$year %in% c(1997:2000,2003:2011)),] # filter out census years 2001 & 2002
+  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),] # filter out individuals without size in time t
+  Biol$lnsizeT <- log(Biol$sizeT) # log transform size at time t
 }
 
 
 if (species == "OPIM"){
   Biol <- read.csv(SpeciesInput)
-  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),]
-  Biol <- Biol[which(Biol$year != 2018),]
-  Biol$lnsizeT <- log(Biol$sizeT)
+  Biol <- Biol[which(!(is.na(Biol$sizeT) | Biol$sizeT == 0)),] # filter out individuals without size in time t
+  Biol <- Biol[which(Biol$year != 2018),] # filter out transition year 2018
+  Biol$lnsizeT <- log(Biol$sizeT) # log transform size at time t
 }
 
 
 if (species == "FRSP"){
   Biol <- read.csv(SpeciesInput)
-  Biol$lnsizeT <- log(Biol$sizeT)
-  Biol <- Biol[which(!is.na(Biol$sizeT)),]
+  Biol$lnsizeT <- log(Biol$sizeT) # log transform size at time t
+  Biol <- Biol[which(!is.na(Biol$sizeT)),] # filter out transition year 2018
   if (vitalrate == "fn"){
-    Biol$year <- Biol$yearT1
+    Biol$year <- Biol$yearT1 # if working on fn (with other datafile), rename year column so it runs like the other scripts
   }
 }
 
-### General data modification
+### General data modification of date column for slidingwindow() function
 
 Biol$date <- paste(ifelse(!(is.na(Biol$day)), sprintf("%02d", Biol$day), "01") , sprintf("%02d", Biol$month), Biol$year, sep = "/")                  ### get a date that's accepted by climwin
 
 ##----------------------------------------------------------------------------------------------------------------------------------
-## Use the right species specific baseline 
+## Specify species and vital rate specific baseline 
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 if (species == "HEQU") {
@@ -121,7 +124,7 @@ if (species == "HEQU") {
                    family = binomial) 
   }
   
-  if (vitalrate =="g"){                         #### Change this to negative binomial
+  if (vitalrate =="g"){             
     print("Running growth vital rate")
     Biol <- Biol[which(!is.na(Biol$sizeT1)),]
     model <- glmer(sizeT1 ~ lnsizeT + population + (1|year),
@@ -257,11 +260,13 @@ if (species == "FRSP") {
 }
 
 #### Set Range ----------------------------------------------------------------------------------------------------------------------------
+
 if(vitalrate == "s") {
   if(species == "FRSP"){
     print("Range set to 6 years")
     range <- c(60, -12)
   } else {
+    print("Range set to 3 years")
     range <- c(24,-12)
   }
 }
@@ -271,6 +276,7 @@ if(vitalrate == "g") {
     print("Range set to 6 years")
     range <- c(60, -12)
   } else {
+    print("Range set to 3 years")
     range <- c(24,-12)
   }
 }
@@ -280,6 +286,7 @@ if(vitalrate == "fp") {
     print("Range set to 4 years")
     range <- c(36, -12)
   } else {
+    print("Range set to 3 years")
     range <- c(36, 0)
   }
 }
@@ -289,10 +296,10 @@ if(vitalrate == "fn") {
     print("Range set to 4 years")
     range <- c(48, 0)
   } else {
+    print("Range set to 3 years")
     range <- c(36, 0)
   }
 }
-
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Get Sliding result 
@@ -302,7 +309,7 @@ results <- readRDS(Results_sliding)
 print(results$combos[w,])
 
 ##----------------------------------------------------------------------------------------------------------------------------------
-## Randomized run for selected combi
+## Randomized run for selected combination
 ##----------------------------------------------------------------------------------------------------------------------------------
 
 x <- list(Clim[[as.character(results$combos$climate[w])]]) 
