@@ -142,6 +142,7 @@ if (species == "HEQU") {
   
   if (vitalrate =="fp"){
     print("Running Flower probability vital rate")
+    Biol <- Biol[which(!(is.na(Biol$pflowerT))),]
     model <- glmer(formula = pflowerT ~ lnsizeT + population + (1|year),
                    data = Biol,
                    family = binomial)

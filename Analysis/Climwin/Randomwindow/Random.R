@@ -42,7 +42,7 @@ taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 ## Get which vital rate was analysed ------------------------------------------------------------------------------
 getinfo <- stringr::str_split(Results_sliding, "[[:punct:]]")
-vitalrate <- getinfo[[1]][7]
+vitalrate <- getinfo[[1]][6]
 
 
 species
@@ -134,6 +134,7 @@ if (species == "HEQU") {
   
   if (vitalrate =="fp"){
     print("Running Flower probability vital rate")
+    Biol <- Biol[which(!(is.na(Biol$pflowerT))),]
     model <- glmer(formula = pflowerT ~ lnsizeT + population + (1|year),
                    data = Biol,
                    family = binomial)
