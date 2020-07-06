@@ -1,8 +1,7 @@
-# Biome
-
-Project: Testing the importance of growing season climate for predicting plant vital rates
+# Climate Windows
 
 ## Biological Data
+The data used in this analysis are listed below.  
 
 #### Helianthella quinquenervis (**HEQU**)
    Iler, A. M., Compagnoni, A., Inouye, D. W., Williams, J. L., CaraDonna, P. J., Anderson, A., & Miller, T. E. (2019). Reproductive losses due to climate change‐induced earlier flowering are not the primary threat to plant population viability in a perennial herb. Journal of Ecology.  
@@ -32,29 +31,16 @@ Data on the climate used for this project is retrieved from two sources:
 **For OPIM:** Data from the [SEV-LTER](http://tierra.unm.edu/search/climate/search.php) was used
 
 In case data on specific dates were not available, the values were imputed using 1 or 2 other nearest stations. Any remaining missing data (in case the data was also missing from the other stations) is imputed using the same method as the `Climwin`'s \"method1\" 
-   
-I used monthly (scaled) data.  
-
-If the climate data is not retrieved using the provided scripts (\"SPECIESCODE\_Get\_Climate\"), the easiest way to use them would be to make sure the following columns are in the file and change the xvar lists in *sliding_EVE.R* to reflect the name of the different climate drivers you want to test. `Climwin` requires a wide format for the imput. Moreover, the file name MUST be in the following format (the submit script uses the file names to retrieve data needed to run the script):  
-\"SPECIESCODE\_(anything but without \"\_\" e.g. where it comes from).csv\"  
 
 |Columns|Explanation|
 |-------|-----------|
 |Year| year of measurement (for monthly data)|
 |Month| month of measurement (can either be M or MM; for monthly data)|
 |date| date of measurement in \"dd\\mm\\yyyy\" (for daily data)|
-|Climate values| Each climate driver needs its own column| 
+|Climate values| Each climate driver has its own column| 
 
-## Data Management
 
-The scripts require the correct column names and value format for the date. The individually data needs to contain the following columns in the following formats: 
-
-|Columns|Explanation|
-|-------|-----------|
-|year | The year of measurements (YYYY)|
-|month | The month for the measurement (1-12; code can deal with both \"01\" and \"1\")|
-|day | The day in the month (1-31; code can deal with both \"01\" and \"1\") of the measurements. If NA, the climwin scripts will use \"01\" as default. |
-
+## Metadata
 
 ### HEQU
 Metadata for the HEQU dataset
@@ -151,17 +137,5 @@ I used the reformatting script to reformat the original data sheets into a forma
 |sizeT1|Number of leaves in basal rosettes at time T + 1. |
 |survival| if the individual survived from time T to T + 1 (1) or not (0) |
 |pFlowerT1| Did the individual flower| 
-
-
-## Analysis
-
-### Climate effects
-For this analysis I used the [Climwin package](https://github.com/LiamDBailey/climwin)
-
-#### Sliding window analyses
-The sliding window scripts (Analysis\\Climwin\\Slidingwindow) are set up to run on UFZ's EVE as an array job after which the output is merged back into a normal climwin output format for further analyses.
-The random analyses scripts (Analysis\\Climwin\\Randomwindow) are also set up to run on EVE, and require a normal climwin output format (i.e. what the merged format produces), the number of the combination to run the randomization for, as well as the original climate and biological imput
-
-all vital rates (survival, growth, flower probability and flower numbers) of the 4 species can be run with the same scripts.
 
 
