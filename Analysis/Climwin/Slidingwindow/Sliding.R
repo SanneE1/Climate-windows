@@ -55,11 +55,14 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 
 ### Climate signal combinations ----------------------------------------------------------------------------------------------------------------------------
 
-                          ## 14 options
+                          ## 7 or 5 options
   xvar <- c("sum_prcp", "mean_tmax", "mean_tmin", "mean_tavg", "SPEI")
+if(species %in% c("HEQU", "FRSP")){
+  xvar <- append(xvar,c("sum_snow", "mean_snwd"))
+}
   type <- c("absolute")
   stat <- c("mean")
-  func <- c("lin", "quad")
+  func <- c("lin")
   upper <- NA            
   lower <- NA            
 
