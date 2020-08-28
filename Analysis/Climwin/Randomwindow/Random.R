@@ -42,7 +42,7 @@ taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 ## Get which vital rate was analysed ------------------------------------------------------------------------------
 getinfo <- stringr::str_split(Results_sliding, "[[:punct:]]")
-vitalrate <- getinfo[[1]][6]
+vitalrate <- getinfo[[1]][7]
 
 
 species
