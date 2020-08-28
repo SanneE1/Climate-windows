@@ -70,7 +70,7 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
   ##########################################################################
   
   WeatherInfo <- read.csv(paste("Data/Climate data/FRSP_NOAA_", k, ".csv", sep = "")) %>%
-    select(id, date, prcp, tmax, tmin, tobs, population)
+    select(id, date, prcp, tmax, tmin, tobs, snow, snwd, population)
   WeatherInfo$date <-  as.Date(WeatherInfo$date, "%Y-%m-%d")
   WeatherInfo$X <- NULL
   
@@ -89,7 +89,9 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
               mean_tmax = mean(tmax, na.rm = T),
               mean_tmin = mean(tmin, na.rm = T),
               max_tmax = max(tmax, na.rm = T),
-              min_tmin = min(tmin, na.rm = T))%>%
+              min_tmin = min(tmin, na.rm = T),
+              sum_snow = sum(snow, na.rm = T),
+              mean_snwd = mean(snwd, na.rm = T))%>%
     mutate(mean_tmax = replace(mean_tmax, 
                                is.nan(mean_tmax), 
                                NA),
@@ -104,7 +106,13 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
                               NA),
            min_tmin = replace(min_tmin,
                               min_tmin == Inf,
-                              NA))
+                              NA),
+           sum_snow = replace(sum_snow,
+                               is.nan(sum_snow),
+                               0),
+           mean_snwd = replace(mean_snwd,
+                               is.nan(mean_snwd),
+                               0))
   
   
   
@@ -118,21 +126,28 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
            mean_tmax_scaled = scale(mean_tmax),
            mean_tmin_scaled = scale(mean_tmin),
            max_tmax_scaled = scale(max_tmax),
-           min_tmin_scaled = scale(min_tmin)) 
+           min_tmin_scaled = scale(min_tmin),
+           sum_snow_scaled = scale(sum_snow),
+           mean_snwd_scaled = scale(mean_snwd)) 
   
   
   MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
   
   # Use climwin's method 1 here to calculate any missing months - so it doesn't happen in each Sliding.R parallel run
   
-  for (j in c(5,11:15)) {
+  for (j in c(5,13:17)) {
     for (i in which(is.na(MonthlyInfo[[j]]))){
       a <- c((i-2):(i+2))
       a <- ifelse(a < 1, 12- abs(a), ifelse(a > 12, a - 12, a))
       MonthlyInfo[i,j] <- mean(MonthlyInfo[[j]][a],
                                na.rm = T)
     }
-    
+    for (i in which(is.nan(MonthlyInfo[[j]]))){
+      a <- c((i-2):(i+2))
+      a <- ifelse(a < 1, 12- abs(a), ifelse(a > 12, a - 12, a))
+      MonthlyInfo[i,j] <- mean(MonthlyInfo[[j]][a],
+                               na.rm = T)
+    }
   }
   
   ### get SPEI values ----------------------------------------------------------------
@@ -162,13 +177,15 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
   # merge SPEI dataframe with the rest of the climate data
   All_Climate <- left_join(MonthlyInfo, spei_df) %>% 
     select(Month, Year, sum_prcp_scaled, mean_tavg_scaled, mean_tmin_scaled, mean_tmax_scaled,
-           min_tmin_scaled, max_tmax_scaled, SPEI) %>%
+           min_tmin_scaled, max_tmax_scaled, sum_snow_scaled, mean_snwd_scaled, SPEI) %>%
     rename(sum_prcp = sum_prcp_scaled,
            mean_tavg = mean_tavg_scaled,
            mean_tmin = mean_tmin_scaled,
            mean_tmax = mean_tmax_scaled,
            min_tmin = min_tmin_scaled,
-           max_tmax = max_tmax_scaled)
+           max_tmax = max_tmax_scaled,
+           sum_snow = sum_snow_scaled,
+           mean_snwd = mean_snwd_scaled)
   
   write.csv(All_Climate, paste("Data/Climate data/FRSP_NOAA_month_", k, ".csv", sep = ""))
   
@@ -189,6 +206,8 @@ e <- lm(mean_tmax.x ~ mean_tmax.y, a)
 f <- lm(min_tmin.x ~ min_tmin.y, a)
 g <- lm(max_tmax.x ~ max_tmax.y, a)
 h <- lm(SPEI.x ~ SPEI.y, a)
+i <- lm(sum_snow.x ~ sum_snow.y, a)
+j <- lm(mean_snwd.x ~ mean_snwd.y, a)
 
 a <- a %>% mutate(sum_prcp.x = replace(sum_prcp.x, 
                                        is.na(sum_prcp.x), 
@@ -210,11 +229,19 @@ a <- a %>% mutate(sum_prcp.x = replace(sum_prcp.x,
                                         predict(g, newdata = data.frame(max_tmax.y = a$max_tmax.y[which(is.na(a$max_tmax.x))]))),
                   SPEI.x = replace(SPEI.x,
                                    is.na(SPEI.x),
-                                   predict(h, newdata = data.frame(SPEI.y = a$SPEI.y[which(is.na(a$SPEI.x))])))
+                                   predict(h, newdata = data.frame(SPEI.y = a$SPEI.y[which(is.na(a$SPEI.x))]))),
+                  sum_snow.x = replace(sum_snow.x,
+                                       is.na(sum_snow.x),
+                                       0),
+                  mean_snwd.x = replace(mean_snwd.x,
+                                        is.na(mean_snwd.x),
+                                        0),
 )
 
 All_Climate <- a %>%
-  select(id.x, Month, Year, sum_prcp.x, mean_tavg.x, mean_tmin.x, mean_tmax.x, min_tmin.x, max_tmax.x, SPEI.x) %>%
+  select(id.x, Month, Year, 
+         sum_prcp.x, mean_tavg.x, mean_tmin.x, mean_tmax.x, min_tmin.x, max_tmax.x,
+         sum_snow.x, mean_snwd.x, SPEI.x) %>%
   rename(id = id.x,
          sum_prcp = sum_prcp.x,
          mean_tavg = mean_tavg.x,
@@ -222,7 +249,9 @@ All_Climate <- a %>%
          mean_tmax = mean_tmax.x,
          min_tmin = min_tmin.x,
          max_tmax = max_tmax.x,
-         SPEI = SPEI.x)
+         SPEI = SPEI.x,
+         sum_snow = sum_snow.x,
+         mean_snwd = mean_snwd.x)
 
 All_Climate <- All_Climate[order(All_Climate$Year, All_Climate$Month),]
 

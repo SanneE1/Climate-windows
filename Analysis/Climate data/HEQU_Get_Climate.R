@@ -113,14 +113,22 @@ tmax.l <- glm(tmax.y ~ tmax.x, data = both)
 both$ptmax <- predict(tmax.l, both)
 both$tmax.y[which(is.na(both$tmax.y))] <- both$ptmax[which(is.na(both$tmax.y))]
 
+### Snow
+snwd.l <- glm(snwd.y ~ snwd.x, data = both)
 
-clean <- both[,c("date", "id.y", "prcp.y", "tmax.y", "tmin.y", "tobs.y", "tavg")] %>%
+both$psnwd <- predict(snwd.l, both)
+both$snwd.y[which(is.na(both$snwd.y))] <- both$psnwd[which(is.na(both$snwd.y))]
+
+
+clean <- both[,c("date", "id.y", "prcp.y", "tmax.y", "tmin.y", "tobs.y", "tavg", "snow", "snwd.y")] %>%
   rename(id = id.y,
          prcp = prcp.y,
          tmax = tmax.y,
          tmin = tmin.y,
          tobs = tobs.y,
-         tavg = tavg)
+         tavg = tavg,
+         snow = snow,
+         snwd = snwd.y)
 
 
 ##Monthly data ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -132,7 +140,9 @@ MonthlyInfo <- clean %>%
             mean_tmin = mean(tmin, na.rm = T),
             max_tmax = max(tmax, na.rm = T),
             min_tmin = min(tmin, na.rm = T),
-            mean_tavg = mean(tavg, na.rm = T))
+            mean_tavg = mean(tavg, na.rm = T),
+            sum_snow = sum(snow, na.rm = T),
+            mean_snwd = mean(snwd, na.rm = T))
 
 ### scale Clim drivers ----------------------------------------------------------------
 
@@ -143,7 +153,9 @@ MonthlyInfo <- MonthlyInfo %>%
          mean_tmin_scaled = scale(mean_tmin),
          max_tmax_scaled = scale(max_tmax),
          min_tmin_scaled = scale(min_tmin),
-         mean_tavg_scaled = scale(mean_tavg))
+         mean_tavg_scaled = scale(mean_tavg),
+         sum_snow_scaled = scale(sum_snow),
+         mean_snwd_scaled = scale(mean_snwd))
 
 
 MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
@@ -151,14 +163,19 @@ MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
 # use climwin's method 1 to compute the last missing climate information so that analysis in Sliding.R doesn't do it
 # for each parallel run
 
-for (j in c(8,10:14)) {
+for (j in c(8,12:18)) {
   for (i in which(is.na(MonthlyInfo[[j]]))){
     a <- c((i-2):(i+2))
     a <- ifelse(a < 1, 12- abs(a), ifelse(a > 12, a - 12, a))
     MonthlyInfo[i,j] <- mean(MonthlyInfo[[j]][a],
                              na.rm = T)
   }
-  
+  for (i in which(is.nan(MonthlyInfo[[j]]))){
+    a <- c((i-2):(i+2))
+    a <- ifelse(a < 1, 12- abs(a), ifelse(a > 12, a - 12, a))
+    MonthlyInfo[i,j] <- mean(MonthlyInfo[[j]][a],
+                             na.rm = T)
+  }
 }
 
 ### get SPEI values ----------------------------------------------------------------
@@ -188,13 +205,15 @@ spei_df <- matrix(SP$fitted[1:(12*length(unique(MonthlyInfo$Year)))],
 # merge SPEI dataframe with the rest of the climate data
 All_Climate <- left_join(MonthlyInfo, spei_df) %>% 
   select(Month, Year, sum_prcp_scaled, mean_tavg_scaled, mean_tmin_scaled, mean_tmax_scaled,
-         min_tmin_scaled, max_tmax_scaled, SPEI) %>%
+         min_tmin_scaled, max_tmax_scaled, sum_snow_scaled, mean_snwd_scaled, SPEI) %>%
   rename(sum_prcp = sum_prcp_scaled,
          mean_tavg = mean_tavg_scaled,
          mean_tmin = mean_tmin_scaled,
          mean_tmax = mean_tmax_scaled,
          min_tmin = min_tmin_scaled,
-         max_tmax = max_tmax_scaled)
+         max_tmax = max_tmax_scaled,
+         sum_snow = sum_snow_scaled,
+         mean_snwd = mean_snwd_scaled)
 
 write.csv(All_Climate, "Data/Climate data/HEQU_NOAA_month_imputed.csv" )
 
