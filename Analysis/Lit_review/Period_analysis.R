@@ -48,9 +48,18 @@ df <- rbind(temp, prcp) %>%
 df_temp <- df[which(df$Climate_Variable == "Temperature"),]
 df_prcp <- df[which(df$Climate_Variable == "Precipitation"),] 
 
+temp_mcnemar <- df_temp %>% pivot_wider(names_from = Period, values_from = Used)
+prcp_mcnemar <- df_prcp %>% pivot_wider(names_from = Period, values_from = Used)
+
 cochran.qtest(Used ~ Period | Authors, data = df_temp)
+mcnemar.test(table(temp_mcnemar[,c("Annual", "Dormant")]))
+mcnemar.test(table(temp_mcnemar[,c("Annual", "Growing")]))
+mcnemar.test(table(temp_mcnemar[,c("Growing", "Dormant")]))
 
 cochran.qtest(Used ~ Period | Authors, data = df_prcp)
+mcnemar.test(table(prcp_mcnemar[,c("Annual", "Dormant")]))
+mcnemar.test(table(prcp_mcnemar[,c("Annual", "Growing")]))
+mcnemar.test(table(prcp_mcnemar[,c("Growing", "Dormant")]))
 
 ### Divide in all possible categories for plot -----------------------------------------------------------------------------------------------------------------
 
