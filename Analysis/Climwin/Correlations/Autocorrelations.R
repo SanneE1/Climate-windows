@@ -7,7 +7,7 @@ library(patchwork)
 
 
 source("Results/Load_Climwin_results.R") # centralized script to load rds object, and selected climate drivers
-source("Analysis/Climwin/Correlations/required_functions.R") # costum functions to calculate correlations
+source("Analysis/Climwin/Correlations/required_functions.R") # custom functions to calculate correlations
 
 ### Survival
 

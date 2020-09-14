@@ -8,6 +8,14 @@ cor_wrap <- function(species, vitalrate, Climate, SlidingObject, Winner, Only_Au
   } else {
     
     data$correlations <- tidyr::pivot_longer(data$correlations, -c(Open, Close), names_to = "Clim_variable", values_to = "corr")
+    data$correlations$Clim_variable <- factor(data$correlations$Clim_variable, 
+                                              levels = c("mean_tmin", "mean_tavg", "mean_tmax", 
+                                                         "sum_prcp", "sum_snow", "mean_snwd",
+                                                         "SPEI"))
+    data$df$Clim_variable <- factor(data$df$Clim_variable, 
+                                              levels = c("mean_tmin", "mean_tavg", "mean_tmax", 
+                                                         "sum_prcp", "sum_snow", "mean_snwd",
+                                                         "SPEI"))
     plot <- corplot(data)
     return(plot)
   }
@@ -90,9 +98,15 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
   
 # select climate vectors
   if (Only_Auto == FALSE){
+    if(species %in% c("HEQU", "FRSP")) {
   Clim <- Clim %>%
-    select(sum_prcp, mean_tavg, mean_tmin, mean_tmax, SPEI, date) %>%
+    select(sum_prcp, mean_tavg, mean_tmin, mean_tmax, SPEI, sum_snow, mean_snwd, date) %>%
     mutate(date = as.Date(date, format = "%d/%m/%Y"))
+    } else {
+      Clim <- Clim %>%
+        select(sum_prcp, mean_tavg, mean_tmin, mean_tmax, SPEI, date) %>%
+        mutate(date = as.Date(date, format = "%d/%m/%Y"))
+    }
   } else {
     Clim <- Clim %>%
       select(options$climate, date )
@@ -143,7 +157,7 @@ for (x in names(Clim[c(1:length(names(Clim))-1)])) {  # for each climate variabl
 
 # plot correlation values along the lines of climwin plots
 corplot <- function(cor.output) {
-  
+ 
   plot <- ggplot() + 
         geom_tile(data = cor.output$correlations, aes(x = Close, y = Open, fill = corr)) + 
         geom_point(data = cor.output$df, aes(x = BestWindowClose, y = BestWindowOpen, z = NULL), 
@@ -155,7 +169,7 @@ corplot <- function(cor.output) {
               panel.grid.minor = element_blank(), 
               axis.line = element_line(size = 0.25, colour = "black"), 
               plot.title = element_text(size = 16, hjust = 0.5)) + 
-    ggtitle(paste("Correlation between the mean", cor.output$df$Clim_variable, "from \nmonth", cor.output$df$BestWindowOpen, "to month", cor.output$df$BestWindowClose,
+    ggtitle(paste("Correlation between the", cor.output$df$Clim_variable, "from \nmonth", cor.output$df$BestWindowOpen, "to month", cor.output$df$BestWindowClose,
                   "with all climate variables", sep = " ")) +
         ylab("Window open") + 
         xlab("Window close") + 
