@@ -52,10 +52,12 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
 
 ## retrieve climate data for 1st and 8th climate station
 
-  for (k in c(1,8)) {
+# k = 1
 
-  closest_stations <- Stations[k,]
-  
+  for (k in c(1,8)) {
+# 
+#   closest_stations <- Stations[k,]
+
   # WeatherInfo <- meteo_pull_monitors(closest_stations$id, date_max = "2020-12-31", date_min = "1965-01-01")
   # WeatherInfo$population <- "Cumberland Pass"
   # WeatherInfo$prcp <- WeatherInfo$prcp / 10
@@ -132,6 +134,11 @@ write.csv(nearby_stations, "Data/Climate data/FRSP_nearb_stations.csv")
   
   
   MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
+  
+  ## There is no snow in July/August
+  
+  MonthlyInfo$sum_snow_scaled[which(MonthlyInfo$Month %in% c(7,8))] <- 0
+  MonthlyInfo$mean_snwd_scaled[which(MonthlyInfo$Month %in% c(7,8))] <- 0
   
   # Use climwin's method 1 here to calculate any missing months - so it doesn't happen in each Sliding.R parallel run
   

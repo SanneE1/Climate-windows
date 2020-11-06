@@ -25,28 +25,28 @@ sites <- data.frame(id = c("low", "mid", "high"),
 # 
 # write.csv(all_stations, "Data/Climate data/all_stations.csv")
 # 
-all_stations <- read.csv("Data/Climate data/all_stations.csv") %>%
-  filter(first_year <= 1996, last_year >= 2012)
-
-
-Stations <- meteo_nearby_stations(lat_lon_df = sites,
-                                  lat_colname =  "latitude",
-                                  lon_colname = "longitude",
-                                  station_data = all_stations,
-                                  var = "all",
-                                  limit = 10
-                                  )
-
-# select the closest stations for mid and low populations. climate from mid station will be used for analysis, 
-# the data from the low station will be used to compute missing data in the mid station climate
-
-# because of the location of climate stations and populations, we use only one climate station, instead of 
-# a climate station per population (as this would mean using climate stations for mid and high that are very far away
-# even though those populations are relatively close)
-
-mid_station <- Stations[["mid"]][1,]
-low_station <- Stations[["low"]][1,]
-
+# all_stations <- read.csv("Data/Climate data/all_stations.csv") %>%
+#   filter(first_year <= 1996, last_year >= 2012)
+# 
+# 
+# Stations <- meteo_nearby_stations(lat_lon_df = sites,
+#                                   lat_colname =  "latitude",
+#                                   lon_colname = "longitude",
+#                                   station_data = all_stations,
+#                                   var = "all",
+#                                   limit = 10
+#                                   )
+# 
+# # select the closest stations for mid and low populations. climate from mid station will be used for analysis, 
+# # the data from the low station will be used to compute missing data in the mid station climate
+# 
+# # because of the location of climate stations and populations, we use only one climate station, instead of 
+# # a climate station per population (as this would mean using climate stations for mid and high that are very far away
+# # even though those populations are relatively close)
+# 
+# mid_station <- Stations[["mid"]][1,]
+# low_station <- Stations[["low"]][1,]
+# 
 
 
 #############################
@@ -54,23 +54,23 @@ low_station <- Stations[["low"]][1,]
 #############################
 
 # correlate climate from the two stations
-
-low <- meteo_pull_monitors(low_station$id, date_max = "2016-12-31", date_min = "1985-01-01")
-low$prcp <- low$prcp / 10
-low$tmax <- low$tmax / 10
-low$tmin <- low$tmin / 10
-low$tobs <- low$tobs / 10
-
-mid <- meteo_pull_monitors(mid_station$id, date_max = "2016-12-31", date_min = "1985-01-01")
-mid$prcp <- mid$prcp / 10
-mid$tavg <- mid$tavg / 10
-mid$tmax <- mid$tmax / 10
-mid$tmin <- mid$tmin / 10
-mid$tobs <- mid$tobs / 10
-
-write.csv(low, "Data/Climate data/HEQU_lowstation_original.csv")
-write.csv(mid, "Data/Climate data/HEQU_midstation_original.csv")
-
+# 
+# low <- meteo_pull_monitors(low_station$id, date_max = "2016-12-31", date_min = "1985-01-01")
+# low$prcp <- low$prcp / 10
+# low$tmax <- low$tmax / 10
+# low$tmin <- low$tmin / 10
+# low$tobs <- low$tobs / 10
+# 
+# mid <- meteo_pull_monitors(mid_station$id, date_max = "2016-12-31", date_min = "1985-01-01")
+# mid$prcp <- mid$prcp / 10
+# mid$tavg <- mid$tavg / 10
+# mid$tmax <- mid$tmax / 10
+# mid$tmin <- mid$tmin / 10
+# mid$tobs <- mid$tobs / 10
+# 
+# write.csv(low, "Data/Climate data/HEQU_lowstation_original.csv")
+# write.csv(mid, "Data/Climate data/HEQU_midstation_original.csv")
+# 
 
 low <- read.csv("Data/Climate data/HEQU_lowstation_original.csv") %>%
   mutate(date = as.Date(date))
@@ -159,6 +159,10 @@ MonthlyInfo <- MonthlyInfo %>%
 
 
 MonthlyInfo <- MonthlyInfo[order(MonthlyInfo$Year, MonthlyInfo$Month),]
+
+## There is no snow in July/August
+
+MonthlyInfo$sum_snow_scaled[which(MonthlyInfo$Month %in% c(7,8))] <- 0
 
 # use climwin's method 1 to compute the last missing climate information so that analysis in Sliding.R doesn't do it
 # for each parallel run

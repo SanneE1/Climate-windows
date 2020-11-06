@@ -16,6 +16,10 @@ cor_wrap <- function(species, vitalrate, Climate, SlidingObject, Winner, Only_Au
                                               levels = c("mean_tmin", "mean_tavg", "mean_tmax", 
                                                          "sum_prcp", "sum_snow", "mean_snwd",
                                                          "SPEI"))
+    variable_title <- c(expression(Correlation~of~T[mean_min]), expression(Correlation~of~T[avg]), expression(Correlation~of~T[mean_max]),
+                        expression(Correlation~of~P), expression(Correlation~of~S[fall]), expression(Correlation~of~S[depth]), 
+                        expression(Correlation~of~SPEI))
+    data$df$Clim_variable_title <- variable_title[as.integer(data$df$Clim_variable)]
     plot <- corplot(data)
     return(plot)
   }
@@ -169,11 +173,14 @@ corplot <- function(cor.output) {
               panel.grid.minor = element_blank(), 
               axis.line = element_line(size = 0.25, colour = "black"), 
               plot.title = element_text(size = 16, hjust = 0.5)) + 
-    ggtitle(paste("Correlation between the", cor.output$df$Clim_variable, "from \nmonth", cor.output$df$BestWindowOpen, "to month", cor.output$df$BestWindowClose,
+    ggtitle(cor.output$df$Clim_variable_title,
+            subtitle = paste("from month", cor.output$df$BestWindowOpen, "to month", cor.output$df$BestWindowClose,
                   "with all climate variables", sep = " ")) +
         ylab("Window open") + 
         xlab("Window close") + 
-    facet_wrap(vars(Clim_variable))
+    facet_wrap(vars(Clim_variable)) +
+    theme(plot.title = element_text(size = 20),
+          plot.subtitle = element_text(size = 20, hjust = 0.5))
   
   return(plot)
   

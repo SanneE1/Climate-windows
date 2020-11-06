@@ -99,7 +99,7 @@ for (vitalrate in c("s", "g", "fp", "fn")) {
                                                        cmissing = FALSE))
   
   a <- sapply(grow_mod, function(x) AIC(x$BestModel)) - AIC(model)
-  b <- sapply(grow_mod, function(x) rsq::rsq(x$BestModel, adj = T)$model %>% round(., digits = 4))
+  b <- sapply(grow_mod, function(x) rsq::rsq(x$BestModel, adj = T)$model %>% round(digits = 4))
 
   c <- cbind(dAIC = a, 
              R2 = b)
