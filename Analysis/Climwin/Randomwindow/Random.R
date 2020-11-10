@@ -68,8 +68,8 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 
 if (species == "HEQU") {                                
   Biol <- read.csv(SpeciesInput) %>%
-    mutate(sizeT = as.integer(sizeT),
-           sizeT1 = as.integer(sizeT1))
+    mutate(sizeT = as.integer(as.character(sizeT)),
+           sizeT1 = as.integer(as.character(sizeT1)))
   Biol <- Biol[which(Biol$seedling != 1),] # filter out seedlings - seperate stage class in previous lit.                          
   Biol <- Biol[which(Biol$year!= 2012),] # filter out transition 2012-2013 due to gophers
   

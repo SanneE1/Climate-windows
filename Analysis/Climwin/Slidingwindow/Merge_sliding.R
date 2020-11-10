@@ -1,4 +1,4 @@
-
+message("start script")
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(optparse))
 

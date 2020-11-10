@@ -33,10 +33,10 @@ module load foss/2018b R/3.5.1
 vitalrate=$3
 climate=$1
 SpeciesInput=$2
-output="$output_dir"/${JOB_NAME}_${species}_${vitalrate}_month_${JOB_ID}_$SGE_TASK_ID.rds
+output="$output_dir"/${JOB_NAME}_${vitalrate}_month_${JOB_ID}_$SGE_TASK_ID.rds
 
 
-Rscript "$HOME"/Biome/Analysis/Climwin/Slidingwindow/Sliding.R \
+Rscript "$HOME"/Biome/Analysis/Climwin/Slidingwindow/HEQU_spatial_slidingwindow.R \
   "$vitalrate" \
   "$climate" \
   "$SpeciesInput" \

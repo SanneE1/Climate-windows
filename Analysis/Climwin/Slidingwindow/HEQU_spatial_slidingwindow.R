@@ -143,8 +143,7 @@ result <- slidingwin(baseline = model,
                      cinterval = "month",
                      cdate = as.character(Clim$date), bdate = as.character(Biol$date),
                      cmissing = "method1", 
-                     spatial = list(as.factor(Biol$population), as.factor(Clim$population)),
-                     centre=list(Biol$population, "both")
+                     spatial = list(as.factor(Biol$population), as.factor(Clim$population))
 )
 
 
