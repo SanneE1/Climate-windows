@@ -17,14 +17,14 @@ parser <- OptionParser(
   epilogue    = ""
 )
 
-cli <- parse_args(parser, positional_arguments = 5)
+cli <- parse_args(parser, positional_arguments = 4)
 
 ### Assign shortcuts ------------------------------------------------------------------------------------------
 
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 Results_sliding <- cli$args[3]
-output <- cli$args[5]
+output <- cli$args[4]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 
@@ -129,16 +129,15 @@ if(vitalrate == "fn") {
 ## Randomized run for selected combination
 ##----------------------------------------------------------------------------------------------------------------------------------
 
-str(x)
 
-random <- randwin(repeats = 10,
+random <- randwin(repeats = 1,
                   baseline =  model   ,
                   xvar = list(Temp = Clim$tmean_scaled,
                               Ppt = Clim$ppt_scaled),
                   type = "absolute",
                   range = range,
-                  stat = c(as.character(results$combos$stat[w])),
-                  func = c(as.character(results$combos$func[w])),
+                  stat = c("mean"),
+                  func = c("lin"),
                   refday = c(as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%d")), as.integer(format(min(as.Date(Biol$date, format = "%d/%m/%Y")), format = "%m"))),                                                          
                   cinterval = "month",
                   cdate = Clim$date, bdate = Biol$date,

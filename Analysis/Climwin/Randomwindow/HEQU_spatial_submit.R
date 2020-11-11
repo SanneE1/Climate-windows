@@ -17,7 +17,7 @@
 #$ -l h_vmem=8G
 
 # Array numbers 
-#$ -t 1-200
+#$ -t 1-2000
 
 #needed when submitting a non-parallel job
 #$ -binding linear:1
@@ -35,9 +35,8 @@ vitalrate=$(basename "$Results_sliding" .rds | cut -d _ -f2)
 output="$output_dir"/${JOB_NAME}_month_${vitalrate}_${JOB_ID}_$SGE_TASK_ID.rds
 
 
-Rscript "$HOME"/Biome/Analysis/Climwin/Randomwindow/Random.R \
+Rscript "$HOME"/Biome/Analysis/Climwin/Randomwindow/HEQU_spatial_random.R \
 "$Climate" \
 "$SpeciesInput" \
 "$Results_sliding" \
-"$winner" \
 "$output"
