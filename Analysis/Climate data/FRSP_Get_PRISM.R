@@ -1,5 +1,5 @@
-## Download PRISM data for HEQU populations
-setwd("Data/Climate data/PRISM_HEQU_check/")
+## Download PRISM data for FRSP populations
+setwd("Data/Climate data/PRISM_check/")
 
 
 library(tidyverse)
@@ -9,17 +9,19 @@ library(prism)
 
 
 # Population coordinates
-site_coord <- data.frame(id = c("low", "mid", "high"), 
-                         Longitude = as.numeric(measurements::conv_unit(c("-107 09.556", "-106 59.3", "-106 58.690"), from = 'deg_dec_min', to = 'dec_deg')),
-                         Latitude = as.numeric(measurements::conv_unit(c("38 51.774", "38 57.5", "38 58.612"), from = 'deg_dec_min', to = 'dec_deg'))
-           )
+site_coord <- data.frame(id = "Cumberland Pass" , 
+                         Longitude = -106.475817,
+                         Latitude = 38.693867)
 
 
+station_coord <- data.frame(id = "NOAA station",
+                            Longitude = -106.6086,
+                            Latitude = 38.81830 )
 # PRISM set up -------------------------------------------------------------------------------
 
 # what do we need from PRISM?
-prism_df <- expand.grid( variable = c('ppt','tmean', 'tmax', 'tmin'),
-                         year     = c(1985:2016),
+prism_df <- expand.grid( variable = c('ppt','tmean'),
+                         year     = c(1969:2013),
                          # month    = c(paste0('0',1:9),paste0(10:12)),
                          stringsAsFactors = F) %>% 
   arrange(variable,year)
@@ -73,7 +75,7 @@ file_dest  <- gsub("tmean/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>%
 # Extract PRISM DATA ------------------------------------------------------------------------
 
 # extract year and monthly data
-extract_year_data <- function(ii){
+extract_year_data <- function(ii, sites = site_coord){
   
   print( ii )
   
@@ -104,17 +106,17 @@ extract_year_data <- function(ii){
   
   months      <- sapply( raster_file, extract_mon) %>% setNames( NULL )
   
-
+  
   # extract climatic info 
-  values_clim <- raster::extract(rast_stack, site_coord[,-1], method = 'bilinear')
+  values_clim <- raster::extract(rast_stack, sites[,-1], method = 'bilinear')
   values_df   <- values_clim %>% 
     as.data.frame() %>% 
     setNames( months ) %>% 
     mutate( variable = prism_df$variable[ii],
             year     = prism_df$year[ii],
-            lat      = site_coord[,'Latitude'],
-            lon      = site_coord[,'Longitude'],
-            population = site_coord[,"id"])
+            lat      = sites[,'Latitude'],
+            lon      = sites[,'Longitude'],
+            population = sites[,"id"])
   
   file.remove( paste0('temp_dir/',list.files('temp_dir/')) )
   file.remove( grep( 'zip$', list.files(), value=T) )
@@ -126,38 +128,68 @@ extract_year_data <- function(ii){
 }
 
 start <- Sys.time()
-climate_all_l <- lapply(1:128, function(x) tryCatch(extract_year_data(x), error = function(e) NULL))
+climate_all_l <- lapply(1:128, function(x) 
+  tryCatch(extract_year_data(x), 
+           error = function(e) NULL))
 Sys.time() - start
+
 
 climate_all   <- climate_all_l %>% 
   bind_rows %>% 
   gather( month, value, 01:12 ) %>% 
-  pivot_wider(-c(X, lat, lon), names_from = variable, values_from = value) %>% 
+  pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
   group_by(month, population) %>%
   mutate(tmean_scaled = scale(tmean),
          ppt_scaled = scale(ppt)) %>%
   rename(Month = month,
          Year = year) 
 
-write.csv(climate_all, file = "PRISM_HEQU_climate.csv")
+write.csv(climate_all, file = "PRISM_FRSP_climate.csv")
 
+
+### Get PRISM data for NOAA Climate station location
+climate_station <- lapply(1:128, function(x) 
+  tryCatch(extract_year_data(x, sites = station_coord), 
+           error = function(e) NULL))
+
+climatePRISM_at_NOAA <- climate_station %>% 
+  bind_rows %>% 
+  gather( month, value, 01:12 ) %>% 
+  pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
+  group_by(month, population) %>%
+  mutate(tmean_scaled = scale(tmean),
+         ppt_scaled = scale(ppt)) %>%
+  rename(Month = month,
+         Year = year) 
+
+write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station_FRSP.csv")
+
+
+setwd("../../../")
 
 #----------------------------------------------
 # Correlate PRISM data with NOAA:
 
-NOAA <- read.csv("../HEQU_NOAA_month_imputed.csv") %>%
-  select(-X)
 
-PRISM <- read.csv("Data/Climate data/PRISM_HEQU_check/PRISM_HEQU_climate.csv") %>%
-  select(-X)
+NOAA <- read.csv("Data/Climate data/FRSP_NOAA_month.csv")
+
+PRISM <- read.csv("Data/Climate data/PRISM_check/PRISM_FRSP_climate.csv") 
 
 
-Clim <- left_join(PRISM, NOAA)
 
-low <- Clim %>% subset(population == "low")
-mid <- Clim %>% subset(population == "mid")
-high <- Clim %>% subset(population == "high")
+Clim1 <- left_join(PRISM[,-1], NOAA[,-1])
 
-cor(low$tmean_scaled, low$mean_tavg)
-cor(mid$tmean_scaled, mid$mean_tavg)
-cor(high$tmean_scaled, high$mean_tavg)
+cor(Clim1$tmean_scaled, Clim1$mean_tavg)
+
+cor(Clim1$ppt_scaled, Clim1$sum_prcp, use = "complete.obs")
+
+
+
+### Correlate PRISM at NOAA station location with recorded NOAA data at that station
+
+prism <- read.csv("Data/Climate data/PRISM_check/PRISM_climate_at_NOAA_station_FRSP.csv")
+
+Clim2 <- left_join(NOAA, prism[,-1])
+
+cor(Clim2$mean_tavg, Clim2$tmean_scaled, use = "complete.obs")
+cor(Clim2$sum_prcp, Clim2$ppt_scaled, use = "complete.obs")
