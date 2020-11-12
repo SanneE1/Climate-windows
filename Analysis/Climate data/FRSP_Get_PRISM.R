@@ -17,11 +17,12 @@ site_coord <- data.frame(id = "Cumberland Pass" ,
 station_coord <- data.frame(id = "NOAA station",
                             Longitude = -106.6086,
                             Latitude = 38.81830 )
+
 # PRISM set up -------------------------------------------------------------------------------
 
 # what do we need from PRISM?
-prism_df <- expand.grid( variable = c('ppt','tmean'),
-                         year     = c(1969:2013),
+prism_df <- expand.grid( variable = c('ppt','tmean', 'tmin', 'tmax'),
+                         year     = c(1981:2015),       ### I need data from 1967, but this dataset goes to 1981. Below I download and attach the remaining years
                          # month    = c(paste0('0',1:9),paste0(10:12)),
                          stringsAsFactors = F) %>% 
   arrange(variable,year)
@@ -68,7 +69,7 @@ file_names <- lapply(1:nrow(prism_df), produce_file_name) %>% unlist
 file_links <- paste0(read_dir,file_names)
 
 # produce file destinations (put it all under C:/)
-file_dest  <- gsub("tmean/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
+file_dest  <- gsub("tmean/[0-9]{4}/|tmin/[0-9]{4}/|tmax/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
   paste0(getwd(),"/", .)
 
 
@@ -127,8 +128,63 @@ extract_year_data <- function(ii, sites = site_coord){
   
 }
 
+
+
+# extract data from historical dataset (1895-1980)
+extract_hist <- function(location_hist, variable, sites = site_coord) {
+  
+  print(variable)  
+  # unzip file to temp_dir
+  unzip( file.path(location_hist,grep( variable, list.files(location_hist), value=T)),
+         exdir = 'temp_dir' )
+  
+  # get climate information ----------------------------------------------------------------
+  
+  # read raster
+  raster_file <- grep( '[0-9]{6}_bil.bil$', list.files('temp_dir'), value=T)
+  rast_l      <- lapply( paste0('temp_dir/',raster_file), function(x) raster(x) )
+  rast_stack  <- stack( rast_l )
+  
+  # extract month numbers
+  extract_mon <- function(x){
+    regmatches(x, 
+               gregexpr("[[:digit:]]{6}", 
+                        x) ) %>% 
+      substr( 5,6 )
+  }
+  # extract year numbers
+  extract_yr <- function(x){
+    regmatches(x, 
+               gregexpr("[[:digit:]]{6}", 
+                        x) ) %>% 
+      substr( 1,4 )
+  } 
+  
+  months      <- sapply( raster_file, extract_mon) %>% setNames( NULL )
+  years      <- sapply( raster_file, extract_yr) %>% setNames( NULL )
+  
+  
+  # extract climatic info 
+  values_clim <- raster::extract(rast_stack, sites[,-1], method = 'bilinear')
+  values_df   <- data.frame(year = years,
+                            month = months,
+                            variable = variable,
+                            value = t(values_clim),
+                            row.names = NULL)
+  
+  file.remove( paste0('temp_dir/',list.files('temp_dir/')) )
+  file.remove( grep( 'zip$', list.files(), value=T) )
+  
+  print(variable)
+  
+  return(values_df)
+}
+
+
+
+#### Get recent climate
 start <- Sys.time()
-climate_all_l <- lapply(1:128, function(x) 
+climate_all_l <- lapply(1:140, function(x) 
   tryCatch(extract_year_data(x), 
            error = function(e) NULL))
 Sys.time() - start
@@ -138,31 +194,56 @@ climate_all   <- climate_all_l %>%
   bind_rows %>% 
   gather( month, value, 01:12 ) %>% 
   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
-  group_by(month, population) %>%
-  mutate(tmean_scaled = scale(tmean),
-         ppt_scaled = scale(ppt)) %>%
+  group_by(month) %>%
+  mutate(tmean = scale(tmean),
+         tmin = scale(tmin),
+         tmax = scale(tmax),
+         ppt = scale(ppt)) %>%
   rename(Month = month,
          Year = year) 
 
 write.csv(climate_all, file = "PRISM_FRSP_climate.csv")
 
 
-### Get PRISM data for NOAA Climate station location
-climate_station <- lapply(1:128, function(x) 
-  tryCatch(extract_year_data(x, sites = station_coord), 
-           error = function(e) NULL))
 
-climatePRISM_at_NOAA <- climate_station %>% 
-  bind_rows %>% 
-  gather( month, value, 01:12 ) %>% 
-  pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
-  group_by(month, population) %>%
-  mutate(tmean_scaled = scale(tmean),
-         ppt_scaled = scale(ppt)) %>%
+#### Get historical climate
+start <- Sys.time()
+climate_hist_l <- lapply(as.list(c("tmin", "tmax", "ppt")), function(x) 
+  tryCatch(extract_hist(location_hist = "historical data/", variable = x), 
+           error = function(e) NULL))
+Sys.time() - start
+
+
+hist_clim <- climate_hist_l %>% 
+  bind_rows %>%
+  pivot_wider(names_from = variable, values_from = value)%>%
+  mutate(tmean = (tmin+tmax)/2) %>%
+  group_by(month) %>%
+  mutate(tmean = scale(tmean),
+         tmin = scale(tmin),
+         tmax = scale(tmax),
+         ppt = scale(ppt)) %>%
   rename(Month = month,
          Year = year) 
 
-write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station_FRSP.csv")
+
+
+# ### Get PRISM data for NOAA Climate station location
+# climate_station <- lapply(1:128, function(x) 
+#   tryCatch(extract_year_data(x, sites = station_coord), 
+#            error = function(e) NULL))
+# 
+# climatePRISM_at_NOAA <- climate_station %>% 
+#   bind_rows %>% 
+#   gather( month, value, 01:12 ) %>% 
+#   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
+#   group_by(month, population) %>%
+#   mutate(tmean_scaled = scale(tmean),
+#          ppt_scaled = scale(ppt)) %>%
+#   rename(Month = month,
+#          Year = year) 
+# 
+# write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station_FRSP.csv")
 
 
 setwd("../../../")

@@ -68,7 +68,7 @@ file_names <- lapply(1:nrow(prism_df), produce_file_name) %>% unlist
 file_links <- paste0(read_dir,file_names)
 
 # produce file destinations (put it all under C:/)
-file_dest  <- gsub("tmean/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
+file_dest  <- gsub("tmean/[0-9]{4}/|tmin/[0-9]{4}/|tmax/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
   paste0(getwd(),"/", .)
 
 
@@ -148,22 +148,22 @@ write.csv(climate_all, file = "PRISM_HEQU_climate.csv")
 
 
 ### Get PRISM data for NOAA Climate station location
-climate_station <- lapply(1:128, function(x) 
-  tryCatch(extract_year_data(x, sites = station_coord), 
-           error = function(e) NULL))
-
-climatePRISM_at_NOAA <- climate_station %>% 
-  bind_rows %>% 
-  gather( month, value, 01:12 ) %>% 
-  pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
-  group_by(month, population) %>%
-  mutate(tmean_scaled = scale(tmean),
-         ppt_scaled = scale(ppt)) %>%
-  rename(Month = month,
-         Year = year) 
-
-write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station.csv")
-
+# climate_station <- lapply(1:128, function(x) 
+#   tryCatch(extract_year_data(x, sites = station_coord), 
+#            error = function(e) NULL))
+# 
+# climatePRISM_at_NOAA <- climate_station %>% 
+#   bind_rows %>% 
+#   gather( month, value, 01:12 ) %>% 
+#   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
+#   group_by(month, population) %>%
+#   mutate(tmean_scaled = scale(tmean),
+#          ppt_scaled = scale(ppt)) %>%
+#   rename(Month = month,
+#          Year = year) 
+# 
+# write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station.csv")
+# 
 
 
 setwd("../../../")

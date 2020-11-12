@@ -9,7 +9,7 @@ library(prism)
 
 
 # Population coordinates
-site_coord <- data.frame(id = "Sevilleta" , 
+site_coord <- data.frame(id = "Redfleet" , 
                          Longitude = -109.43204,
                          Latitude = 40.59548)
 
@@ -20,7 +20,7 @@ station_coord <- data.frame(id = "NOAA station",
 # PRISM set up -------------------------------------------------------------------------------
 
 # what do we need from PRISM?
-prism_df <- expand.grid( variable = c('ppt','tmean'),
+prism_df <- expand.grid( variable = c('ppt','tmean', 'tmin', 'tmax'),
                          year     = c(1986:2017),
                          # month    = c(paste0('0',1:9),paste0(10:12)),
                          stringsAsFactors = F) %>% 
@@ -68,7 +68,7 @@ file_names <- lapply(1:nrow(prism_df), produce_file_name) %>% unlist
 file_links <- paste0(read_dir,file_names)
 
 # produce file destinations (put it all under C:/)
-file_dest  <- gsub("tmean/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
+file_dest  <- gsub("tmean/[0-9]{4}/|tmin/[0-9]{4}/|tmax/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
   paste0(getwd(),"/", .)
 
 
@@ -128,7 +128,7 @@ extract_year_data <- function(ii, sites = site_coord){
 }
 
 start <- Sys.time()
-climate_all_l <- lapply(1:64, function(x) 
+climate_all_l <- lapply(1:128, function(x) 
   tryCatch(extract_year_data(x, sites = site_coord), 
            error = function(e) NULL))
 Sys.time() - start
@@ -139,8 +139,10 @@ climate_all   <- climate_all_l %>%
   gather( month, value, 01:12 ) %>% 
   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
   group_by(month, population) %>%
-  mutate(tmean_scaled = scale(tmean),
-         ppt_scaled = scale(ppt)) %>%
+  mutate(tmean = scale(tmean),
+         tmin = scale(tmin),
+         tmax = scale(tmax),
+         ppt = scale(ppt)) %>%
   rename(Month = month,
          Year = year) 
 
@@ -148,21 +150,22 @@ write.csv(climate_all, file = "PRISM_CRFL_climate.csv")
 
 
 ### Get PRISM data for NOAA Climate station location
-climate_station <- lapply(1:64, function(x) 
-  tryCatch(extract_year_data(x, sites = station_coord), 
-           error = function(e) NULL))
 
-climatePRISM_at_NOAA <- climate_station %>% 
-  bind_rows %>% 
-  gather( month, value, 01:12 ) %>% 
-  pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
-  group_by(month, population) %>%
-  mutate(tmean_scaled = scale(tmean),
-         ppt_scaled = scale(ppt)) %>%
-  rename(Month = month,
-         Year = year) 
-
-write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station_CRFL.csv")
+# climate_station <- lapply(1:64, function(x) 
+#   tryCatch(extract_year_data(x, sites = station_coord), 
+#            error = function(e) NULL))
+# 
+# climatePRISM_at_NOAA <- climate_station %>% 
+#   bind_rows %>% 
+#   gather( month, value, 01:12 ) %>% 
+#   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
+#   group_by(month, population) %>%
+#   mutate(tmean_scaled = scale(tmean),
+#          ppt_scaled = scale(ppt)) %>%
+#   rename(Month = month,
+#          Year = year) 
+# 
+# write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station_CRFL.csv")
 
 
 setwd("../../../")

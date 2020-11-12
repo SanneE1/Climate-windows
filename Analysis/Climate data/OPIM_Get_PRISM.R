@@ -17,11 +17,12 @@ site_coord <- data.frame(id = "Sevilleta" ,
 station_coord <- data.frame(id = "NOAA station",
                             Longitude = -106.6321,
                             Latitude = 34.33453 )
+
 # PRISM set up -------------------------------------------------------------------------------
 
 # what do we need from PRISM?
-prism_df <- expand.grid( variable = c('ppt','tmean'),
-                         year     = c(1980:2017),
+prism_df <- expand.grid( variable = c('ppt','tmean', 'tmin', 'tmax'),
+                         year     = c(1981:2019),
                          # month    = c(paste0('0',1:9),paste0(10:12)),
                          stringsAsFactors = F) %>% 
   arrange(variable,year)
@@ -68,7 +69,7 @@ file_names <- lapply(1:nrow(prism_df), produce_file_name) %>% unlist
 file_links <- paste0(read_dir,file_names)
 
 # produce file destinations (put it all under C:/)
-file_dest  <- gsub("tmean/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
+file_dest  <- gsub("tmean/[0-9]{4}/|tmin/[0-9]{4}/|tmax/[0-9]{4}/|ppt/[0-9]{4}/","",file_names) %>% 
   paste0(getwd(),"/", .)
 
 
@@ -128,7 +129,7 @@ extract_year_data <- function(ii, sites = site_coord){
 }
 
 start <- Sys.time()
-climate_all_l <- lapply(1:76, function(x) 
+climate_all_l <- lapply(1:156, function(x) 
   tryCatch(extract_year_data(x), 
            error = function(e) NULL))
 Sys.time() - start
@@ -138,9 +139,11 @@ climate_all   <- climate_all_l %>%
   bind_rows %>% 
   gather( month, value, 01:12 ) %>% 
   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
-  group_by(month, population) %>%
-  mutate(tmean_scaled = scale(tmean),
-         ppt_scaled = scale(ppt)) %>%
+  group_by(month) %>%
+  mutate(tmean = scale(tmean),
+         tmin = scale(tmin),
+         tmax = scale(tmax),
+         ppt = scale(ppt)) %>%
   rename(Month = month,
          Year = year) 
 
