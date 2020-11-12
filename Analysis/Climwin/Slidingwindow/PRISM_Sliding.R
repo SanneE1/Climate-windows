@@ -53,6 +53,21 @@ Clim <- read.csv(Climate)
 ### get a date that's accepted by climwin
 Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")          
 
+### Climate signal combinations ----------------------------------------------------------------------------------------------------------------------------
+
+## 4 options
+xvar <- c("ppt", "tmax", "tmin", "tmean")
+
+type <- c("absolute")
+stat <- c("mean")
+func <- c("lin")
+upper <- NA            
+lower <- NA            
+
+options <- expand.grid(xvar = xvar, type = type, stat = stat, func = func, upper = upper, lower = lower, stringsAsFactors = F)
+
+# print out for reference in the log file
+print(options[taskID,])
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Prepare Biological data 
@@ -299,10 +314,11 @@ if(vitalrate == "fn") {
 
 #### Run function ----------------------------------------------------------------------------------------------------------------------------
 
+x <- list(Clim[[options$xvar[taskID]]]) # select the right climate variable in list format
+names(x) <- options$xvar[taskID]
 
 result <- slidingwin(baseline = model,
-                     xvar = list(Temp = Clim$tmean_scaled,
-                                 Ppt = Clim$ppt_scaled),
+                     xvar = x,
                      type = "absolute",
                      range = range,
                      stat = "mean", 
