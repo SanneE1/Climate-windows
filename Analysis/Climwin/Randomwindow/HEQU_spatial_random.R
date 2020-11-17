@@ -17,14 +17,15 @@ parser <- OptionParser(
   epilogue    = ""
 )
 
-cli <- parse_args(parser, positional_arguments = 4)
+cli <- parse_args(parser, positional_arguments = 5)
 
 ### Assign shortcuts ------------------------------------------------------------------------------------------
 
 Climate   <- cli$args[1]
 SpeciesInput  <- cli$args[2]
 Results_sliding <- cli$args[3]
-output <- cli$args[4]
+w <- as.integer(cli$args[4])
+output <- cli$args[5]
 taskID <- as.integer(Sys.getenv("SGE_TASK_ID"))
 
 
@@ -124,16 +125,25 @@ if(vitalrate == "fn") {
   range <- c(36, 0)
 }
 
+##----------------------------------------------------------------------------------------------------------------------------------
+## Get Sliding result 
+##----------------------------------------------------------------------------------------------------------------------------------
+
+results <- readRDS(Results_sliding)
+print(results$combos[w,])
 
 ##----------------------------------------------------------------------------------------------------------------------------------
 ## Randomized run for selected combination
 ##----------------------------------------------------------------------------------------------------------------------------------
 
+x <- list(Clim[[as.character(results$combos$climate[w])]]) 
+names(x) <- results$combos$climate[w]
+
+str(x)
 
 random <- randwin(repeats = 1,
                   baseline =  model   ,
-                  xvar = list(Temp = Clim$tmean_scaled,
-                              Ppt = Clim$ppt_scaled),
+                  xvar = list(Clim[[as.character(results$combos$climate[w])]]),
                   type = "absolute",
                   range = range,
                   stat = c("mean"),

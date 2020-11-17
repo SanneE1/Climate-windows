@@ -40,8 +40,8 @@ Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "")
 
 ### Climate signal combinations ----------------------------------------------------------------------------------------------------------------------------
 
+xvar <- c("ppt", "tmax", "tmin", "tmean")
 
-xvar <- c("tmean_scaled", "ppt_scaled")
 type <- c("absolute")
 stat <- c("mean")
 func <- c("lin")
@@ -129,9 +129,11 @@ if(vitalrate == "fn") {
 
 #### Run function ----------------------------------------------------------------------------------------------------------------------------
 
+x <- list(Clim[[options$xvar[taskID]]]) # select the right climate variable in list format
+names(x) <- options$xvar[taskID]
+
 result <- slidingwin(baseline = model,
-                     xvar = list(Temp = Clim$tmean_scaled,
-                                 Ppt = Clim$ppt_scaled),
+                     xvar = x,
                      type = "absolute",
                      range = range,
                      stat = options$stat[taskID], 
