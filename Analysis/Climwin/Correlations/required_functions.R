@@ -12,6 +12,14 @@ cor_wrap <- function(species, vitalrate, Climate, SlidingObject, Winner, Only_Au
                                               levels = c("mean_tmin", "mean_tavg", "mean_tmax", 
                                                          "sum_prcp", "sum_snow", "mean_snwd",
                                                          "SPEI"))
+    if(species == "HEQU") {
+      data$df$Clim_variable <- data$df$Clim_variable %>%
+        gsub("ppt", "sum_prcp", x = .) %>%
+        gsub("tmin", "mean_tmin", x = .)%>%
+        gsub("tmax", "mean_tmax", x = .)%>%
+        gsub("tmean", "mean_tmavg", x = .)
+    }
+    
     data$df$Clim_variable <- factor(data$df$Clim_variable, 
                                               levels = c("mean_tmin", "mean_tavg", "mean_tmax", 
                                                          "sum_prcp", "sum_snow", "mean_snwd",
@@ -35,7 +43,14 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
   #### data formatting ----------------------------------
   Clim <- read.csv(Climate)
   Clim$date <- paste("15/",sprintf("%02d", Clim$Month), "/", Clim$Year, sep = "") ### get a date that's accepted by climwin
-
+  
+  if(species == "HEQU") {
+    Clim <- dplyr::rename(Clim, 
+           sum_prcp = ppt,
+           mean_tmin = tmin,
+           mean_tavg = tmean,
+           mean_tmax = tmax)
+  }
   #### Set Range ------------------------------
   
   if(vitalrate == "s") {
@@ -102,7 +117,7 @@ corr_climate <- function(species, vitalrate, Climate, SlidingObject, Winner, Onl
   
 # select climate vectors
   if (Only_Auto == FALSE){
-    if(species %in% c("HEQU", "FRSP")) {
+    if(species == "FRSP") {
   Clim <- Clim %>%
     select(sum_prcp, mean_tavg, mean_tmin, mean_tmax, SPEI, sum_snow, mean_snwd, date) %>%
     mutate(date = as.Date(date, format = "%d/%m/%Y"))

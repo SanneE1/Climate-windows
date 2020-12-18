@@ -21,7 +21,6 @@ sites <- data.frame(id = c("low", "mid", "high"),
 nearby_Stations <- read.csv("Data/Climate data/HEQU_nearb_stations.csv")
 nearby_Stations$X <- NULL
 nearby_Stations$id <- as.character(nearby_Stations$id)
-nearby_Stations$id[which(nearby_Stations$station == "USS0006L11S" )] <- "USS0006L11S"
 
 
 ################################
@@ -31,7 +30,7 @@ nearby_Stations$id[which(nearby_Stations$station == "USS0006L11S" )] <- "USS0006
 locations <- rbind(sites, nearby_Stations)
 
 
-pal <- colorFactor(c("navy","navy","navy", "red", "gray50"), domain = c("low", "mid", "high","USS0006L11S", "NOAA options"), ordered = T)
+pal <- colorFactor(c("navy","navy","navy", "gray50"), domain = c("low", "mid", "high", "NOAA options"), ordered = T)
 
 Map <- leaflet(locations) %>%
   setView(lng = sum(sites$longitude)/3, lat = sum(sites$latitude)/3, zoom = 10) %>%
@@ -42,8 +41,8 @@ Map <- leaflet(locations) %>%
     stroke = FALSE,
     popup = ~htmltools::htmlEscape(station)) %>%
   addLegend("bottomright",
-            colors = c("navy", "red", "gray50"),
-            labels = c("Populations", "Station USS0006L11S" ,"Other station options"),
+            colors = c("navy", "gray50"),
+            labels = c("Populations","NOAA stations"),
             values = ~id, opacity = 1, title = "Locations") %>%
   addScaleBar()
 

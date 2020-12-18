@@ -17,7 +17,7 @@ source_lines <- function(file, lines){
 
 
 speciesA <- c("HEQU", "FRSP", "OPIM", "CRFL")
-ClimateA <- c("data/Climate data/HEQU_NOAA_month_imputed.csv",
+ClimateA <- c("data/Climate data/PRISM_check/PRISM_HEQU_climate.csv",
              "data/Climate data/FRSP_NOAA_month.csv",
              "data/Climate data/OPIM_SEVLTER_month_imputed.csv",
              "data/Climate data/CRFL_NOAA_month.csv")
@@ -72,13 +72,19 @@ for (vitalrate in c("s", "g", "fp", "fn")) {
   }
   
   # List right climate variables
-  if(species == "HEQU" || species == "FRSP"){
+  if(species == "FRSP"){
     climate <- list(sum_prcp = Clim$sum_prcp,
                     mean_tavg = Clim$mean_tavg,
                     mean_tmin = Clim$mean_tmin,
                     mean_tmax = Clim$mean_tmax,
                     sum_snow = Clim$sum_snow,
                     mean_snwd = Clim$mean_snwd,
+                    SPEI = Clim$SPEI)
+  } else if(species == "HEQU") {
+    climate <- list(sum_prcp = Clim$ppt,
+                    mean_tavg = Clim$tmean,
+                    mean_tmin = Clim$tmin,
+                    mean_tmax = Clim$tmax,
                     SPEI = Clim$SPEI)
   } else {
     climate <- list(sum_prcp = Clim$sum_prcp,
@@ -89,14 +95,16 @@ for (vitalrate in c("s", "g", "fp", "fn")) {
   }
   
   grow_mod <- lapply(climate, function(x) own.singlewin(xvar = list(climate = x),
-                                                       cdate = as.factor(as.character(Clim$date)),
-                                                       bdate = as.factor(as.character(Biol$date)),
+                                                       cdate = as.Date(Clim$date, format = "%d/%m/%Y"),
+                                                       bdate = as.Date(Biol$date, format = "%d/%m/%Y"),
                                                        baseline = model,
                                                        range = range,
                                                        type = "absolute", refday = c(1,ref),
                                                        stat = "mean", func = c("lin"),
                                                        cinterval = "month",
-                                                       cmissing = FALSE))
+                                                       cmissing = FALSE,
+                                                       spatial = list(as.factor(Biol$population), as.factor(Clim$population))
+                                                       ))
   
   a <- sapply(grow_mod, function(x) AIC(x$BestModel)) - AIC(model)
   b <- sapply(grow_mod, function(x) rsq::rsq(x$BestModel, adj = T)$model %>% round(digits = 4))

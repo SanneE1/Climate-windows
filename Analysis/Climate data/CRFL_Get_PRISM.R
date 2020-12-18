@@ -84,7 +84,7 @@ extract_year_data <- function(ii, sites = site_coord){
   file_path <- file_links[ii]
   
   # download
-  download.file( file_path, destfile = file_dest[ii], mode = "wb")
+  download.file( file_path, destfile = file_dest[ii], mode = "wb", quiet = T)
   
   # unzip file to temp_dir
   unzip( grep( 'zip$', list.files(), value=T),
@@ -127,72 +127,104 @@ extract_year_data <- function(ii, sites = site_coord){
   
 }
 
-start <- Sys.time()
-climate_all_l <- lapply(1:128, function(x) 
-  tryCatch(extract_year_data(x, sites = site_coord), 
-           error = function(e) NULL))
-Sys.time() - start
-
-
-climate_all   <- climate_all_l %>% 
-  bind_rows %>% 
-  gather( month, value, 01:12 ) %>% 
-  pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
-  group_by(month, population) %>%
-  mutate(tmean = scale(tmean),
-         tmin = scale(tmin),
-         tmax = scale(tmax),
-         ppt = scale(ppt)) %>%
-  rename(Month = month,
-         Year = year) 
-
-write.csv(climate_all, file = "PRISM_CRFL_climate.csv")
-
-
-### Get PRISM data for NOAA Climate station location
-
-# climate_station <- lapply(1:64, function(x) 
-#   tryCatch(extract_year_data(x, sites = station_coord), 
+# ### Retrieve climate at population
+# start <- Sys.time()
+# climate_all_l <- lapply(1:128, function(x) 
+#   tryCatch(extract_year_data(x, sites = site_coord), 
 #            error = function(e) NULL))
+# Sys.time() - start
 # 
-# climatePRISM_at_NOAA <- climate_station %>% 
+# 
+# climate_all   <- climate_all_l %>% 
 #   bind_rows %>% 
 #   gather( month, value, 01:12 ) %>% 
 #   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
 #   group_by(month, population) %>%
-#   mutate(tmean_scaled = scale(tmean),
-#          ppt_scaled = scale(ppt)) %>%
+#   mutate(tmean = scale(tmean),
+#          tmin = scale(tmin),
+#          tmax = scale(tmax),
+#          ppt = scale(ppt)) %>%
 #   rename(Month = month,
 #          Year = year) 
 # 
+# write.csv(climate_all, file = "PRISM_CRFL_climate.csv")
+# setwd("../../../")
+
+### get SPEI values ----------------------------------------------------------------
+climate_all <- read.csv("Data/Climate data/PRISM_check/PRISM_CRFL_climate.csv")
+
+# Compute potential evapotranspiration (PET) and climatic water balance (BAL)
+climate_all$PET <- thornthwaite(climate_all$tmean, 40.59548) 
+climate_all$BAL <- climate_all$ppt - climate_all$PET
+
+# transform in 
+Timescale <- ts(climate_all[,-c(1:4)],
+                end = c(max(climate_all$Year), 12),
+                frequency = 12)
+
+# calculate SPEI with scale of 12 months
+SP <- spei(Timescale[,"BAL"], 12)
+
+spei_df <- matrix(SP$fitted[1:(12*length(unique(climate_all$Year)))],
+                  nrow = length(unique(climate_all$Year)), ncol = 12,
+                  byrow = T) %>%
+  as.data.frame %>%
+  mutate(Year = c(min(climate_all$Year):max(climate_all$Year)))  %>%
+  setNames(c(1:12, "Year")) %>%
+  pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
+  mutate(Month = as.numeric(Month))
+
+climate_all <- left_join(climate_all, spei_df) %>% select(-c(PET, BAL))
+write.csv(climate_all, "Data/Climate data/PRISM_check/PRISM_CRFL_climate.csv")
+
+
+# ### Get PRISM data for NOAA Climate station location
+# 
+# climate_station <- lapply(1:128, function(x)
+#   tryCatch(extract_year_data(x, sites = station_coord),
+#            error = function(e) NULL))
+# 
+# climatePRISM_at_NOAA <- climate_station %>%
+#   bind_rows %>%
+#   gather( month, value, 01:12 ) %>%
+#   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>%
+#   group_by(month, population) %>%
+#   mutate(tmean = scale(tmean),
+#          tmin = scale(tmin),
+#          tmax = scale(tmax),
+#          ppt = scale(ppt)) %>%
+#   rename(Month = month,
+#          Year = year)
+# 
 # write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station_CRFL.csv")
+# setwd("../../../")
 
-
-setwd("../../../")
 
 #----------------------------------------------
-# Correlate PRISM data with NOAA:
+### Correlate PRISM at NOAA station location with recorded NOAA data at that station
+library(lubridate)
 
 
-NOAA <- read.csv("Data/Climate data/CRFL_SEVLTER_month_imputed.csv")
+NOAA <- read.csv("Data/Climate data/CRFL_NOAA_month.csv")
 
 PRISM <- read.csv("Data/Climate data/PRISM_check/PRISM_CRFL_climate.csv") 
+PRISM_at_station <- read.csv("Data/Climate data/PRISM_check/PRISM_climate_at_NOAA_station_CRFL.csv")
+
+Clim <- left_join(PRISM[,-1], NOAA[,-1])
+Clim_at_station <- left_join(PRISM_at_station[,-1], NOAA[,-1])
 
 
+correlation_df <- data.frame(Tavg = c(cor(Clim$mean_tavg, Clim$tmean, use = "complete.obs"),
+                                      cor(Clim_at_station$mean_tavg, Clim_at_station$tmean, use = "complete.obs")),
+                             Tmin = c(cor(Clim$mean_tmin, Clim$tmin, use = "complete.obs"),
+                                      cor(Clim_at_station$mean_tmin, Clim_at_station$tmin, use = "complete.obs")),
+                             Tmax = c(cor(Clim$mean_tmax, Clim$tmax, use = "complete.obs"),
+                                      cor(Clim_at_station$mean_tmax, Clim_at_station$tmax, use = "complete.obs")),
+                             Prcp = c(cor(Clim$sum_prcp, Clim$ppt, use = "complete.obs"),
+                                      cor(Clim_at_station$sum_prcp, Clim_at_station$ppt, use = "complete.obs"))
+)
 
-Clim1 <- left_join(PRISM[,-1], NOAA[,-1])
-
-cor(Clim1$tmean_scaled, Clim1$mean_tavg, use = "complete.obs")
-
-cor(Clim1$ppt_scaled, Clim1$sum_prcp, use = "complete.obs")
+row.names(correlation_df) <- c("population", "NOAA_station")
 
 
-
-### Correlate PRISM at NOAA station location with recorded NOAA data at that station
-
-prism <- read.csv("Data/Climate data/PRISM_check/PRISM_climate_at_NOAA_station_CRFL.csv")
-
-Clim2 <- left_join(NOAA, prism[,-1])
-
-cor(Clim2$mean_tavg, Clim2$tmean_scaled, use = "complete.obs")
-cor(Clim2$sum_prcp, Clim2$ppt_scaled, use = "complete.obs")
+write.csv(correlation_df, "Results/Climwin/4th draft PRISM/Climate_correlation_df_CRFL.csv")

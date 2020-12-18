@@ -198,7 +198,7 @@ own.singlewin <- function (xvar, cdate, bdate, baseline, range, stat, func, type
     if (is.null(spatial) == FALSE) {
       newclim <- data.frame(cintno = cintno, xvar = xvar, 
                             spatial = climspatial)
-      newclim2 <- melt(newclim, id = c("cintno", "spatial"))
+      newclim2 <- melt(newclim, id = c("cintno", "spatial"))%>% filter(!is.na(xvar))
       newclim3 <- cast(newclim2, cintno + spatial ~ variable, 
                        stat, na.rm = T)
       newclim3 <- newclim3[order(newclim3$spatial, newclim3$cintno), 
@@ -209,7 +209,7 @@ own.singlewin <- function (xvar, cdate, bdate, baseline, range, stat, func, type
     }
     else {
       newclim <- data.frame(cintno = cintno, xvar = xvar)
-      newclim2 <- melt(newclim, id = "cintno")
+      newclim2 <- melt(newclim, id = "cintno")%>% filter(!is.na(xvar))
       newclim3 <- cast(newclim2, cintno ~ variable, stat, 
                        na.rm = T)
       cintno <- newclim3$cintno
@@ -272,7 +272,7 @@ own.singlewin <- function (xvar, cdate, bdate, baseline, range, stat, func, type
     if (is.null(spatial) == FALSE) {
       newclim <- data.frame(cintno = cintno, xvar = xvar, 
                             spatial = climspatial)
-      newclim2 <- melt(newclim, id = c("cintno", "spatial"))
+      newclim2 <- melt(newclim, id = c("cintno", "spatial"))%>% filter(!is.na(xvar))
       newclim3 <- cast(newclim2, cintno + spatial ~ variable, 
                        stat)
       newclim3 <- newclim3[order(newclim3$spatial, newclim3$cintno), 
@@ -307,13 +307,12 @@ own.singlewin <- function (xvar, cdate, bdate, baseline, range, stat, func, type
       stop("You do not have enough climate data to search that far back. Please adjust the value of range or add additional climate data.")
     }
   }
-  if (cinterval == "month") {
-    if ((as.numeric(min(as.Date(bdate, format = "%d/%m/%Y")) - 
-                    months(range[1])) - (as.numeric(min(as.Date(cdate, 
-                                                                format = "%d/%m/%Y"))))) <= 0) {
-      stop("You do not have enough climate data to search that far back. Please adjust the value of range or add additional climate data.")
-    }
-  }
+  # if (cinterval == "month") {
+  #   if ((as.numeric(min(bdate) - 
+  #                   months(range[1])) - (as.numeric(min(cdate)))) <= 0) {
+  #     stop("You do not have enough climate data to search that far back. Please adjust the value of range or add additional climate data.")
+  #   }
+  # }
   if (max(bintno) > max(cintno)) {
     if (type == "absolute") {
       stop("You need more recent biological data. This error may be caused by your choice of refday")
@@ -434,51 +433,51 @@ own.singlewin <- function (xvar, cdate, bdate, baseline, range, stat, func, type
     }
   }
   cmatrix <- as.matrix(cmatrix[, c(ncol(cmatrix):1)])
-  if (cmissing == FALSE && any(is.na(cmatrix))) {
-    if (is.null(spatial) == FALSE) {
-      if (cinterval == "day") {
-        .GlobalEnv$missing <- as.Date(cintno$Date[is.na(xvar$Clim)], 
-                                      origin = min(as.Date(cdate, format = "%d/%m/%Y")) - 
-                                        1)
-      }
-      if (cinterval == "month") {
-        .GlobalEnv$missing <- c(paste("Month:", cintno$Date[is.na(xvar$Clim)] - 
-                                        (floor(cintno$Date[is.na(xvar$Clim)]/12) * 
-                                           12), "Year:", lubridate::year(min(as.Date(cdate, 
-                                                                                     format = "%d/%m/%Y"))) + floor(cintno$Date[is.na(xvar$Clim)]/12)))
-      }
-      if (cinterval == "week") {
-        .GlobalEnv$missing <- c(paste("Week:", cintno$Date[is.na(xvar$Clim)] - 
-                                        (floor(cintno$Date[is.na(xvar$Clim)]/52) * 
-                                           52), "Year:", lubridate::year(min(as.Date(cdate, 
-                                                                                     format = "%d/%m/%Y"))) + floor(cintno$Date[is.na(xvar$Clim)]/52)))
-      }
-    }
-    else {
-      if (cinterval == "day") {
-        .GlobalEnv$missing <- as.Date(cintno[is.na(xvar)], 
-                                      origin = min(as.Date(cdate, format = "%d/%m/%Y")) - 
-                                        1)
-      }
-      if (cinterval == "month") {
-        .GlobalEnv$missing <- c(paste("Month:", (lubridate::month(min(as.Date(cdate, 
-                                                                              format = "%d/%m/%Y"))) + (which(is.na(xvar)) - 
-                                                                                                          1)) - (floor((lubridate::month(min(as.Date(cdate, 
-                                                                                                                                                     format = "%d/%m/%Y"))) + (which(is.na(xvar)) - 
-                                                                                                                                                                                 1))/12) * 12), "Year:", (floor((which(is.na(xvar)) - 
-                                                                                                                                                                                                                   1)/12) + lubridate::year(min(as.Date(cdate, 
-                                                                                                                                                                                                                                                        format = "%d/%m/%Y"))))))
-      }
-      if (cinterval == "week") {
-        .GlobalEnv$missing <- c(paste("Week:", cintno[is.na(xvar)] - 
-                                        (floor(cintno[is.na(xvar)]/52) * 52), "Year:", 
-                                      lubridate::year(min(as.Date(cdate, format = "%d/%m/%Y"))) + 
-                                        floor(cintno[is.na(xvar)]/52)))
-      }
-    }
-    stop(c("Climate data should not contain NA values: ", 
-           length(.GlobalEnv$missing), " NA value(s) found. Please add missing climate data or set cmissing to `method1` or `method2`.\n           See object 'missing' for all missing climate data"))
-  }
+  # if (cmissing == FALSE && any(is.na(cmatrix))) {
+  #   if (is.null(spatial) == FALSE) {
+  #     if (cinterval == "day") {
+  #       .GlobalEnv$missing <- as.Date(cintno$Date[is.na(xvar$Clim)], 
+  #                                     origin = min(as.Date(cdate, format = "%d/%m/%Y")) - 
+  #                                       1)
+  #     }
+  #     if (cinterval == "month") {
+  #       .GlobalEnv$missing <- c(paste("Month:", cintno$Date[is.na(xvar$Clim)] - 
+  #                                       (floor(cintno$Date[is.na(xvar$Clim)]/12) * 
+  #                                          12), "Year:", lubridate::year(min(as.Date(cdate, 
+  #                                                                                    format = "%d/%m/%Y"))) + floor(cintno$Date[is.na(xvar$Clim)]/12)))
+  #     }
+  #     if (cinterval == "week") {
+  #       .GlobalEnv$missing <- c(paste("Week:", cintno$Date[is.na(xvar$Clim)] - 
+  #                                       (floor(cintno$Date[is.na(xvar$Clim)]/52) * 
+  #                                          52), "Year:", lubridate::year(min(as.Date(cdate, 
+  #                                                                                    format = "%d/%m/%Y"))) + floor(cintno$Date[is.na(xvar$Clim)]/52)))
+  #     }
+  #   }
+  #   else {
+  #     if (cinterval == "day") {
+  #       .GlobalEnv$missing <- as.Date(cintno[is.na(xvar)], 
+  #                                     origin = min(as.Date(cdate, format = "%d/%m/%Y")) - 
+  #                                       1)
+  #     }
+  #     if (cinterval == "month") {
+  #       .GlobalEnv$missing <- c(paste("Month:", (lubridate::month(min(as.Date(cdate, 
+  #                                                                             format = "%d/%m/%Y"))) + (which(is.na(xvar)) - 
+  #                                                                                                         1)) - (floor((lubridate::month(min(as.Date(cdate, 
+  #                                                                                                                                                    format = "%d/%m/%Y"))) + (which(is.na(xvar)) - 
+  #                                                                                                                                                                                1))/12) * 12), "Year:", (floor((which(is.na(xvar)) - 
+  #                                                                                                                                                                                                                  1)/12) + lubridate::year(min(as.Date(cdate, 
+  #                                                                                                                                                                                                                                                       format = "%d/%m/%Y"))))))
+  #     }
+  #     if (cinterval == "week") {
+  #       .GlobalEnv$missing <- c(paste("Week:", cintno[is.na(xvar)] - 
+  #                                       (floor(cintno[is.na(xvar)]/52) * 52), "Year:", 
+  #                                     lubridate::year(min(as.Date(cdate, format = "%d/%m/%Y"))) + 
+  #                                       floor(cintno[is.na(xvar)]/52)))
+  #     }
+  #   }
+  #   stop(c("Climate data should not contain NA values: ", 
+  #          length(.GlobalEnv$missing), " NA value(s) found. Please add missing climate data or set cmissing to `method1` or `method2`.\n           See object 'missing' for all missing climate data"))
+  # }
   if (cmissing != FALSE && any(is.na(cmatrix))) {
     message("Missing climate data detected. Please wait while NAs are replaced.")
     for (i in which(is.na(cmatrix))) {

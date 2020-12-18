@@ -1,12 +1,11 @@
 ## Download PRISM data for HEQU populations
-setwd("Data/Climate data/PRISM_check/")
 
 
 library(tidyverse)
 library(raster)
 library(RCurl)
 library(prism)
-
+library(pbapply)
 
 # Population coordinates
 site_coord <- data.frame(id = c("low", "mid", "high"), 
@@ -77,14 +76,12 @@ file_dest  <- gsub("tmean/[0-9]{4}/|tmin/[0-9]{4}/|tmax/[0-9]{4}/|ppt/[0-9]{4}/"
 # extract year and monthly data
 extract_year_data <- function(ii, sites = site_coord){
   
-  print( ii )
-  
   # extac with archive 
   # devtools::install_github('jimhester/archive')
   file_path <- file_links[ii]
   
   # download
-  download.file( file_path, destfile = file_dest[ii], mode = "wb")
+  download.file( file_path, destfile = file_dest[ii], mode = "wb", quiet = T)
   
   # unzip file to temp_dir
   unzip( grep( 'zip$', list.files(), value=T),
@@ -121,60 +118,152 @@ extract_year_data <- function(ii, sites = site_coord){
   file.remove( paste0('temp_dir/',list.files('temp_dir/')) )
   file.remove( grep( 'zip$', list.files(), value=T) )
   
-  print(ii)
-  
   return(values_df)
   
 }
 
 start <- Sys.time()
-climate_all_l <- lapply(1:128, function(x) 
+climate_all_l <- pblapply(1:128, function(x) 
   tryCatch(extract_year_data(x), 
            error = function(e) NULL))
 Sys.time() - start
 
 
-climate_all   <- climate_all_l %>% 
-  bind_rows %>% 
-  gather( month, value, 01:12 ) %>% 
-  pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
-  group_by(month, population) %>%
-  mutate(tmean_scaled = scale(tmean),
-         ppt_scaled = scale(ppt)) %>%
-  rename(Month = month,
-         Year = year) 
-
-write.csv(climate_all, file = "PRISM_HEQU_climate.csv")
-
-
-### Get PRISM data for NOAA Climate station location
-# climate_station <- lapply(1:128, function(x) 
-#   tryCatch(extract_year_data(x, sites = station_coord), 
-#            error = function(e) NULL))
+# ## Estimate climate at populations
+# setwd("Data/Climate data/PRISM_check/")
 # 
-# climatePRISM_at_NOAA <- climate_station %>% 
+# climate_all   <- climate_all_l %>% 
 #   bind_rows %>% 
 #   gather( month, value, 01:12 ) %>% 
 #   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>% 
 #   group_by(month, population) %>%
+#   mutate(tmean = scale(tmean),
+#          tmin = scale(tmin),
+#          tmax = scale(tmax),
+#          ppt = scale(ppt)) %>%
+#   rename(Month = month,
+#          Year = year) %>%
+#   as.data.frame() %>%
+#   dplyr::select(population, Year, Month, ppt, tmin, tmean, tmax)
+# 
+# write.csv(climate_all, file = "PRISM_HEQU_climate.csv")
+# setwd("../../../")
+
+### get SPEI values ----------------------------------------------------------------
+# climate_all <- read.csv("Data/Climate data/PRISM_check/PRISM_HEQU_climate.csv")
+# 
+# ## Low population
+# low <- climate_all %>% filter(population == "low")
+# 
+# # Compute potential evapotranspiration (PET) and climatic water balance (BAL)
+# low$PET <- thornthwaite(low$tmean, site_coord$Latitude[1]) 
+# low$BAL <- low$ppt - low$PET
+# 
+# # transform in 
+# Timescale <- ts(low[,-c(1:4)],
+#                 end = c(max(low$Year),12),
+#                 frequency = 12)
+# 
+# # calculate SPEI with scale of 12 months
+# SP <- spei(Timescale[,"BAL"], 12)
+# 
+# spei_df <- matrix(SP$fitted[1:(12*length(unique(low$Year)))],
+#                   nrow = length(unique(low$Year)), ncol = 12,
+#                   byrow = T) %>%
+#   as.data.frame %>%
+#   mutate(Year = c(min(low$Year):max(low$Year)))  %>%
+#   setNames(c(1:12, "Year")) %>%
+#   pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
+#   mutate(Month = as.numeric(Month))
+# 
+# low <- left_join(low, spei_df) %>% select(-c(PET, BAL))
+# 
+# ## mid population
+# mid <- climate_all %>% filter(population == "mid")
+# 
+# # Compute potential evapotranspiration (PET) and climatic water balance (BAL)
+# mid$PET <- thornthwaite(mid$tmean, site_coord$Latitude[1]) 
+# mid$BAL <- mid$ppt - mid$PET
+# 
+# # transform in 
+# Timescale <- ts(mid[,-c(1:4)],
+#                 end = c(max(mid$Year),12),
+#                 frequency = 12)
+# 
+# # calculate SPEI with scale of 12 months
+# SP <- spei(Timescale[,"BAL"], 12)
+# 
+# spei_df <- matrix(SP$fitted[1:(12*length(unique(mid$Year)))],
+#                   nrow = length(unique(mid$Year)), ncol = 12,
+#                   byrow = T) %>%
+#   as.data.frame %>%
+#   mutate(Year = c(min(mid$Year):max(mid$Year)))  %>%
+#   setNames(c(1:12, "Year")) %>%
+#   pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
+#   mutate(Month = as.numeric(Month))
+# 
+# mid <- left_join(mid, spei_df) %>% select(-c(PET, BAL))
+# 
+# ## high population
+# high <- climate_all %>% filter(population == "high")
+# 
+# # Compute potential evapotranspiration (PET) and climatic water balance (BAL)
+# high$PET <- thornthwaite(high$tmean, site_coord$Latitude[1]) 
+# high$BAL <- high$ppt - high$PET
+# 
+# # transform in 
+# Timescale <- ts(high[,-c(1:4)],
+#                 end = c(max(high$Year),12),
+#                 frequency = 12)
+# 
+# # calculate SPEI with scale of 12 months
+# SP <- spei(Timescale[,"BAL"], 12)
+# 
+# spei_df <- matrix(SP$fitted[1:(12*length(unique(high$Year)))],
+#                   nrow = length(unique(high$Year)), ncol = 12,
+#                   byrow = T) %>%
+#   as.data.frame %>%
+#   mutate(Year = c(min(high$Year):max(high$Year)))  %>%
+#   setNames(c(1:12, "Year")) %>%
+#   pivot_longer(-Year, names_to = "Month", values_to = "SPEI") %>%
+#   mutate(Month = as.numeric(Month))
+# 
+# high <- left_join(high, spei_df) %>% select(-c(PET, BAL))
+# 
+# 
+# climate_all <- rbind(low,mid, high)
+# write.csv(climate_all, "Data/Climate data/PRISM_check/PRISM_HEQU_climate.csv")
+
+# 
+# ## Get PRISM data for NOAA Climate station location
+# setwd("Data/Climate data/PRISM_check/")
+# climate_station <- pblapply(1:128, function(x)
+#   tryCatch(extract_year_data(x, sites = station_coord),
+#            error = function(e) NULL))
+# 
+# climatePRISM_at_NOAA <- climate_station %>%
+#   bind_rows %>%
+#   gather( month, value, 01:12 ) %>%
+#   pivot_wider(-c(lat, lon), names_from = variable, values_from = value) %>%
+#   group_by(month, population) %>%
 #   mutate(tmean_scaled = scale(tmean),
 #          ppt_scaled = scale(ppt)) %>%
 #   rename(Month = month,
-#          Year = year) 
+#          Year = year)
 # 
-# write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station.csv")
-# 
-
-
-setwd("../../../")
+# write.csv(climatePRISM_at_NOAA, file = "PRISM_climate_at_NOAA_station_HEQU.csv")
+# setwd("../../../")
 
 #----------------------------------------------
 # Correlate PRISM data with NOAA:
+library(lubridate)
 
 
-NOAA <- read.csv("Data/Climate data/HEQU_NOAA_month_imputed.csv")
+NOAA <- read.csv("Data/Climate data/HEQU_NOAA_month_imputed.csv") %>%
+  select(-X)
 
-PRISM <- read.csv("Data/Climate data/PRISM_check/PRISM_HEQU_climate.csv") 
+PRISM <- read.csv("Data/Climate data/PRISM_check/PRISM_HEQU_climate.csv") %>%
+  select(-X)
   
 
 
@@ -184,49 +273,38 @@ low <- Clim %>% subset(population == "low")
 mid <- Clim %>% subset(population == "mid")
 high <- Clim %>% subset(population == "high")
 
-cor(low$tmean_scaled, low$mean_tavg)
-cor(mid$tmean_scaled, mid$mean_tavg)
-cor(high$tmean_scaled, high$mean_tavg)
-
-cor(low$ppt_scaled, low$sum_prcp)
-cor(mid$ppt_scaled, mid$sum_prcp)
-cor(high$ppt_scaled, high$sum_prcp)
-
-
 
 ### Correlate PRISM at NOAA station location with recorded NOAA data at that station
 
-mid_noaa <- read.csv("Data/Climate data/HEQU_midstation_original.csv") %>%
-  mutate(date = as.Date(date, "%Y-%m-%d")) %>%
-  group_by(Month = month(date), Year = year(date)) %>%
-  summarise(sum_prcp = sum(prcp),
-            mean_tavg = mean(tavg, na.rm = T)) %>%
-  group_by(Month) %>%
-  mutate(sum_prcp_scaled = scale(sum_prcp),
-         mean_tavg_scaled = scale(mean_tavg))
 
-prism <- read.csv("Data/Climate data/PRISM_check/PRISM_climate_at_NOAA_station.csv")
+prism <- read.csv("Data/Climate data/PRISM_check/PRISM_climate_at_NOAA_station_HEQU.csv")%>%
+  select(-X)
 
-Clim <- left_join(mid_noaa, prism)
-
-cor(Clim$mean_tavg_scaled, Clim$tmean_scaled, use = "complete.obs")
-cor(Clim$sum_prcp_scaled, Clim$ppt_scaled)
+Clim <- left_join(NOAA, prism)
 
 
-correlation_df <- data.frame(Tavg = c(cor(low$tmean_scaled, low$mean_tavg),
-                                      cor(mid$tmean_scaled, mid$mean_tavg),
-                                      cor(high$tmean_scaled, high$mean_tavg),
-                                      cor(Clim$mean_tavg_scaled, Clim$tmean_scaled, use = "complete.obs")),
-                             Prcp = c(cor(low$ppt_scaled, low$sum_prcp),
-                                      cor(mid$ppt_scaled, mid$sum_prcp),
-                                      cor(high$ppt_scaled, high$sum_prcp),
-                                      cor(Clim$sum_prcp_scaled, Clim$ppt_scaled)
+correlation_df <- data.frame(Tavg = c(cor(low$tmean, low$mean_tavg, use = "complete.obs"),
+                                      cor(mid$tmean, mid$mean_tavg, use = "complete.obs"),
+                                      cor(high$tmean, high$mean_tavg, use = "complete.obs"),
+                                      cor(Clim$mean_tavg, Clim$tmean, use = "complete.obs")),
+                             Tmin = c(cor(low$tmin, low$mean_tmin, use = "complete.obs"),
+                                      cor(mid$tmin, mid$mean_tmin, use = "complete.obs"),
+                                      cor(high$tmin, high$mean_tmin, use = "complete.obs"),
+                                      cor(Clim$mean_tmin, Clim$tmin, use = "complete.obs")),
+                             Tmax = c(cor(low$tmax, low$mean_tmax, use = "complete.obs"),
+                                      cor(mid$tmax, mid$mean_tmax, use = "complete.obs"),
+                                      cor(high$tmax, high$mean_tmax, use = "complete.obs"),
+                                      cor(Clim$mean_tmax, Clim$tmax, use = "complete.obs")),
+                             Prcp = c(cor(low$ppt, low$sum_prcp, use = "complete.obs"),
+                                      cor(mid$ppt, mid$sum_prcp, use = "complete.obs"),
+                                      cor(high$ppt, high$sum_prcp, use = "complete.obs"),
+                                      cor(Clim$sum_prcp, Clim$ppt, use = "complete.obs")
                                       )
 )
 
 row.names(correlation_df) <- c("low", "mid", "high", "NOAA_station")
 
 
-write.csv(correlation_df, "Results/Climwin/4th draft HEQU PRISM/Climate_correlation_df.csv")
+write.csv(correlation_df, "Results/Climwin/4th draft PRISM/Climate_correlation_df_HEQU.csv")
 
 

@@ -13,7 +13,7 @@ source("Analysis/Climwin/Correlations/required_functions.R") # custom functions 
 
 AutoHs <- cor_wrap(species = "HEQU", 
                        vitalrate = "s", 
-                       Climate = "data/Climate data/HEQU_NOAA_month_imputed.csv", 
+                       Climate = "data/Climate data/PRISM_check/PRISM_HEQU_climate.csv", 
                        SlidingObject = Hs, 
                        Winner = Hsurv)
 
@@ -40,7 +40,7 @@ AutoOs <- cor_wrap("OPIM",
 
 AutoHg <- cor_wrap("HEQU", 
                        "g", 
-                       "data/Climate data/HEQU_NOAA_month_imputed.csv", 
+                       "data/Climate data/PRISM_check/PRISM_HEQU_climate.csv", 
                        Hg, 
                        Hgrowth)
 
@@ -67,7 +67,7 @@ AutoOg <- cor_wrap("OPIM",
 
 AutoHfp <- cor_wrap("HEQU", 
                        "fp", 
-                       "data/Climate data/HEQU_NOAA_month_imputed.csv", 
+                       "data/Climate data/PRISM_check/PRISM_HEQU_climate.csv", 
                        Hfp, 
                        HpFlwr)
 
@@ -94,7 +94,7 @@ AutoOfp <- cor_wrap("OPIM",
 
 AutoHfn <- cor_wrap("HEQU", 
                         "fn", 
-                        "data/Climate data/HEQU_NOAA_month_imputed.csv", 
+                        "data/Climate data/PRISM_check/PRISM_HEQU_climate.csv", 
                         Hfn, 
                         HnFlwr)
 

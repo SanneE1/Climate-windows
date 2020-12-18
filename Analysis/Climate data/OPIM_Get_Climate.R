@@ -7,6 +7,8 @@ library(lubridate)
 ### Using the data downloaded from SEV-LTER on 24/10/2019 ###
 #############################################################
 
+## Daily climate data downloaded from https://sevlter.unm.edu/
+
 ### Load climate data from the 3 closest stations. 50 is the closest to the population
 st50 <- read.csv("Data/Climate data/OPIM_SEVLTER50.csv")
 st49 <- read.csv("Data/Climate data/OPIM_SEVLTER49.csv")
