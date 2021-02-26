@@ -25,9 +25,10 @@ Provided by David Inouye. See the following websites for more information.
 [Open Science Framework](https://osf.io/jt4n5/)
 
 ## Climate data
-Data on the climate used for this project is retrieved from two sources:
+Data on the climate used for this project is retrieved from three sources:
 
-**For HEQU, CRFL, and FRSP:** Data from NOAA is retrieved using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
+**For HEQU:** Data from [PRISM](ftp://prism.oregonstate.edu/monthly/)
+**For CRFL, and FRSP:** Data from NOAA is retrieved using the R package [rnoaa](https://cran.r-project.org/web/packages/rnoaa/rnoaa.pdf)  
 **For OPIM:** Data from the [SEV-LTER](http://tierra.unm.edu/search/climate/search.php) was used
 
 In case data on specific dates were not available, the values were imputed using 1 or 2 other nearest stations. Any remaining missing data (in case the data was also missing from the other stations) is imputed using the same method as the `Climwin`'s \"method1\" 
