@@ -1,5 +1,10 @@
 # Climate Windows
 
+Code for:  
+Evers, S.M., Knight, T.M., Inouye, D.W., Miller, T.E.X., Salguero-Gómez, R., Iler, A.M. and Compagnoni, A. (2021), Lagged and dormant season climate better predict plant vital rates than climate during the growing season. Glob. Change Biol., 27: 1927-1941. https://doi.org/10.1111/gcb.15519  
+_When citing this repo for whatever reason, also include the citation above_  
+
+
 ## Biological Data
 The data used in this analysis are listed below.  
 
